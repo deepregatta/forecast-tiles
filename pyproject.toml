@@ -1,0 +1,38 @@
+[project]
+name = "forecast-tiles"
+version = "0.1.0"
+description = "Precomputed global forecast tiles for Passage: NOAA/Copernicus ingestion, PFT1 tiling, Cloudflare R2 publishing"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "numpy>=2.0",
+    "eccodes>=2.38",
+    "requests>=2.32",
+    "orjson>=3.10",
+    "ecmwf-opendata>=0.3.19",
+]
+
+[project.optional-dependencies]
+publish = [
+    "boto3>=1.34",
+    "copernicusmarine>=2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tilekit"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

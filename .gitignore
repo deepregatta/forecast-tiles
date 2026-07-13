@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+size_prototype_results.json
+data/
+dist/
