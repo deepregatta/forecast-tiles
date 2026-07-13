@@ -9,6 +9,7 @@ predictions; the 6-hourly axis undersamples the tidal cycle (spec § Layers).
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
@@ -20,7 +21,10 @@ from tilekit.codec import quantize
 LAYER = "currents"
 MODEL = "cmems_glo12"
 AXIS_NAME = "steps"
-DATASET_ID = "cmems_mod_glo_phy_anfc_0.083deg_PT1H-i"
+# per-variable currents dataset, 6-hourly instantaneous surface uo/vo —
+# matches the committed 6-hourly axis natively. Env-overridable because the
+# CMEMS catalog renames dataset ids from time to time.
+DATASET_ID = os.environ.get("CMEMS_DATASET_ID", "cmems_mod_glo_phy-cur_anfc_0.083deg_PT6H-i")
 
 STEP_AXIS = axis_offsets((0, 240, 6))  # 41 steps (Phase 0 lever 2)
 
