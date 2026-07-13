@@ -2,7 +2,7 @@ name: ingest-weather-ecmwf
 
 on:
   schedule:
-    - cron: "15 5,11,17,23 * * *" # ECMWF open data publishes with a longer delay
+    - cron: "15 5 * * *" # daily, after the 00Z ECMWF open data publish
   workflow_dispatch:
     inputs:
       cycle:

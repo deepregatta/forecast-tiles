@@ -2,7 +2,7 @@ name: ingest-ensemble
 
 on:
   schedule:
-    - cron: "0 4,10,16,22 * * *" # ~4 h after each GEFS cycle
+    - cron: "0 4 * * *" # daily, ~4 h after the 00Z GEFS cycle
   workflow_dispatch:
     inputs:
       cycle:

@@ -2,7 +2,7 @@ name: ingest-weather
 
 on:
   schedule:
-    - cron: "30 3,9,15,21 * * *" # ~3.5 h after each GFS cycle
+    - cron: "30 3 * * *" # daily, ~3.5 h after the 00Z GFS cycle
   workflow_dispatch:
     inputs:
       cycle:

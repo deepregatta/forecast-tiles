@@ -2,7 +2,7 @@ name: ingest-waves
 
 on:
   schedule:
-    - cron: "45 3,9,15,21 * * *" # ~3.75 h after each GFS-Wave cycle
+    - cron: "45 3 * * *" # daily, ~3.75 h after the 00Z GFS-Wave cycle
   workflow_dispatch:
     inputs:
       cycle:
