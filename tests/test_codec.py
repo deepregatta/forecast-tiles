@@ -142,3 +142,24 @@ def test_tile_ids():
 
 def test_global_tile_count():
     assert len(tiles_for_grid(-90, 90, -180, 180)) == 18 * 36
+
+
+def test_payload_alignment_after_odd_i8_array():
+    # 1x3x3 i8 array (9 bytes, odd) followed by an i16 array: the i16
+    # byte_offset must land on a 4-byte boundary
+    header = make_header(
+        nlat=3,
+        nlon=3,
+        time_axes={"hourly": {"base": "2026-07-13T06:00Z", "offsets_h": [0]}},
+        variables=[
+            {"name": "anom", "axis": "hourly", "dtype": "i8", "scale": 0.2},
+            {"name": "mean", "axis": "hourly", "dtype": "i16", "scale": 0.01},
+        ],
+    )
+    anom = np.full((1, 3, 3), 1.4, dtype=np.float32)
+    mean = np.full((1, 3, 3), 12.34, dtype=np.float32)
+    tile = decode_tile(encode_tile(header, {"anom": anom, "mean": mean}))
+    mean_var = next(v for v in tile.header["variables"] if v["name"] == "mean")
+    assert mean_var["byte_offset"] % 4 == 0
+    assert np.allclose(tile.arrays["mean"], 12.34, atol=0.005)
+    assert np.allclose(tile.arrays["anom"], 1.4, atol=0.1)

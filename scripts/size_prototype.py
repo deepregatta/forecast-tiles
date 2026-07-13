@@ -316,7 +316,9 @@ def measure_weather() -> dict:
     t0 = time.time()
     cycle = resolve_cycle(GFS_BASE + "/gfs.{date}/{hh}/atmos/gfs.t{hh}z.pgrb2.0p25.f240.idx")
     date, hh = cycle.strftime("%Y%m%d"), cycle.strftime("%H")
-    url = lambda s: f"{GFS_BASE}/gfs.{date}/{hh}/atmos/gfs.t{hh}z.pgrb2.0p25.f{s:03d}"  # noqa: E731
+
+    def url(s: int) -> str:
+        return f"{GFS_BASE}/gfs.{date}/{hh}/atmos/gfs.t{hh}z.pgrb2.0p25.f{s:03d}"
 
     near_hourly = list(range(0, 24))  # adjacent-hour redundancy
     far_3h = list(range(120, 144, 3))  # 3-hourly tail redundancy
@@ -439,9 +441,9 @@ def measure_waves() -> dict:
         GFS_BASE + "/gfs.{date}/{hh}/wave/gridded/gfswave.t{hh}z.global.0p25.f384.grib2.idx"
     )
     date, hh = cycle.strftime("%Y%m%d"), cycle.strftime("%H")
-    url = lambda s: (
-        f"{GFS_BASE}/gfs.{date}/{hh}/wave/gridded/gfswave.t{hh}z.global.0p25.f{s:03d}.grib2"
-    )  # noqa: E731
+
+    def url(s: int) -> str:
+        return f"{GFS_BASE}/gfs.{date}/{hh}/wave/gridded/gfswave.t{hh}z.global.0p25.f{s:03d}.grib2"
 
     blocks = {}
     for label, steps in [("near", list(range(0, 27, 3))), ("far", list(range(180, 207, 3)))]:

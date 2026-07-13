@@ -114,8 +114,10 @@ def encode_tile(header: dict, arrays: dict[str, np.ndarray]) -> bytes:
         encoded = np.ascontiguousarray(raw).astype(np_dtype).tobytes()
         var["byte_offset"] = offset_bytes
         var["byte_length"] = len(encoded)
-        offset_bytes += len(encoded)
-        payload_parts.append(encoded)
+        # pad every array to a 4-byte boundary so typed-array views stay aligned
+        pad = (-len(encoded)) % 4
+        offset_bytes += len(encoded) + pad
+        payload_parts.append(encoded + b"\x00" * pad)
 
     header["variables"] = variables
     header_json = orjson.dumps(header)
