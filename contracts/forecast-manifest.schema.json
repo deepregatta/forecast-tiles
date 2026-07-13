@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deepweather.local/contracts/forecast-manifest.schema.json",
+  "title": "Forecast run manifest — written last to forecast-runs/{run_id}/manifest.json; its presence marks the run complete.",
+  "type": "object",
+  "required": ["schema_version", "run_id", "layer", "model", "cycle", "member_count", "resolution_deg", "horizon_h", "time_axes", "variables", "tiling", "tiles", "totals", "validation", "published_at"],
+  "properties": {
+    "schema_version": { "type": "integer" },
+    "run_id": { "type": "string", "pattern": "^[a-z-]+-[0-9]{8}T[0-9]{2}Z$" },
+    "layer": { "enum": ["weather", "weather-ecmwf", "ensemble", "waves", "currents"] },
+    "model": { "type": "string" },
+    "cycle": { "type": "string" },
+    "member_count": { "type": "integer", "minimum": 1 },
+    "resolution_deg": { "type": "number", "exclusiveMinimum": 0 },
+    "horizon_h": { "type": "integer", "minimum": 1 },
+    "time_axes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["base", "offsets_h"],
+        "properties": {
+          "base": { "type": "string" },
+          "offsets_h": { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+        }
+      }
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "axis", "dtype", "scale"],
+        "properties": {
+          "name": { "type": "string" },
+          "axis": { "type": "string" },
+          "dtype": { "enum": ["i16", "i8"] },
+          "scale": { "type": "number" },
+          "offset": { "type": "number" },
+          "per_member": { "type": "boolean" },
+          "units": { "type": "string" }
+        }
+      }
+    },
+    "tiling": {
+      "type": "object",
+      "required": ["tile_deg", "path_template"],
+      "properties": {
+        "tile_deg": { "const": 10 },
+        "path_template": { "type": "string", "description": "e.g. weather/z025/{tile_id}.bin.gz, relative to forecast-runs/{run_id}/" }
+      }
+    },
+    "tiles": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[NS][0-9]{2}[EW][0-9]{3}$" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["bytes", "fnv64"],
+        "properties": {
+          "bytes": { "type": "integer", "minimum": 1 },
+          "fnv64": { "type": "string", "pattern": "^[0-9a-f]{16}$", "description": "FNV-1a 64 of the gzipped object as stored" }
+        }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "required": ["tile_count", "bytes"],
+      "properties": {
+        "tile_count": { "type": "integer", "minimum": 0 },
+        "bytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["checks_passed", "validated_at"],
+      "properties": {
+        "checks_passed": { "type": "array", "items": { "type": "string" } },
+        "validated_at": { "type": "string" }
+      }
+    },
+    "provenance": { "type": "object", "description": "source dataset ids/urls digest; records RTOFS fallback when CMEMS is unavailable" },
+    "published_at": { "type": "string" }
+  }
+}

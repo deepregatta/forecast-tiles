@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deepweather.local/contracts/forecast-latest.schema.json",
+  "title": "Forecast latest.json — mutable per-layer pointer to the current (and previous, for fallback) immutable runs.",
+  "type": "object",
+  "required": ["schema_version", "updated_at", "layers"],
+  "properties": {
+    "schema_version": { "type": "integer" },
+    "updated_at": { "type": "string" },
+    "layers": {
+      "type": "object",
+      "propertyNames": { "enum": ["weather", "weather-ecmwf", "ensemble", "waves", "currents"] },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["run_id", "cycle", "published_at"],
+        "properties": {
+          "run_id": { "type": "string", "pattern": "^[a-z-]+-[0-9]{8}T[0-9]{2}Z$" },
+          "previous_run_id": { "type": ["string", "null"] },
+          "cycle": { "type": "string" },
+          "member_count": { "type": "integer", "minimum": 1 },
+          "published_at": { "type": "string" }
+        }
+      }
+    }
+  }
+}

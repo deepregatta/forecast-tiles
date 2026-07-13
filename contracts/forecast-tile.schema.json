@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deepweather.local/contracts/forecast-tile.schema.json",
+  "title": "PFT1 forecast tile JSON header — see docs/forecast-tiles-spec.md for the binary layout around it.",
+  "type": "object",
+  "required": ["spec", "schema_version", "layer", "model", "run_id", "cycle", "generated_at", "tile_id", "lat0", "lon0", "dlat", "dlon", "nlat", "nlon", "time_axes", "member_count", "variables"],
+  "properties": {
+    "spec": { "const": "PFT1" },
+    "schema_version": { "type": "integer" },
+    "layer": { "enum": ["weather", "weather-ecmwf", "ensemble", "waves", "currents"] },
+    "model": { "type": "string" },
+    "run_id": { "type": "string", "pattern": "^[a-z-]+-[0-9]{8}T[0-9]{2}Z$" },
+    "cycle": { "type": "string" },
+    "generated_at": { "type": "string" },
+    "tile_id": { "type": "string", "pattern": "^[NS][0-9]{2}[EW][0-9]{3}$" },
+    "lat0": { "type": "number", "minimum": -90, "maximum": 80 },
+    "lon0": { "type": "number", "minimum": -180, "maximum": 170 },
+    "dlat": { "type": "number", "exclusiveMinimum": 0 },
+    "dlon": { "type": "number", "exclusiveMinimum": 0 },
+    "nlat": { "type": "integer", "minimum": 1 },
+    "nlon": { "type": "integer", "minimum": 1 },
+    "time_axes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["base", "offsets_h"],
+        "properties": {
+          "base": { "type": "string" },
+          "offsets_h": { "type": "array", "items": { "type": "integer", "minimum": 0 }, "minItems": 1 }
+        }
+      }
+    },
+    "member_count": { "type": "integer", "minimum": 1 },
+    "variables": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "axis", "dtype", "scale", "byte_offset", "byte_length"],
+        "properties": {
+          "name": { "type": "string" },
+          "axis": { "type": "string" },
+          "dtype": { "enum": ["i16", "i8"] },
+          "scale": { "type": "number", "exclusiveMinimum": 0 },
+          "offset": { "type": "number" },
+          "missing": { "type": "integer" },
+          "per_member": { "type": "boolean" },
+          "byte_offset": { "type": "integer", "minimum": 0, "description": "relative to payload start; 4-byte aligned" },
+          "byte_length": { "type": "integer", "minimum": 0, "description": "excludes trailing alignment padding" }
+        }
+      }
+    },
+    "provenance": { "type": "object" }
+  }
+}
