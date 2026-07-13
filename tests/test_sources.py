@@ -164,7 +164,7 @@ def test_wave_variables():
 
 
 def test_cmems_constants():
-    assert cmems.DATASET_ID == "cmems_mod_glo_phy_anfc_0.083deg_PT1H-i"
+    assert cmems.DATASET_ID == "cmems_mod_glo_phy-cur_anfc_0.083deg_PT6H-i"
     assert [v.name for v in cmems.VARS] == ["cur_u_kt", "cur_v_kt"]
     assert all(v.scale == 0.01 for v in cmems.VARS)
     assert cmems.resolve(CYCLE) == CYCLE
