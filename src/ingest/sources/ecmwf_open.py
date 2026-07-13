@@ -142,7 +142,15 @@ def build_cube(cycle: datetime) -> ForecastCube:
             gust_fields = _retrieve_fields(client, cycle, [gust_param], steps=STEP_AXIS[1:])
             gust_fields.pop("__meta__", None)
         except Exception:
-            gust_param = None  # gust exists for some steps only: degrade to wind-only
+            gust_param = None  # retrieval failed outright: degrade to wind-only
+            gust_fields = {}
+    if gust_param is not None:
+        # the parameter can be step-sparse (published for some steps only, seen
+        # live 2026-07-13 at ~29% missing) — a sparse variable would fail the
+        # missing-fraction gate, so publish wind-only instead
+        absent = [s for s in STEP_AXIS[1:] if ("gust", s) not in gust_fields]
+        if absent:
+            gust_param = None
             gust_fields = {}
 
     def stack(kind: str, scale: float, source: dict) -> np.ndarray:
