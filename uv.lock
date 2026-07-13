@@ -252,6 +252,39 @@ wheels = [
 ]
 
 [[package]]
+name = "eccodeslib"
+version = "2.47.3.22"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "eckitlib" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/15/9b/0a7f01c6e5aa2bf8e527cf58301cec4d3d5c245b249d0625779f789d4c53/eccodeslib-2.47.3.22-cp312-cp312-macosx_13_0_arm64.whl", hash = "sha256:de330edb34cb8185ac0ad8a5cd2c41dd4dcf20b30b04976bf993cb685088167a", size = 9028119, upload-time = "2026-07-01T14:38:55.58Z" },
+    { url = "https://files.pythonhosted.org/packages/51/b3/338a30bbcc0c6be6c081396a9507f8d40a5eaa3327e35ba8007fbecb8652/eccodeslib-2.47.3.22-cp312-cp312-macosx_13_0_x86_64.whl", hash = "sha256:97399349c093f93b7f65fae0087337e774e3109fd7654addc04d112fb3ee9321", size = 8838824, upload-time = "2026-07-01T14:33:35.618Z" },
+    { url = "https://files.pythonhosted.org/packages/f1/38/9b7c99a9c91c0b903d59f9a5d199b895daedc6a03cd11889ae44e63fcaa0/eccodeslib-2.47.3.22-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:c127f3fc04b332aeb4e0494b724fc341a3c675c12e0b6a1ec684b862a0d7582b", size = 9112793, upload-time = "2026-07-01T14:29:36.168Z" },
+    { url = "https://files.pythonhosted.org/packages/5f/fe/2ae4d0452c978b23335384a4ba69f40b20a76f69ef18bd6073346943608c/eccodeslib-2.47.3.22-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:2987afaed12146cfb380c8754f67e5ede1c66815089ef410d7f43c35c604acef", size = 9012387, upload-time = "2026-07-01T14:28:01.025Z" },
+    { url = "https://files.pythonhosted.org/packages/26/25/10ce5fec20c4c45c51c04caebba95e7f5f99d9fc98bf2f3991917110132a/eccodeslib-2.47.3.22-cp313-cp313-macosx_13_0_arm64.whl", hash = "sha256:8adeff8ad26b7f23e91a975d84b8e3e0906e39a1681c68074993134c0e7728eb", size = 9028114, upload-time = "2026-07-01T14:40:02.21Z" },
+    { url = "https://files.pythonhosted.org/packages/f5/4a/c6d6a74e0ced026f1cc0743e198e7fef2730487fa8c47f20c93f42ff79b3/eccodeslib-2.47.3.22-cp313-cp313-macosx_13_0_x86_64.whl", hash = "sha256:63badad477f74a37d17377ddf644348b21bb32505895d73ad68ad5089fe37d62", size = 8838825, upload-time = "2026-07-01T14:47:15.17Z" },
+    { url = "https://files.pythonhosted.org/packages/a7/27/d87d1d4b2fffa0d8ca0a05fa4641986d98fb5abaaebd2d82669d30c1f08d/eccodeslib-2.47.3.22-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:f1a721eb9df312cfc32a6dc94694e229480d16ba3ed2b902aac9f1f2a6f4bb6f", size = 9112790, upload-time = "2026-07-01T14:30:01.347Z" },
+    { url = "https://files.pythonhosted.org/packages/46/c6/bfa46e8e555d1a0c75033a4b50422e933d60951ba732ed4292a0f57f6d04/eccodeslib-2.47.3.22-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:beecab658f3d79bc48716df66b433bd38b5168db64830e785033a743ce8d999c", size = 9012392, upload-time = "2026-07-01T14:28:24.031Z" },
+]
+
+[[package]]
+name = "eckitlib"
+version = "2.1.0.22"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/43/b3/073dd23e5ca6239ab1fb1714c2a18eea3b71605d5b0805a793086bcef07b/eckitlib-2.1.0.22-cp312-cp312-macosx_13_0_arm64.whl", hash = "sha256:5c2e52e08d45daf8bf11dc200212764237fbb710df68899613812a5f3c8cf0f7", size = 2486607, upload-time = "2026-07-01T14:39:01.129Z" },
+    { url = "https://files.pythonhosted.org/packages/21/08/33b8071aa5720f2cd290fcf9c328fa0811ef056f519b2a5518bec5180d76/eckitlib-2.1.0.22-cp312-cp312-macosx_13_0_x86_64.whl", hash = "sha256:a59bd5c6aec5a2f9ad3b40ddd69aad8d8034c80bff39841aead2007ab1e8821e", size = 2623458, upload-time = "2026-07-01T14:33:41.166Z" },
+    { url = "https://files.pythonhosted.org/packages/33/ba/6364900eb06a36e62dbe8d8c5316917302b75b79b47434920b4fc1097879/eckitlib-2.1.0.22-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:eeb0d5aab61c1bc5ba34dd737e74f79141a5535962fdc09d821aae7737c24499", size = 7044393, upload-time = "2026-07-01T14:29:40.963Z" },
+    { url = "https://files.pythonhosted.org/packages/72/d2/6ef02baaa04b39b6bc413b6eca220e160c88d1ed2017661c4a6b3587c3b0/eckitlib-2.1.0.22-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:ac1174b7e506e04fc81fa0b39942c5bfd192339c2a74861d14118d264d01927b", size = 7172286, upload-time = "2026-07-01T14:28:08.177Z" },
+    { url = "https://files.pythonhosted.org/packages/09/f7/fc608838e21ef591ad9966178bbe8c05ec106986865bc0291fdbc0cd7468/eckitlib-2.1.0.22-cp313-cp313-macosx_13_0_arm64.whl", hash = "sha256:048786e44fbcb1e839f4c5219e1b93353071dc3c448bbe5f2704b027ab51af35", size = 2486604, upload-time = "2026-07-01T14:40:07.868Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/ac/a76b095a8cfb8c190b4797158313ccfd5ea805038470f04e8c86dd75f921/eckitlib-2.1.0.22-cp313-cp313-macosx_13_0_x86_64.whl", hash = "sha256:e9e6e792dfadaa2c3a4b04db920b530b58a79115ea56cd144c62d8e01f0ab541", size = 2623459, upload-time = "2026-07-01T14:47:21.404Z" },
+    { url = "https://files.pythonhosted.org/packages/2b/94/99f516228df870a08ed1c086f957ccbe3dcd807bad550cd84a9d9c2b7001/eckitlib-2.1.0.22-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:52251f6a969155948da23a897a0c850717a4ecf07af6e79d605a01c4ff6d3b1b", size = 7044392, upload-time = "2026-07-01T14:30:06.663Z" },
+    { url = "https://files.pythonhosted.org/packages/50/44/93c46ee5e5b782b292c09906624ed5209b1fb8f4e494e3f223584d779c0b/eckitlib-2.1.0.22-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:360ae9856aba2c6527d1c24a640b2549ffbe3a3c7d03d525670123b30d121258", size = 7172300, upload-time = "2026-07-01T14:28:30.885Z" },
+]
+
+[[package]]
 name = "ecmwf-opendata"
 version = "0.3.30"
 source = { registry = "https://pypi.org/simple" }
@@ -278,6 +311,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "eccodes" },
+    { name = "eccodeslib" },
     { name = "ecmwf-opendata" },
     { name = "numpy" },
     { name = "orjson" },
@@ -301,6 +335,7 @@ requires-dist = [
     { name = "boto3", marker = "extra == 'publish'", specifier = ">=1.34" },
     { name = "copernicusmarine", marker = "extra == 'publish'", specifier = ">=2.0" },
     { name = "eccodes", specifier = ">=2.38" },
+    { name = "eccodeslib", specifier = ">=2.47.3.22" },
     { name = "ecmwf-opendata", specifier = ">=0.3.19" },
     { name = "numpy", specifier = ">=2.0" },
     { name = "orjson", specifier = ">=3.10" },

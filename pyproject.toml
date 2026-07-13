@@ -9,6 +9,7 @@ dependencies = [
     "requests>=2.32",
     "orjson>=3.10",
     "ecmwf-opendata>=0.3.19",
+    "eccodeslib>=2.47.3.22",
 ]
 
 [project.optional-dependencies]

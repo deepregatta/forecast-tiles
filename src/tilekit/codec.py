@@ -104,9 +104,7 @@ def encode_tile(header: dict, arrays: dict[str, np.ndarray]) -> bytes:
         values = arrays[var["name"]]
         expected = _expected_shape(header, var)
         if tuple(values.shape) != expected:
-            raise ValueError(
-                f"{var['name']}: shape {tuple(values.shape)} != expected {expected}"
-            )
+            raise ValueError(f"{var['name']}: shape {tuple(values.shape)} != expected {expected}")
         if values.dtype == np_dtype:
             raw = values
         elif np.issubdtype(values.dtype, np.floating):
@@ -138,9 +136,12 @@ def decode_tile(buf: bytes) -> DecodedTile:
     for var in header["variables"]:
         np_dtype, _ = DTYPES[var["dtype"]]
         start = payload_start + var["byte_offset"]
-        raw = np.frombuffer(buf, dtype=np.dtype(np_dtype).newbyteorder("<"),
-                            count=var["byte_length"] // np.dtype(np_dtype).itemsize,
-                            offset=start)
+        raw = np.frombuffer(
+            buf,
+            dtype=np.dtype(np_dtype).newbyteorder("<"),
+            count=var["byte_length"] // np.dtype(np_dtype).itemsize,
+            offset=start,
+        )
         raw = raw.reshape(_expected_shape(header, var))
         values = raw.astype(np.float32) * var["scale"] + var.get("offset", 0.0)
         values[raw == var["missing"]] = np.nan

@@ -36,9 +36,13 @@ budget (8 GB R2 storage guard at ×2 run retention).
 |---|---|---|---|
 | `weather` | NOAA GFS (wind u/v, gust hourly; vis/CAPE/temp/dew-point/precip 3-hourly) | 0.25° | 4×/day |
 | `weather-ecmwf` | ECMWF open data (wind u/v, gust) | 0.25° | 4×/day |
-| `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies) | 0.5° | 4×/day |
+| `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | 4×/day |
 | `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | 4×/day |
-| `currents` | Copernicus Marine GLO12 (surface u/v; NOAA RTOFS fallback) | 1/12° | 1×/day |
+| `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; NOAA RTOFS fallback) | 1/12° | 1×/day |
+
+Time axes reflect the Phase 0 size measurement — see
+[docs/phase0-results.md](docs/phase0-results.md) (verdict: GO at 3.26 GB per
+full generation, 6.53 GB at ×2 run retention against the 8 GB storage guard).
 
 The PFT1 format and the manifest/latest JSON schemas are canonically specified
 in the passage repo (`docs/forecast-tiles-spec.md`, `contracts/forecast-*.schema.json`);

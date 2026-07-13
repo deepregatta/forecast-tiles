@@ -107,9 +107,7 @@ def test_int_passthrough_matches_prequantized():
 
 
 def test_shape_mismatch_rejected():
-    header = make_header(
-        variables=[{"name": "v", "axis": "hourly", "dtype": "i16", "scale": 0.01}]
-    )
+    header = make_header(variables=[{"name": "v", "axis": "hourly", "dtype": "i16", "scale": 0.01}])
     with pytest.raises(ValueError, match="shape"):
         encode_tile(header, {"v": np.zeros((2, 4, 4), dtype=np.float32)})
 
@@ -127,9 +125,7 @@ def test_header_padding_alignment():
 
 
 def test_gzip_round_trip():
-    header = make_header(
-        variables=[{"name": "v", "axis": "hourly", "dtype": "i16", "scale": 0.01}]
-    )
+    header = make_header(variables=[{"name": "v", "axis": "hourly", "dtype": "i16", "scale": 0.01}])
     values = np.zeros((3, 4, 4), dtype=np.float32)
     buf = encode_tile(header, {"v": values})
     assert decode_tile(gzip.decompress(gzip.compress(buf))).header == decode_tile(buf).header

@@ -45,6 +45,7 @@ SESSION.headers["User-Agent"] = "passage-forecast-tiles-prototype"
 
 # ---------------------------------------------------------------- download
 
+
 def http(url: str, *, headers: dict | None = None, retries: int = 3) -> bytes:
     for attempt in range(retries):
         try:
@@ -77,12 +78,16 @@ def parse_idx(idx_text: str) -> list[tuple[str, str, int, int | None]]:
     return rows
 
 
-def fetch_fields(url: str, wanted: list[tuple[str, str]]) -> dict[tuple[str, str], bytes]:
+def fetch_fields(
+    url: str, wanted: list[tuple[str, str]], optional: set[tuple[str, str]] = frozenset()
+) -> dict[tuple[str, str], bytes]:
     idx = parse_idx(http(url + ".idx").decode())
     out: dict[tuple[str, str], bytes] = {}
     for var, level in wanted:
         match = next(((s, e) for v, lv, s, e in idx if v == var and lv == level), None)
         if match is None:
+            if (var, level) in optional:
+                continue  # e.g. APCP has no accumulation at f000
             raise KeyError(f"{var}:{level} not in {url}.idx")
         start, end = match
         range_header = f"bytes={start}-" if end is None else f"bytes={start}-{end - 1}"
@@ -91,6 +96,7 @@ def fetch_fields(url: str, wanted: list[tuple[str, str]]) -> dict[tuple[str, str
 
 
 # ------------------------------------------------------------------ decode
+
 
 def decode_field(msg: bytes) -> tuple[np.ndarray, dict]:
     """GRIB message -> (values[lat_asc, lon_from_-180] float32 NaN-masked, grid meta)."""
@@ -120,6 +126,7 @@ def decode_field(msg: bytes) -> tuple[np.ndarray, dict]:
 
 
 # ------------------------------------------------------------------ tiling
+
 
 def tile_index_ranges(meta: dict) -> list[tuple[int, int, slice, slice]]:
     """(tile_lat0, tile_lon0, lat_slice, lon_slice) for tiles intersecting the grid."""
@@ -190,6 +197,7 @@ def measure_tiles(
 
 # ------------------------------------------------------- cycle resolution
 
+
 def resolve_cycle(url_template: str, max_lookback_cycles: int = 8) -> datetime:
     """Latest cycle whose final .idx exists; url_template has {date}/{hh} placeholders."""
     now = datetime.now(timezone.utc)
@@ -204,16 +212,46 @@ def resolve_cycle(url_template: str, max_lookback_cycles: int = 8) -> datetime:
 # ------------------------------------------------------------- layers
 
 WEATHER_HOURLY_VARS = [
-    {"name": "wind_u_kt", "grib": ("UGRD", "10 m above ground"), "dtype": "i16", "scale": 0.01, "to_kt": True},
-    {"name": "wind_v_kt", "grib": ("VGRD", "10 m above ground"), "dtype": "i16", "scale": 0.01, "to_kt": True},
+    {
+        "name": "wind_u_kt",
+        "grib": ("UGRD", "10 m above ground"),
+        "dtype": "i16",
+        "scale": 0.01,
+        "to_kt": True,
+    },
+    {
+        "name": "wind_v_kt",
+        "grib": ("VGRD", "10 m above ground"),
+        "dtype": "i16",
+        "scale": 0.01,
+        "to_kt": True,
+    },
     {"name": "gust_kt", "grib": ("GUST", "surface"), "dtype": "i16", "scale": 0.1, "to_kt": True},
 ]
 WEATHER_H3_VARS = [
     {"name": "visibility_m", "grib": ("VIS", "surface"), "dtype": "i16", "scale": 50},
     {"name": "cape_jkg", "grib": ("CAPE", "surface"), "dtype": "i16", "scale": 1},
-    {"name": "temp_c", "grib": ("TMP", "2 m above ground"), "dtype": "i16", "scale": 0.1, "k_to_c": True},
-    {"name": "dew_point_c", "grib": ("DPT", "2 m above ground"), "dtype": "i16", "scale": 0.1, "k_to_c": True},
-    {"name": "precip_mm", "grib": ("APCP", "surface"), "dtype": "i16", "scale": 0.1},
+    {
+        "name": "temp_c",
+        "grib": ("TMP", "2 m above ground"),
+        "dtype": "i16",
+        "scale": 0.1,
+        "k_to_c": True,
+    },
+    {
+        "name": "dew_point_c",
+        "grib": ("DPT", "2 m above ground"),
+        "dtype": "i16",
+        "scale": 0.1,
+        "k_to_c": True,
+    },
+    {
+        "name": "precip_mm",
+        "grib": ("APCP", "surface"),
+        "dtype": "i16",
+        "scale": 0.1,
+        "optional": True,
+    },
 ]
 WAVE_VARS = [
     {"name": "hs_m", "grib": ("HTSGW", "surface"), "dtype": "i16", "scale": 0.01},
@@ -239,9 +277,10 @@ def collect_steps(
 ) -> tuple[dict[str, np.ndarray], dict]:
     """Download+decode+quantize all (step, var) fields -> arrays [time, nlat, nlon]."""
     wanted = [v["grib"] for v in var_specs]
+    optional = {v["grib"] for v in var_specs if v.get("optional")}
 
     def one(step: int):
-        return step, fetch_fields(url_for_step(step), wanted)
+        return step, fetch_fields(url_for_step(step), wanted, optional)
 
     fields_by_step: dict[int, dict] = {}
     with ThreadPoolExecutor(max_workers=workers) as pool:
@@ -250,11 +289,21 @@ def collect_steps(
 
     meta = None
     arrays: dict[str, list[np.ndarray]] = {v["name"]: [] for v in var_specs}
+    pending_nan: list[tuple[str, int]] = []
     for step in steps:
         for var in var_specs:
-            values, m = decode_field(fields_by_step[step][var["grib"]])
+            msg = fields_by_step[step].get(var["grib"])
+            if msg is None:
+                pending_nan.append((var["name"], len(arrays[var["name"]])))
+                arrays[var["name"]].append(None)  # backfill once grid meta is known
+                continue
+            values, m = decode_field(msg)
             meta = meta or m
             arrays[var["name"]].append(quantize_field(values, var))
+    for name, idx_pos in pending_nan:
+        nan_field = np.full((meta["nlat"], meta["nlon"]), np.nan, dtype=np.float32)
+        var = next(v for v in var_specs if v["name"] == name)
+        arrays[name][idx_pos] = quantize_field(nan_field, var)
     return {k: np.stack(v) for k, v in arrays.items()}, meta
 
 
@@ -269,8 +318,8 @@ def measure_weather() -> dict:
     date, hh = cycle.strftime("%Y%m%d"), cycle.strftime("%H")
     url = lambda s: f"{GFS_BASE}/gfs.{date}/{hh}/atmos/gfs.t{hh}z.pgrb2.0p25.f{s:03d}"  # noqa: E731
 
-    near_hourly = list(range(0, 24))                 # adjacent-hour redundancy
-    far_3h = list(range(120, 144, 3))                # 3-hourly tail redundancy
+    near_hourly = list(range(0, 24))  # adjacent-hour redundancy
+    far_3h = list(range(120, 144, 3))  # 3-hourly tail redundancy
     near_h3 = list(range(0, 24, 3))
     far_h3 = list(range(120, 144, 3))
 
@@ -308,7 +357,9 @@ def measure_weather() -> dict:
 
 def measure_ensemble() -> dict:
     t0 = time.time()
-    cycle = resolve_cycle(GEFS_BASE + "/gefs.{date}/{hh}/atmos/pgrb2ap5/gep30.t{hh}z.pgrb2a.0p50.f384.idx")
+    cycle = resolve_cycle(
+        GEFS_BASE + "/gefs.{date}/{hh}/atmos/pgrb2ap5/gep30.t{hh}z.pgrb2a.0p50.f384.idx"
+    )
     date, hh = cycle.strftime("%Y%m%d"), cycle.strftime("%H")
     members = ["gec00"] + [f"gep{m:02d}" for m in range(1, 31)]
     wanted = [("UGRD", "10 m above ground"), ("VGRD", "10 m above ground")]
@@ -346,18 +397,31 @@ def measure_ensemble() -> dict:
         }
         variables = [
             {"name": "wind_kt_mean", "axis": "sampled", "dtype": "i16", "scale": 0.01},
-            {"name": "wind_kt_anom", "axis": "sampled", "dtype": "i8", "scale": 0.2, "per_member": True},
+            {
+                "name": "wind_kt_anom",
+                "axis": "sampled",
+                "dtype": "i8",
+                "scale": 0.2,
+                "per_member": True,
+            },
         ]
         gz, tiles, nonempty = measure_tiles(
-            "ensemble", "gefs_0p50", meta, "sampled", steps, variables, arrays,
+            "ensemble",
+            "gefs_0p50",
+            meta,
+            "sampled",
+            steps,
+            variables,
+            arrays,
             member_count=len(members),
         )
         return {"gz": gz, "steps": len(steps), "tiles": tiles, "nonempty": nonempty}
 
-    near = encode_block(list(range(0, 27, 3)))      # 9 steps, 3-hourly portion
-    far = encode_block(list(range(246, 300, 6)))    # 9 steps, 6-hourly portion
-    # full axis: 3h 0-240 (81 steps) + 6h 246-384 (24 steps); gust members assumed = wind size
-    wind_est = near["gz"] / near["steps"] * 81 + far["gz"] / far["steps"] * 24
+    near = encode_block(list(range(0, 27, 3)))  # 9 steps, 3-hourly portion
+    far = encode_block(list(range(246, 300, 6)))  # 9 steps, 6-hourly portion
+    # full axis (Phase 0 lever 1 applied): 3h 0-144 (49 steps) + 6h 150-384 (40 steps);
+    # gust members assumed = wind size
+    wind_est = near["gz"] / near["steps"] * 49 + far["gz"] / far["steps"] * 40
     return {
         "layer": "ensemble",
         "cycle": cycle.isoformat(),
@@ -371,9 +435,13 @@ def measure_ensemble() -> dict:
 
 def measure_waves() -> dict:
     t0 = time.time()
-    cycle = resolve_cycle(GFS_BASE + "/gfs.{date}/{hh}/wave/gridded/gfswave.t{hh}z.global.0p25.f384.grib2.idx")
+    cycle = resolve_cycle(
+        GFS_BASE + "/gfs.{date}/{hh}/wave/gridded/gfswave.t{hh}z.global.0p25.f384.grib2.idx"
+    )
     date, hh = cycle.strftime("%Y%m%d"), cycle.strftime("%H")
-    url = lambda s: f"{GFS_BASE}/gfs.{date}/{hh}/wave/gridded/gfswave.t{hh}z.global.0p25.f{s:03d}.grib2"  # noqa: E731
+    url = lambda s: (
+        f"{GFS_BASE}/gfs.{date}/{hh}/wave/gridded/gfswave.t{hh}z.global.0p25.f{s:03d}.grib2"
+    )  # noqa: E731
 
     blocks = {}
     for label, steps in [("near", list(range(0, 27, 3))), ("far", list(range(180, 207, 3)))]:
@@ -383,8 +451,10 @@ def measure_waves() -> dict:
         )
         blocks[label] = {"gz": gz, "steps": len(steps), "tiles": tiles, "nonempty": nonempty}
 
-    per_step = (blocks["near"]["gz"] / blocks["near"]["steps"]
-                + blocks["far"]["gz"] / blocks["far"]["steps"]) / 2
+    per_step = (
+        blocks["near"]["gz"] / blocks["near"]["steps"]
+        + blocks["far"]["gz"] / blocks["far"]["steps"]
+    ) / 2
     return {
         "layer": "waves",
         "cycle": cycle.isoformat(),
@@ -422,8 +492,12 @@ def measure_ecmwf() -> dict:
         offset += length
 
     arrays = {
-        "wind_u_kt": np.stack([quantize(fields[("10u", s)] * MS_TO_KT, "i16", 0.01) for s in steps]),
-        "wind_v_kt": np.stack([quantize(fields[("10v", s)] * MS_TO_KT, "i16", 0.01) for s in steps]),
+        "wind_u_kt": np.stack(
+            [quantize(fields[("10u", s)] * MS_TO_KT, "i16", 0.01) for s in steps]
+        ),
+        "wind_v_kt": np.stack(
+            [quantize(fields[("10v", s)] * MS_TO_KT, "i16", 0.01) for s in steps]
+        ),
     }
     variables = [
         {"name": "wind_u_kt", "axis": "sampled", "dtype": "i16", "scale": 0.01},
@@ -443,8 +517,9 @@ def measure_ecmwf() -> dict:
 
 
 def estimate_currents(wind_gz_ratio: float) -> dict:
-    # GLO12 1/12deg -> 120x120 tiles, 2 vars i16, 3-hourly to 240h (81 steps)
-    per_tile_raw = 2 * 81 * 120 * 120 * 2
+    # GLO12 1/12deg -> 120x120 tiles, 2 vars i16, 6-hourly to 240h (41 steps;
+    # Phase 0 lever 2 applied)
+    per_tile_raw = 2 * 41 * 120 * 120 * 2
     ocean_fraction = 0.71
     est = 648 * per_tile_raw * ocean_fraction * wind_gz_ratio
     return {
@@ -460,6 +535,7 @@ def estimate_currents(wind_gz_ratio: float) -> dict:
 
 
 # -------------------------------------------------------------------- main
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -491,11 +567,16 @@ def main() -> int:
             r = {"layer": layer, "error": f"{type(exc).__name__}: {exc}"}
         results.append(r)
         gb = r.get("estimated_full_gz", 0) / 1e9
-        print(f"   {layer}: {gb:.2f} GB gz estimated full run"
-              + (f"  ({r['error']})" if "error" in r else ""), flush=True)
+        print(
+            f"   {layer}: {gb:.2f} GB gz estimated full run"
+            + (f"  ({r['error']})" if "error" in r else ""),
+            flush=True,
+        )
 
     total = sum(r.get("estimated_full_gz", 0) for r in results)
-    verdict = "GO" if total / 1e9 <= GO_LIMIT_GB and not any("error" in r for r in results) else "NO-GO"
+    verdict = (
+        "GO" if total / 1e9 <= GO_LIMIT_GB and not any("error" in r for r in results) else "NO-GO"
+    )
     print("\n=== Phase 0 size verdict ===")
     for r in results:
         line = f"{r['layer']:<14} {r.get('estimated_full_gz', 0) / 1e9:>7.2f} GB"
@@ -504,7 +585,9 @@ def main() -> int:
         if "error" in r:
             line += f"   ERROR: {r['error']}"
         print(line)
-    print(f"{'TOTAL':<14} {total / 1e9:>7.2f} GB   (x2 retention = {2 * total / 1e9:.2f} GB, guard 8 GB)")
+    print(
+        f"{'TOTAL':<14} {total / 1e9:>7.2f} GB   (x2 retention = {2 * total / 1e9:.2f} GB, guard 8 GB)"
+    )
     print(f"VERDICT: {verdict} (limit {GO_LIMIT_GB} GB per generation)")
 
     Path(args.out).write_bytes(json.dumps(results, indent=2, default=str).encode())
