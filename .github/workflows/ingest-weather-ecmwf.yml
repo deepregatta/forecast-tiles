@@ -1,0 +1,36 @@
+name: ingest-weather-ecmwf
+
+on:
+  schedule:
+    - cron: "15 5,11,17,23 * * *" # ECMWF open data publishes with a longer delay
+  workflow_dispatch:
+    inputs:
+      cycle:
+        description: "Cycle YYYYMMDDTHH (default: latest full-horizon cycle)"
+        required: false
+
+concurrency:
+  group: ingest-weather-ecmwf
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+      - run: uv sync
+      # exits 0 with a log line when the cycle is not published yet
+      - run: uv run ingest weather-ecmwf ${CYCLE:+--cycle "$CYCLE"}
+        env:
+          CYCLE: ${{ inputs.cycle }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
