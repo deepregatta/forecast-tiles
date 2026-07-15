@@ -53,6 +53,8 @@ The Phase 0 size-measurement prototype is still runnable:
    custom domain) so the Passage client can fetch tiles.
 5. For the currents layer also add `COPERNICUSMARINE_SERVICE_USERNAME` and
    `COPERNICUSMARINE_SERVICE_PASSWORD` (free Copernicus Marine account).
+   Transient authentication-service connection failures are retried after 5
+   and 15 minutes; invalid credentials still fail immediately.
 
 The storage guard refuses to publish when retained runs + the new run would
 exceed `MAX_BUCKET_BYTES` (default 8 GB).

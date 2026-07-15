@@ -170,6 +170,48 @@ def test_cmems_constants():
     assert cmems.resolve(CYCLE) == CYCLE
 
 
+def test_cmems_retries_authentication_service_outages_only():
+    class AuthUnavailable(Exception):
+        pass
+
+    class FakeCopernicus:
+        CouldNotConnectToAuthenticationSystem = AuthUnavailable
+
+        def __init__(self):
+            self.calls = 0
+
+        def open_dataset(self, **kwargs):
+            self.calls += 1
+            assert kwargs == {"dataset_id": cmems.DATASET_ID, "variables": ["uo", "vo"]}
+            if self.calls < 3:
+                raise AuthUnavailable
+            return "dataset"
+
+    client = FakeCopernicus()
+    sleeps = []
+    assert cmems._open_dataset_with_auth_retries(client, sleep=sleeps.append) == "dataset"
+    assert client.calls == 3
+    assert sleeps == list(cmems.AUTH_RETRY_DELAYS_S)
+
+
+def test_cmems_does_not_retry_invalid_credentials():
+    class AuthUnavailable(Exception):
+        pass
+
+    class InvalidCredentials(Exception):
+        pass
+
+    class FakeCopernicus:
+        CouldNotConnectToAuthenticationSystem = AuthUnavailable
+
+        @staticmethod
+        def open_dataset(**kwargs):
+            raise InvalidCredentials
+
+    with pytest.raises(InvalidCredentials):
+        cmems._open_dataset_with_auth_retries(FakeCopernicus(), sleep=lambda _: None)
+
+
 def test_rtofs_is_marked_skeleton():
     from ingest.sources import rtofs
 

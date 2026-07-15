@@ -35,3 +35,7 @@ jobs:
           R2_BUCKET: ${{ secrets.R2_BUCKET }}
           COPERNICUSMARINE_SERVICE_USERNAME: ${{ secrets.COPERNICUSMARINE_SERVICE_USERNAME }}
           COPERNICUSMARINE_SERVICE_PASSWORD: ${{ secrets.COPERNICUSMARINE_SERVICE_PASSWORD }}
+          # Bound the toolbox's nested HTTP retries so the pipeline-level
+          # 5/15-minute authentication-outage backoff fits inside this job.
+          COPERNICUSMARINE_HTTPS_TIMEOUT: "20"
+          COPERNICUSMARINE_HTTPS_RETRIES: "2"

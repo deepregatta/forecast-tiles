@@ -10,6 +10,8 @@ predictions; the 6-hourly axis undersamples the tidal cycle (spec § Layers).
 from __future__ import annotations
 
 import os
+import time
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 
 import numpy as np
@@ -28,6 +30,11 @@ DATASET_ID = os.environ.get("CMEMS_DATASET_ID", "cmems_mod_glo_phy-cur_anfc_0.08
 
 STEP_AXIS = axis_offsets((0, 240, 6))  # 41 steps (Phase 0 lever 2)
 
+# The Copernicus authentication service occasionally has short outages.  The
+# toolbox already retries each HTTP request, so these are deliberately coarse
+# retries of the authentication/open operation rather than every data read.
+AUTH_RETRY_DELAYS_S = (300, 900)
+
 VARS = [
     VariableSpec("cur_u_kt", AXIS_NAME, "i16", 0.01),
     VariableSpec("cur_v_kt", AXIS_NAME, "i16", 0.01),
@@ -43,13 +50,33 @@ def resolve(requested: datetime | None = None) -> datetime:
     return now.replace(hour=0, minute=0, second=0, microsecond=0)
 
 
+def _open_dataset_with_auth_retries(
+    copernicusmarine,
+    *,
+    sleep: Callable[[float], None] = time.sleep,
+):
+    for attempt in range(len(AUTH_RETRY_DELAYS_S) + 1):
+        try:
+            return copernicusmarine.open_dataset(
+                dataset_id=DATASET_ID,
+                variables=["uo", "vo"],
+            )
+        except copernicusmarine.CouldNotConnectToAuthenticationSystem:
+            if attempt == len(AUTH_RETRY_DELAYS_S):
+                raise
+            delay = AUTH_RETRY_DELAYS_S[attempt]
+            print(
+                "ingest currents: Copernicus authentication service unavailable; "
+                f"retrying in {delay // 60} minutes "
+                f"({attempt + 2}/{len(AUTH_RETRY_DELAYS_S) + 1})"
+            )
+            sleep(delay)
+
+
 def build_cube(cycle: datetime) -> ForecastCube:
     import copernicusmarine
 
-    ds = copernicusmarine.open_dataset(
-        dataset_id=DATASET_ID,
-        variables=["uo", "vo"],
-    )
+    ds = _open_dataset_with_auth_retries(copernicusmarine)
     if "depth" in ds.dims:
         ds = ds.isel(depth=0)  # surface layer
 
