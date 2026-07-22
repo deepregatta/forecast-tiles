@@ -74,7 +74,7 @@ Time axes reflect the Phase 0 size measurement — see
 full generation, 6.53 GB at ×2 run retention against the 8 GB storage guard).
 
 The PFT1 format and the manifest/latest JSON schemas are canonically specified
-in the passage repo (`docs/forecast-tiles-spec.md`, `contracts/forecast-*.schema.json`);
+in the Passage repo ([`docs/forecast-tile-format.md`](https://github.com/deepregatta/passage/blob/main/docs/forecast-tile-format.md), `contracts/forecast-*.schema.json`);
 this repo vendors copies plus a shared golden fixture that both CIs must decode
 identically. `contracts/` here is a verbatim copy of the passage repo's
 `contracts/forecast-{tile,manifest,latest}.schema.json` — update both together.
