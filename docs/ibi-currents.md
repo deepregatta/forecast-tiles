@@ -115,15 +115,33 @@ metadata until the blending contract is designed and versioned.
 
 ## First-publication characterisation
 
-`OPEN:` complete this section from the first successful GitHub Actions run:
+The first public run succeeded on 2026-08-24:
 
-- provider cycle and bucket `published_at`, with measured latency;
-- served horizon (must remain 72 h / 73 hourly steps);
-- cadence observed independently of the documented daily 14:00 UTC target;
-- outage behaviour confirmed from the resolver/publish logs.
+- workflow: [GitHub Actions run 32710089975](https://github.com/deepregatta/forecast-tiles/actions/runs/32710089975),
+  exact source commit `f60ed48`;
+- provider cycle: `2026-08-23T00:00Z`;
+- bucket `published_at`: `2026-08-24T09:11:51Z`;
+- measured cycle-to-bucket latency: 33 h 11 min 51 s;
+- served horizon: 72 h / 73 consecutive hourly steps;
+- public payload: 65,390,314 bytes, 11 non-empty tiles, 8 validation checks;
+- pipeline duration: 87.5 seconds; complete Actions job: 1 min 37 s;
+- public Channel tile `N40W010`: 9,951,379 bytes, FNV-1a
+  `2cd3db23d91016d1`, contract-valid and decoded successfully.
 
-The designed outage state is already deterministic: catalogue resolution,
-authentication, missing-step, validation, or storage-guard failure occurs
-before `latest.json` is changed. The previous immutable run stays published.
-`CMEMS_IBI_DATASET_ID` is an operator override for a verified catalogue rename,
-not a silent fallback to an arbitrary dataset.
+The latency is the age of the first manually triggered bucket publication, not
+a claim that the provider itself took 33 hours. At 09:11 UTC the rolling
+catalogue still exposed the 2026-08-23 bulletin; the run occurred before the
+documented 14:00 UTC target for the next bulletin. The provider documentation
+states daily delivery and the workflow is scheduled daily at 15:00 UTC.
+`OPEN:` one observed bulletin is not enough to independently confirm cadence;
+compare the next two scheduled cycle/publish pairs before treating 15:00 UTC
+as an observed operational SLA.
+
+Outage behaviour is fail-stale, not synthetic fallback: catalogue-resolution
+failure raises `IBI catalogue resolution failed` before a cube exists;
+authentication receives the shared 5/15-minute coarse retries; missing steps,
+validation failure, or the storage guard also abort before `latest.json` is
+changed. The previous immutable IBI run therefore stays published. This path
+is covered offline; the successful first publication did not manufacture a
+production outage. `CMEMS_IBI_DATASET_ID` is an operator override for a
+verified catalogue rename, not a silent fallback to an arbitrary dataset.
