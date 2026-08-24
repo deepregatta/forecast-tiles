@@ -1,0 +1,87 @@
+{
+ "what": "the routing-index contract fixture, decoded. Both the producer's and the consumer's test must reproduce every value here from the committed bytes",
+ "index_id": "raz-20260824T21Z",
+ "tile_id": "N48W005",
+ "fnv64_uncompressed": "a012cc4bc1873f19",
+ "header": {
+  "spec": "TLI1",
+  "schema_version": 1,
+  "index_id": "raz-20260824T21Z",
+  "domain": "raz",
+  "tile_id": "N48W005",
+  "lon0": -5.0,
+  "lat0": 48.0,
+  "dlon": 0.0020833333333333333,
+  "dlat": 0.0020833333333333333,
+  "nlon": 480,
+  "nlat": 480,
+  "row_bytes": 60,
+  "cell_order": "south_to_north_row_major_lsb_first",
+  "cells": 230400,
+  "blocked_cells": 100161,
+  "composition": {
+   "land_cells": 90908,
+   "shoal_cells": 93041,
+   "nodata_cells": 0,
+   "shoreline_only_cells": 1015,
+   "depth_only_cells": 3148,
+   "blocked_before_buffer": 94056
+  },
+  "conservatism": {
+   "buffer_m": 200.0,
+   "dilation_cells": {
+    "lon": 2,
+    "lat": 1
+   },
+   "safety_contour_m": 0.0,
+   "vertical_datum": "LAT (Lowest Astronomical Tide)"
+  },
+  "generated_at": "2026-08-24T21:00:00Z"
+ },
+ "blocked_cells": 100161,
+ "probes": [
+  {
+   "label": "Ile de Sein, the islet",
+   "lon": -4.8553,
+   "lat": 48.0364,
+   "blocked": true
+  },
+  {
+   "label": "Pointe du Raz, the mainland",
+   "lon": -4.7361,
+   "lat": 48.0386,
+   "blocked": true
+  },
+  {
+   "label": "the Raz de Sein passage",
+   "lon": -4.78,
+   "lat": 48.045,
+   "blocked": false
+  },
+  {
+   "label": "open water west of the Chaussee de Sein",
+   "lon": -4.99,
+   "lat": 48.1,
+   "blocked": false
+  },
+  {
+   "label": "Baie de Douarnenez, a bay the fill must not close",
+   "lon": -4.45,
+   "lat": 48.12,
+   "blocked": false
+  },
+  {
+   "label": "the Iroise, open water",
+   "lon": -4.9,
+   "lat": 48.55,
+   "blocked": false
+  }
+ ],
+ "raz_passage_row": {
+  "lat": 48.045,
+  "row": 21,
+  "widest_clear_run_cells": 40,
+  "from_lon": -4.827083333333333,
+  "to_lon": -4.74375
+ }
+}

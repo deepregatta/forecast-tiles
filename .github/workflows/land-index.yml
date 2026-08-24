@@ -1,0 +1,53 @@
+name: land-index
+
+# No schedule, on purpose. The routing index is a one-shot artifact: shorelines
+# and bathymetry change on the timescale of survey programmes, not forecast
+# cycles. It is rebuilt when a source publishes a new release, when the domain
+# is extended, or when a conservatism parameter is deliberately changed — and
+# every rebuild ships as a new immutable version.
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: "Routing domain to compile"
+        required: false
+        default: "nweu"
+      dry_run:
+        description: "Compile and check without publishing to R2"
+        type: boolean
+        required: false
+        default: false
+
+concurrency:
+  group: land-index
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # One DTM block per degree square, fetched from a public WCS at its native
+    # posting. A cold cache for the nweu domain is a few hundred requests.
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+      - run: uv sync
+      - name: Compile and publish the routing index
+        run: |
+          if [ "${DRY_RUN}" = "true" ]; then
+            uv run ingest land --domain "${DOMAIN:-nweu}" --dry-run "${RUNNER_TEMP}/land-index"
+          else
+            uv run ingest land --domain "${DOMAIN:-nweu}"
+          fi
+        env:
+          DOMAIN: ${{ inputs.domain }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}

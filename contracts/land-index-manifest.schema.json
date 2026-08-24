@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deepregatta.local/contracts/land-index-manifest.schema.json",
+  "title": "Routing-index manifest — written last to land-index/{index_id}/manifest.json; its presence marks the version complete.",
+  "type": "object",
+  "required": ["schema_version", "spec", "index_id", "domain", "domain_label", "purpose", "not_for_navigation", "coverage", "grid", "conservatism", "sources", "composition", "tiling", "tiles", "totals", "validation", "published_at"],
+  "properties": {
+    "schema_version": { "type": "integer" },
+    "spec": { "const": "TLI1" },
+    "index_id": { "type": "string", "pattern": "^[a-z0-9]+-[0-9]{8}T[0-9]{2}Z$" },
+    "domain": { "type": "string" },
+    "domain_label": { "type": "string" },
+    "purpose": { "type": "string" },
+    "not_for_navigation": { "type": "string" },
+    "coverage": {
+      "type": "object",
+      "required": ["tiles", "min_lon", "max_lon", "min_lat", "max_lat"],
+      "properties": {
+        "tiles": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[NS][0-9]{2}[EW][0-9]{3}$" } },
+        "min_lon": { "type": "number" },
+        "max_lon": { "type": "number" },
+        "min_lat": { "type": "number" },
+        "max_lat": { "type": "number" },
+        "note": { "type": "string" }
+      }
+    },
+    "grid": {
+      "type": "object",
+      "required": ["tile_deg", "cells_per_deg", "dlon", "dlat", "cell_order"],
+      "properties": {
+        "tile_deg": { "type": "integer", "minimum": 1 },
+        "cells_per_deg": { "type": "integer", "minimum": 1 },
+        "dlon": { "type": "number", "exclusiveMinimum": 0 },
+        "dlat": { "type": "number", "exclusiveMinimum": 0 },
+        "cell_order": { "const": "south_to_north_row_major_lsb_first" }
+      }
+    },
+    "conservatism": {
+      "type": "object",
+      "required": ["buffer_m", "safety_contour_m", "vertical_datum", "nodata_is_blocked", "simplification", "simplification_tolerance_deg", "rule"],
+      "properties": {
+        "buffer_m": { "type": "number", "minimum": 0 },
+        "buffer_rationale": { "type": "string" },
+        "safety_contour_m": { "type": "number" },
+        "safety_contour_rationale": { "type": "string" },
+        "vertical_datum": { "type": "string" },
+        "nodata_is_blocked": { "type": "boolean" },
+        "simplification": { "type": "string" },
+        "simplification_tolerance_deg": { "type": "number", "exclusiveMinimum": 0 },
+        "rule": { "type": "string" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "product", "version", "role", "url", "accessed", "licence", "attribution"],
+        "properties": {
+          "name": { "type": "string" },
+          "product": { "type": "string" },
+          "version": { "type": "string" },
+          "role": { "type": "string" },
+          "url": { "type": "string" },
+          "metadata_url": { "type": "string" },
+          "accessed": { "type": "string" },
+          "licence": { "type": "string" },
+          "attribution": { "type": "string" },
+          "use_constraint": { "type": "string" },
+          "vertical_datum": { "type": "string" },
+          "resolution_deg": { "type": "number" },
+          "file": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "composition": {
+      "type": "object",
+      "required": ["cells", "blocked_cells", "blocked_before_buffer", "land_cells", "nodata_cells", "source_agreement"],
+      "properties": {
+        "cells": { "type": "integer", "minimum": 1 },
+        "blocked_cells": { "type": "integer", "minimum": 0 },
+        "blocked_before_buffer": { "type": "integer", "minimum": 0 },
+        "land_cells": { "type": "integer", "minimum": 0 },
+        "nodata_cells": { "type": "integer", "minimum": 0 },
+        "depth_only_cells": { "type": "integer", "minimum": 0 },
+        "shoreline_only_cells": { "type": "integer", "minimum": 0 },
+        "source_agreement": { "type": "number", "minimum": 0, "maximum": 1 },
+        "source_agreement_note": { "type": "string" }
+      }
+    },
+    "tiling": {
+      "type": "object",
+      "required": ["tile_deg", "path_template"],
+      "properties": {
+        "tile_deg": { "type": "integer", "minimum": 1 },
+        "path_template": { "type": "string" }
+      }
+    },
+    "tiles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["bytes", "fnv64"],
+        "properties": {
+          "bytes": { "type": "integer", "minimum": 1 },
+          "fnv64": { "type": "string", "pattern": "^[0-9a-f]{16}$" }
+        }
+      }
+    },
+    "totals": {
+      "type": "object",
+      "required": ["tile_count", "bytes"],
+      "properties": {
+        "tile_count": { "type": "integer", "minimum": 1 },
+        "bytes": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["checks_passed"],
+      "properties": { "checks_passed": { "type": "array", "items": { "type": "string" } } }
+    },
+    "published_at": { "type": "string" }
+  }
+}

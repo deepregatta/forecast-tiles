@@ -1,0 +1,97 @@
+{
+ "schema_version": 1,
+ "spec": "TLI1",
+ "index_id": "raz-20260824T21Z",
+ "domain": "raz",
+ "domain_label": "Raz de Sein contract fixture: Ile de Sein, the Chaussee, and the passage",
+ "purpose": "routing legality only: whether a route segment may cross a cell. Not a chart, not a navigation product, and not the display basemap",
+ "not_for_navigation": "DO NOT USE FOR NAVIGATION. Derived from public bathymetry and shoreline data that carry that constraint themselves; it resolves shoal areas, not individual rocks, and it is no substitute for an official chart",
+ "coverage": {
+  "tiles": [
+   "N48W005"
+  ],
+  "min_lon": -5,
+  "max_lon": -4,
+  "min_lat": 48,
+  "max_lat": 49,
+  "note": "the published tile list is the coverage. The bounding box is its envelope and may contain tiles that were not compiled; a query outside a published tile is unknown, never clear"
+ },
+ "grid": {
+  "tile_deg": 1,
+  "cells_per_deg": 480,
+  "dlon": 0.0020833333333333333,
+  "dlat": 0.0020833333333333333,
+  "cell_order": "south_to_north_row_major_lsb_first"
+ },
+ "conservatism": {
+  "buffer_m": 200.0,
+  "buffer_rationale": "GSHHG's full-resolution shoreline and the EMODnet DTM's 115 m posting both carry positional error of this order; the dilation puts the index's edge outside the source's, never inside it",
+  "safety_contour_m": 0.0,
+  "safety_contour_rationale": "the contour that dries at Lowest Astronomical Tide. Blocking it cannot make a legal route illegal; a draft- or tide-relative clearance is a race-package constraint, not a property of the sea, and is not decided here",
+  "vertical_datum": "LAT (Lowest Astronomical Tide)",
+  "nodata_is_blocked": true,
+  "simplification": "rasterisation to the index cell: a cell is blocked when any source geometry touches it. No polygon simplification is applied",
+  "simplification_tolerance_deg": 0.0020833333333333333,
+  "rule": "every step adds blocked area; none removes any"
+ },
+ "sources": [
+  {
+   "name": "GSHHG",
+   "product": "Global Self-consistent Hierarchical High-resolution Geography, full resolution",
+   "version": "2.3.7",
+   "role": "land polygons (level 1 shorelines)",
+   "url": "https://www.soest.hawaii.edu/pwessel/gshhg/gshhg-bin-2.3.7.zip",
+   "accessed": "2026-08-24T21:00:00Z",
+   "licence": "LGPL-3.0-or-later, with permission to use, copy, modify and distribute given attribution",
+   "attribution": "Wessel, P., and W. H. F. Smith (1996), A global, self-consistent, hierarchical, high-resolution shoreline database, J. Geophys. Res., 101(B4), 8741-8743",
+   "file": "gshhs_f.b",
+   "sha256": "af9215d58ebc525b2d09654a89959829f09e6edc457f3666759cded37be4ecf6"
+  },
+  {
+   "name": "EMODnet Bathymetry",
+   "product": "EMODnet Digital Bathymetry (DTM) 2024",
+   "version": "DTM 2024",
+   "role": "depth, for the selected safety contour",
+   "url": "https://ows.emodnet-bathymetry.eu/wcs?coverage=emodnet:mean",
+   "metadata_url": "https://sextant.ifremer.fr/record/cf51df64-56f9-4a99-b1aa-36b8d7b743a1",
+   "accessed": "2026-08-24T21:00:00Z",
+   "licence": "CC-BY-4.0",
+   "attribution": "EMODnet Bathymetry Consortium (2024): EMODnet Digital Bathymetry (DTM 2024)",
+   "use_constraint": "DO NOT USE FOR NAVIGATION",
+   "vertical_datum": "LAT (Lowest Astronomical Tide)",
+   "resolution_deg": 0.0010416666666666667
+  }
+ ],
+ "composition": {
+  "cells": 230400,
+  "blocked_cells": 100161,
+  "blocked_before_buffer": 94056,
+  "land_cells": 90908,
+  "nodata_cells": 0,
+  "depth_only_cells": 3148,
+  "shoreline_only_cells": 1015,
+  "source_agreement": 0.981931,
+  "source_agreement_note": "the fraction of cells on which the shoreline and the depth contour agree, measured rather than assumed. They are independent surveys; the index is their union, so a disagreement adds blocked area and never removes any"
+ },
+ "tiling": {
+  "tile_deg": 1,
+  "path_template": "{tile_id}.bin.gz"
+ },
+ "tiles": {
+  "N48W005": {
+   "bytes": 2073,
+   "fnv64": "c88fa68e395b7e75"
+  }
+ },
+ "totals": {
+  "tile_count": 1,
+  "bytes": 2073
+ },
+ "validation": {
+  "checks_passed": [
+   "1 tiles round-trip through the TLI1 codec",
+   "the outward buffer added blocked cells on every tile and removed none"
+  ]
+ },
+ "published_at": "2026-08-24T21:00:00Z"
+}

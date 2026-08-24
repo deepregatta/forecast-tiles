@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deepregatta.local/contracts/land-index-tile.schema.json",
+  "title": "TLI1 routing-index tile header — the JSON at bytes 8..8+header_len of a .bin.gz tile. Routing legality only; not a chart.",
+  "type": "object",
+  "required": ["spec", "schema_version", "index_id", "tile_id", "lon0", "lat0", "dlon", "dlat", "nlon", "nlat", "row_bytes", "cell_order", "cells", "blocked_cells", "composition", "conservatism", "generated_at"],
+  "properties": {
+    "spec": { "const": "TLI1" },
+    "schema_version": { "type": "integer" },
+    "index_id": { "type": "string", "pattern": "^[a-z0-9]+-[0-9]{8}T[0-9]{2}Z$" },
+    "domain": { "type": "string" },
+    "tile_id": { "type": "string", "pattern": "^[NS][0-9]{2}[EW][0-9]{3}$" },
+    "lon0": { "type": "number", "minimum": -180, "maximum": 180 },
+    "lat0": { "type": "number", "minimum": -90, "maximum": 90 },
+    "dlon": { "type": "number", "exclusiveMinimum": 0 },
+    "dlat": { "type": "number", "exclusiveMinimum": 0 },
+    "nlon": { "type": "integer", "minimum": 1 },
+    "nlat": { "type": "integer", "minimum": 1 },
+    "row_bytes": { "type": "integer", "minimum": 1 },
+    "cell_order": { "const": "south_to_north_row_major_lsb_first" },
+    "cells": { "type": "integer", "minimum": 1 },
+    "blocked_cells": { "type": "integer", "minimum": 0 },
+    "composition": {
+      "type": "object",
+      "required": ["land_cells", "shoal_cells", "nodata_cells", "blocked_before_buffer"],
+      "properties": {
+        "land_cells": { "type": "integer", "minimum": 0 },
+        "shoal_cells": { "type": "integer", "minimum": 0 },
+        "nodata_cells": { "type": "integer", "minimum": 0 },
+        "shoreline_only_cells": { "type": "integer", "minimum": 0 },
+        "depth_only_cells": { "type": "integer", "minimum": 0 },
+        "blocked_before_buffer": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "conservatism": {
+      "type": "object",
+      "required": ["buffer_m", "dilation_cells", "safety_contour_m", "vertical_datum"],
+      "properties": {
+        "buffer_m": { "type": "number", "minimum": 0 },
+        "dilation_cells": {
+          "type": "object",
+          "required": ["lon", "lat"],
+          "properties": {
+            "lon": { "type": "integer", "minimum": 0 },
+            "lat": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "safety_contour_m": { "type": "number" },
+        "vertical_datum": { "type": "string" }
+      }
+    },
+    "generated_at": { "type": "string" }
+  }
+}

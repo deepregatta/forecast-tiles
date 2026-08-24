@@ -1,5 +1,10 @@
 """`ingest <layer>` — build, validate, tile and publish one forecast layer.
 
+`ingest land` is the odd one out: it compiles the conservative routing index
+from shoreline and bathymetry rather than a forecast cycle, and it is a
+one-shot artifact rather than a scheduled run. It shares this entry point, the
+object stores and the publish discipline, and nothing else.
+
 --dry-run DIR writes the exact R2 layout to a local directory instead of R2
 (local verification, browser dev fixtures)."""
 
@@ -21,7 +26,7 @@ from ingest.sources.base import CycleNotAvailableError, parse_cycle_arg
 from ingest.tile import build_tiles
 from ingest.validate import validate_cube
 
-LAYERS = ("weather", "weather-ecmwf", "ensemble", "waves", "currents", "currents-ibi")
+LAYERS = ("weather", "weather-ecmwf", "ensemble", "waves", "currents", "currents-ibi", "land")
 
 # Allowed missing fraction per layer: atmospheric grids are global (only
 # quantization-time gaps like APCP@f000 or polar masks), ocean-only layers
@@ -90,7 +95,32 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="ensemble only: proceed even when member count != 31",
     )
+    parser.add_argument(
+        "--domain",
+        default="nweu",
+        help="land only: which routing domain to compile (default: nweu)",
+    )
+    parser.add_argument(
+        "--cache-dir",
+        default=".land-cache",
+        help="land only: where the shoreline archive and DTM blocks are kept between runs",
+    )
+    parser.add_argument(
+        "--buffer-m",
+        type=float,
+        help="land only: outward conservatism buffer in metres (default: the recorded 200)",
+    )
+    parser.add_argument(
+        "--safety-contour-m",
+        type=float,
+        help="land only: depth below LAT treated as unsailable (default: the recorded 0)",
+    )
     args = parser.parse_args(argv)
+
+    if args.layer == "land":
+        from ingest.land.cli import run_land
+
+        return run_land(args)
 
     t0 = time.time()
     try:

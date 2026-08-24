@@ -176,7 +176,7 @@ def max_bucket_bytes_from_env() -> int:
 # ----------------------------------------------------------------- helpers
 
 
-def _json_bytes(obj: dict) -> bytes:
+def json_bytes(obj: dict) -> bytes:
     return json.dumps(obj, indent=1, sort_keys=False).encode()
 
 
@@ -294,7 +294,7 @@ def _update_latest(store, cube: ForecastCube, published_at: str) -> str | None:
     }
     store.put(
         "latest.json",
-        _json_bytes(latest),
+        json_bytes(latest),
         content_type=APPLICATION_JSON,
         cache_control=CACHE_MUTABLE,
     )
@@ -366,7 +366,7 @@ def publish_run(
     # 3. manifest LAST — its presence marks the run complete
     store.put(
         f"forecast-runs/{run_id}/manifest.json",
-        _json_bytes(manifest),
+        json_bytes(manifest),
         content_type=APPLICATION_JSON,
         cache_control=CACHE_IMMUTABLE,
     )
@@ -395,7 +395,7 @@ def publish_run(
     }
     store.put(
         f"status/{cube.layer}.json",
-        _json_bytes(status),
+        json_bytes(status),
         content_type=APPLICATION_JSON,
         cache_control=CACHE_MUTABLE,
     )

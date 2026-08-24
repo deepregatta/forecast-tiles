@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deepregatta.local/contracts/land-index-latest.schema.json",
+  "title": "Routing-index latest.json — mutable per-domain pointer to the current (and previous) immutable index versions.",
+  "type": "object",
+  "required": ["schema_version", "spec", "updated_at", "domains"],
+  "properties": {
+    "schema_version": { "type": "integer" },
+    "spec": { "const": "TLI1" },
+    "updated_at": { "type": "string" },
+    "domains": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["index_id", "tiles", "tile_deg", "published_at"],
+        "properties": {
+          "index_id": { "type": "string", "pattern": "^[a-z0-9]+-[0-9]{8}T[0-9]{2}Z$" },
+          "previous_index_id": { "type": ["string", "null"] },
+          "label": { "type": "string" },
+          "tiles": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "tile_deg": { "type": "integer", "minimum": 1 },
+          "published_at": { "type": "string" }
+        }
+      }
+    }
+  }
+}
