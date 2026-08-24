@@ -4,7 +4,7 @@ import pytest
 from conftest import make_ensemble_cube, make_weather_cube
 
 from ingest.cube import axis_offsets
-from ingest.sources import cmems, ecmwf_open, gefs, gfs, gfswave
+from ingest.sources import cmems, ecmwf_open, gefs, gfs, gfswave, ibi
 from tilekit.codec import quantize
 
 
@@ -31,6 +31,9 @@ def test_committed_layer_axes_match_phase0():
     assert len(gfswave.STEP_AXIS) == 129
     # currents: 6 h -> 240 h (41)
     assert len(cmems.STEP_AXIS) == 41
+    # IBI currents: hourly 0 h -> 72 h (73), chosen from measured Channel weight
+    assert len(ibi.STEP_AXIS) == 73
+    assert ibi.STEP_AXIS == list(range(73))
     # ecmwf: 3 h -> 144 h + 6 h -> 240 h (65)
     assert len(ecmwf_open.STEP_AXIS) == 65
     assert ecmwf_open.STEP_AXIS[-1] == 240

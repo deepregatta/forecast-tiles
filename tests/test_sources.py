@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import pytest
 
-from ingest.sources import base, cmems, ecmwf_open, gefs, gfs, gfswave
+from ingest.sources import base, cmems, ecmwf_open, gefs, gfs, gfswave, ibi
 from ingest.sources.base import (
     MS_TO_KT,
     CycleNotAvailableError,
@@ -210,6 +210,160 @@ def test_cmems_does_not_retry_invalid_credentials():
 
     with pytest.raises(InvalidCredentials):
         cmems._open_dataset_with_auth_retries(FakeCopernicus(), sleep=lambda _: None)
+
+
+def _catalog_dataset(dataset_id, variables):
+    from types import SimpleNamespace
+
+    service = SimpleNamespace(variables=[SimpleNamespace(short_name=name) for name in variables])
+    part = SimpleNamespace(services=[service])
+    version = SimpleNamespace(parts=[part])
+    return SimpleNamespace(dataset_id=dataset_id, versions=[version])
+
+
+def test_ibi_resolves_hourly_2d_currents_from_catalog(monkeypatch):
+    from types import SimpleNamespace
+
+    datasets = [
+        _catalog_dataset("cmems_mod_ibi_phy_anfc_0.027deg-3D_PT1H-m", ["uo", "vo"]),
+        _catalog_dataset(ibi.DEFAULT_DATASET_ID, ["uo", "vo", "zos"]),
+        _catalog_dataset("cmems_mod_ibi_phy_anfc_0.027deg-2D_PT15M-i", ["uo", "vo"]),
+    ]
+    catalog = SimpleNamespace(
+        products=[SimpleNamespace(product_id=ibi.PRODUCT_ID, datasets=datasets)]
+    )
+
+    class FakeCopernicus:
+        @staticmethod
+        def describe(**kwargs):
+            assert kwargs == {"contains": ["ibi"], "disable_progress_bar": True}
+            return catalog
+
+    monkeypatch.delenv(ibi.DATASET_ID_ENV, raising=False)
+    monkeypatch.setattr(ibi, "_RESOLVED_DATASET_ID", None)
+    assert ibi.resolve_dataset_id(FakeCopernicus) == ibi.DEFAULT_DATASET_ID
+
+
+def test_ibi_dataset_override_bypasses_catalog(monkeypatch):
+    class FakeCopernicus:
+        @staticmethod
+        def describe(**kwargs):
+            raise AssertionError("catalogue must not be queried when an override is set")
+
+    monkeypatch.setenv(ibi.DATASET_ID_ENV, "verified-renamed-ibi-dataset")
+    assert ibi.resolve_dataset_id(FakeCopernicus) == "verified-renamed-ibi-dataset"
+
+
+def test_ibi_catalog_failure_is_explicit(monkeypatch):
+    class FakeCopernicus:
+        @staticmethod
+        def describe(**kwargs):
+            raise OSError("catalogue down")
+
+    monkeypatch.delenv(ibi.DATASET_ID_ENV, raising=False)
+    monkeypatch.setattr(ibi, "_RESOLVED_DATASET_ID", None)
+    with pytest.raises(RuntimeError, match="catalogue resolution failed"):
+        ibi.resolve_dataset_id(FakeCopernicus)
+
+
+def test_ibi_retries_authentication_service_outages_only():
+    class AuthUnavailable(Exception):
+        pass
+
+    class FakeCopernicus:
+        CouldNotConnectToAuthenticationSystem = AuthUnavailable
+
+        def __init__(self):
+            self.calls = 0
+
+        def open_dataset(self, **kwargs):
+            self.calls += 1
+            assert kwargs["dataset_id"] == ibi.DEFAULT_DATASET_ID
+            assert kwargs["variables"] == ["uo", "vo"]
+            assert kwargs["minimum_latitude"] == ibi.MIN_LAT
+            assert kwargs["maximum_longitude"] == ibi.MAX_LON
+            if self.calls < 3:
+                raise AuthUnavailable
+            return "dataset"
+
+    client = FakeCopernicus()
+    sleeps = []
+    assert (
+        ibi._open_dataset_with_auth_retries(
+            client,
+            dataset_id=ibi.DEFAULT_DATASET_ID,
+            sleep=sleeps.append,
+        )
+        == "dataset"
+    )
+    assert client.calls == 3
+    assert sleeps == list(cmems.AUTH_RETRY_DELAYS_S)
+
+
+class _FakeArray:
+    def __init__(self, values):
+        self.values = np.asarray(values)
+
+
+class _FakeIbiDataset:
+    dims = {}
+
+    def __init__(self, cycle, steps):
+        self.times = np.array(
+            [np.datetime64(cycle.replace(tzinfo=None) + timedelta(hours=h), "ns") for h in steps]
+        )
+        self.u = np.full((len(steps), 2, 3), 1.0, dtype=np.float32)
+        self.v = np.full((len(steps), 2, 3), -2.0, dtype=np.float32)
+        self.u[:, 0, 0] = np.nan
+        self.v[:, 0, 0] = np.nan
+        self.closed = False
+
+    def __getitem__(self, name):
+        values = {
+            "time": self.times,
+            "latitude": [40.0, 40.0 + 1 / 36],
+            "longitude": [-10.0, -10.0 + 1 / 36, -10.0 + 2 / 36],
+        }[name]
+        return _FakeArray(values)
+
+    def sel(self, *, time):
+        requested = np.asarray(time, dtype="datetime64[ns]")
+        if requested.ndim == 0:
+            index = int(np.where(self.times == requested)[0][0])
+            return {"uo": _FakeArray(self.u[index]), "vo": _FakeArray(self.v[index])}
+        indices = [int(np.where(self.times == instant)[0][0]) for instant in requested]
+        return {"uo": _FakeArray(self.u[indices]), "vo": _FakeArray(self.v[indices])}
+
+    def close(self):
+        self.closed = True
+
+
+def test_ibi_resolve_derives_latest_complete_daily_cycle(monkeypatch):
+    cycle = CYCLE.replace(hour=0)
+    ds = _FakeIbiDataset(cycle, range(ibi.NATIVE_FORECAST_HORIZON_H + 1))
+    monkeypatch.setattr(ibi, "resolve_dataset_id", lambda _: ibi.DEFAULT_DATASET_ID)
+    monkeypatch.setattr(ibi, "_open_dataset_with_auth_retries", lambda *args, **kwargs: ds)
+    assert ibi.resolve() == cycle
+    assert ds.closed
+
+
+def test_ibi_build_cube_hourly_surface_currents(monkeypatch):
+    cycle = CYCLE.replace(hour=0)
+    ds = _FakeIbiDataset(cycle, ibi.STEP_AXIS)
+    monkeypatch.setattr(ibi, "resolve_dataset_id", lambda _: ibi.DEFAULT_DATASET_ID)
+    monkeypatch.setattr(ibi, "_open_dataset_with_auth_retries", lambda *args, **kwargs: ds)
+
+    cube = ibi.build_cube(cycle)
+    assert cube.layer == "currents-ibi"
+    assert cube.model == "cmems_ibi"
+    assert cube.time_axes == {"steps": list(range(73))}
+    assert cube.arrays["cur_u_kt"].shape == (73, 2, 3)
+    assert cube.decoded("cur_u_kt")[0, 1, 1] == pytest.approx(MS_TO_KT, abs=0.005)
+    assert cube.decoded("cur_v_kt")[0, 1, 1] == pytest.approx(-2 * MS_TO_KT, abs=0.005)
+    assert np.isnan(cube.decoded("cur_u_kt")[0, 0, 0])
+    assert cube.provenance["dataset_id"] == ibi.DEFAULT_DATASET_ID
+    assert "including tide" in cube.provenance["tidal_caveat"]
+    assert ds.closed
 
 
 def test_rtofs_is_marked_skeleton():

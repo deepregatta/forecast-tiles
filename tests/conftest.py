@@ -63,6 +63,29 @@ def make_ensemble_cube(*, members: int = 5, seed: int = 7) -> ForecastCube:
     )
 
 
+def make_ibi_cube(*, missing_fraction: float = 0.25) -> ForecastCube:
+    """Tiny native-shape IBI cube with its committed 0..72 h axis."""
+    from ingest.sources import ibi
+
+    grid = GridMeta(lat0=40.0, lon0=-10.0, dlat=1 / 36, dlon=1 / 36, nlat=4, nlon=5)
+    shape = (len(ibi.STEP_AXIS), grid.nlat, grid.nlon)
+    u = np.full(shape, 1.5, dtype=np.float32)
+    v = np.full(shape, -0.5, dtype=np.float32)
+    missing_points = round(grid.nlat * grid.nlon * missing_fraction)
+    u.reshape(len(ibi.STEP_AXIS), -1)[:, :missing_points] = np.nan
+    v.reshape(len(ibi.STEP_AXIS), -1)[:, :missing_points] = np.nan
+    return ForecastCube(
+        layer=ibi.LAYER,
+        model=ibi.MODEL,
+        cycle=CYCLE.replace(hour=0),
+        grid=grid,
+        time_axes={ibi.AXIS_NAME: list(ibi.STEP_AXIS)},
+        variables=list(ibi.VARS),
+        arrays={"cur_u_kt": u, "cur_v_kt": v},
+        provenance={"source": "synthetic IBI test cube"},
+    )
+
+
 @pytest.fixture
 def weather_cube() -> ForecastCube:
     return make_weather_cube()

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from conftest import make_weather_cube
+from conftest import make_ibi_cube, make_weather_cube
 
 from ingest import cli
 from ingest.publish import DirStore, fnv64, publish_run
@@ -106,3 +106,26 @@ def test_cli_aborts_on_validation_failure(tmp_path, monkeypatch, capsys):
     assert rc == 1
     assert not (tmp_path / "latest.json").exists()
     assert "validation FAILED" in capsys.readouterr().out
+
+
+def test_cli_currents_ibi_dry_run_wiring(tmp_path, monkeypatch):
+    from ingest.sources import ibi
+
+    cube = make_ibi_cube()
+    monkeypatch.setattr(ibi, "resolve", lambda requested=None: cube.cycle)
+    monkeypatch.setattr(ibi, "build_cube", lambda cycle: cube)
+
+    rc = cli.main(["currents-ibi", "--dry-run", str(tmp_path)])
+    assert rc == 0
+    jsonschema = pytest.importorskip("jsonschema")
+    run_dir = tmp_path / "forecast-runs" / cube.run_id
+    manifest = json.loads((run_dir / "manifest.json").read_text())
+    jsonschema.validate(manifest, load_schema("forecast-manifest.schema.json"))
+    latest = json.loads((tmp_path / "latest.json").read_text())
+    jsonschema.validate(latest, load_schema("forecast-latest.schema.json"))
+    assert latest["layers"]["currents-ibi"]["run_id"] == cube.run_id
+    tile_id = next(iter(manifest["tiles"]))
+    tile_path = run_dir / manifest["tiling"]["path_template"].format(tile_id=tile_id)
+    tile = decode_tile(gzip.decompress(tile_path.read_bytes()))
+    jsonschema.validate(tile.header, load_schema("forecast-tile.schema.json"))
+    assert (tmp_path / "status" / "currents-ibi.json").exists()

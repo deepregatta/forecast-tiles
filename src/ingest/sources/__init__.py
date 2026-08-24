@@ -1,1 +1,1 @@
-"""Per-provider cube builders (GFS, GEFS, GFS-Wave, CMEMS/RTOFS, ECMWF open data)."""
+"""Per-provider cube builders (GFS, GEFS, GFS-Wave, CMEMS, IBI, RTOFS, ECMWF)."""

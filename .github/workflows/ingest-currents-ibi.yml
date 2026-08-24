@@ -1,0 +1,43 @@
+name: ingest-currents-ibi
+
+on:
+  schedule:
+    # IBI's Product User Manual states one daily bulletin, target delivery
+    # 14:00 UTC.  Leave one hour for catalogue/store propagation.
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+    inputs:
+      cycle:
+        description: "Cycle YYYYMMDDTHH (default: latest complete daily bulletin)"
+        required: false
+
+concurrency:
+  group: ingest-currents-ibi
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+      - run: uv sync --extra currents
+      - run: uv run ingest currents-ibi ${CYCLE:+--cycle "$CYCLE"}
+        env:
+          CYCLE: ${{ inputs.cycle }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          COPERNICUSMARINE_SERVICE_USERNAME: ${{ secrets.COPERNICUSMARINE_SERVICE_USERNAME }}
+          COPERNICUSMARINE_SERVICE_PASSWORD: ${{ secrets.COPERNICUSMARINE_SERVICE_PASSWORD }}
+          # Bound the toolbox's nested HTTP retries so the pipeline-level
+          # 5/15-minute authentication-outage backoff fits inside this job.
+          COPERNICUSMARINE_HTTPS_TIMEOUT: "20"
+          COPERNICUSMARINE_HTTPS_RETRIES: "2"

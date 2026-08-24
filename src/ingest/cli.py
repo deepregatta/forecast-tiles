@@ -21,7 +21,7 @@ from ingest.sources.base import CycleNotAvailableError, parse_cycle_arg
 from ingest.tile import build_tiles
 from ingest.validate import validate_cube
 
-LAYERS = ("weather", "weather-ecmwf", "ensemble", "waves", "currents")
+LAYERS = ("weather", "weather-ecmwf", "ensemble", "waves", "currents", "currents-ibi")
 
 # Allowed missing fraction per layer: atmospheric grids are global (only
 # quantization-time gaps like APCP@f000 or polar masks), ocean-only layers
@@ -32,6 +32,11 @@ MAX_MISSING = {
     "ensemble": 0.05,
     "waves": 0.80,
     "currents": 0.80,
+    # The bounded IBI rectangle includes European and North African land, but
+    # is mostly water.  Live 2026-08-24 data measured 0.418 missing; 0.45 keeps
+    # the coastal mask normal while catching a materially truncated provider
+    # subset (unlike the global-ocean 0.80 allowance).
+    "currents-ibi": 0.45,
 }
 
 
@@ -64,6 +69,10 @@ def _build(args: argparse.Namespace) -> ForecastCube:
             cube = rtofs.build_cube(rtofs.resolve(requested))
             cube.provenance["fallback"] = f"CMEMS unavailable: {type(exc).__name__}: {exc}"
             return cube
+    if layer == "currents-ibi":
+        from ingest.sources import ibi
+
+        return ibi.build_cube(ibi.resolve(requested))
     raise ValueError(f"unknown layer {layer}")
 
 
@@ -96,7 +105,16 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"ingest {args.layer}: cycle {cube.cycle_iso} -> run {cube.run_id}")
 
-    report = validate_cube(cube, max_missing=MAX_MISSING[args.layer])
+    expected_axes = None
+    if args.layer == "currents-ibi":
+        from ingest.sources import ibi
+
+        expected_axes = {ibi.AXIS_NAME: ibi.STEP_AXIS}
+    report = validate_cube(
+        cube,
+        max_missing=MAX_MISSING[args.layer],
+        expected_axes=expected_axes,
+    )
     print(report.summary())
     if not report.ok:
         print(f"ingest {args.layer}: validation FAILED, aborting before upload")

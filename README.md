@@ -6,7 +6,7 @@ Cloudflare R2 and consumed by [Passage](https://github.com/deepregatta/passage)
 entirely in the browser.
 
 ```
-NOAA GFS / GEFS / GFS-Wave · Copernicus GLO12 · ECMWF open data
+NOAA GFS / GEFS / GFS-Wave · Copernicus GLO12 / IBI · ECMWF open data
         │  scheduled GitHub Actions (this repo)
         ▼
 normalize → validate → quantize (int16/int8) → 10°×10° tiles → gzip
@@ -23,6 +23,7 @@ uv run ingest weather                        # latest complete GFS cycle -> R2
 uv run ingest weather --cycle 20260713T06    # explicit cycle
 uv run ingest weather --dry-run /tmp/tiles   # write the R2 layout locally instead
 uv run ingest ensemble|waves|currents|weather-ecmwf
+uv run ingest currents-ibi                   # hourly regional current field
 ```
 
 Each run: resolve the latest **complete** provider cycle (`.idx` presence,
@@ -33,8 +34,9 @@ failure aborts before upload) → 10°×10° gzipped PFT1 tiles → atomic publi
 (storage guard first, tiles, `manifest.json` last, post-publish re-download
 check, `latest.json`, retention delete, `status/{layer}.json`).
 
-Scheduled GitHub Actions run each layer 4×/day (currents 1×/day) — see
-`.github/workflows/ingest-*.yml`. `ingest weather-ecmwf` exits 0 with a log
+Scheduled GitHub Actions run each layer daily. GLO12 currents run after their
+provider update; IBI runs at 15:00 UTC after its documented 14:00 UTC target
+delivery — see `.github/workflows/ingest-*.yml`. `ingest weather-ecmwf` exits 0 with a log
 line when ECMWF hasn't published a full-horizon cycle yet.
 
 The Phase 0 size-measurement prototype is still runnable:
@@ -51,7 +53,8 @@ The Phase 0 size-measurement prototype is still runnable:
    - `R2_BUCKET` — `passage-forecast`
 4. Enable public read for the bucket (r2.dev public development URL or a
    custom domain) so the Passage client can fetch tiles.
-5. For the currents layer also add `COPERNICUSMARINE_SERVICE_USERNAME` and
+5. For both Copernicus current layers also add
+   `COPERNICUSMARINE_SERVICE_USERNAME` and
    `COPERNICUSMARINE_SERVICE_PASSWORD` (free Copernicus Marine account).
    Transient authentication-service connection failures are retried after 5
    and 15 minutes; invalid credentials still fail immediately.
@@ -63,21 +66,27 @@ exceed `MAX_BUCKET_BYTES` (default 8 GB).
 
 | Layer | Source | Resolution | Cadence |
 |---|---|---|---|
-| `weather` | NOAA GFS (wind u/v, gust hourly; vis/CAPE/temp/dew-point/precip 3-hourly) | 0.25° | 4×/day |
-| `weather-ecmwf` | ECMWF open data (wind u/v, gust) | 0.25° | 4×/day |
-| `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | 4×/day |
-| `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | 4×/day |
+| `weather` | NOAA GFS (wind u/v, gust hourly; vis/CAPE/temp/dew-point/precip 3-hourly) | 0.25° | 1×/day |
+| `weather-ecmwf` | ECMWF open data (wind u/v, gust) | 0.25° | 1×/day |
+| `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | 1×/day |
+| `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | 1×/day |
 | `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; NOAA RTOFS fallback) | 1/12° | 1×/day |
+| `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 72 h; IBI domain only) | 1/36° | 1×/day |
 
 Time axes reflect the Phase 0 size measurement — see
 [docs/phase0-results.md](docs/phase0-results.md) (verdict: GO at 3.26 GB per
 full generation, 6.53 GB at ×2 run retention against the 8 GB storage guard).
+The IBI axis comes from a separate real-data size gate: 65.39 MB per full
+regional run and 19.779 MB for the four Channel tiles. See
+[docs/ibi-currents.md](docs/ibi-currents.md).
 
 The PFT1 format and the manifest/latest JSON schemas are canonically specified
 in the Passage repo ([`docs/forecast-tile-format.md`](https://github.com/deepregatta/passage/blob/main/docs/forecast-tile-format.md), `contracts/forecast-*.schema.json`);
 this repo vendors copies plus a shared golden fixture that both CIs must decode
-identically. `contracts/` here is a verbatim copy of the passage repo's
-`contracts/forecast-{tile,manifest,latest}.schema.json` — update both together.
+identically. The IBI shore deliverable extends the local layer-name enums with
+`currents-ibi`; mirroring that enum into Passage is explicitly `OPEN:` before
+Passage claims schema parity. No per-tile provenance/resolution extension has
+been made; the later blended-current contract remains separate.
 
 ## Data licensing
 

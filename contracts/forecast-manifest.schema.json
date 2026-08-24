@@ -7,7 +7,7 @@
   "properties": {
     "schema_version": { "type": "integer" },
     "run_id": { "type": "string", "pattern": "^[a-z-]+-[0-9]{8}T[0-9]{2}Z$" },
-    "layer": { "enum": ["weather", "weather-ecmwf", "ensemble", "waves", "currents"] },
+    "layer": { "enum": ["weather", "weather-ecmwf", "ensemble", "waves", "currents", "currents-ibi"] },
     "model": { "type": "string" },
     "cycle": { "type": "string" },
     "member_count": { "type": "integer", "minimum": 1 },

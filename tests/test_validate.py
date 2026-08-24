@@ -1,5 +1,5 @@
 import numpy as np
-from conftest import make_ensemble_cube, make_weather_cube
+from conftest import make_ensemble_cube, make_ibi_cube, make_weather_cube
 
 from ingest.cube import VariableSpec
 from ingest.validate import validate_cube
@@ -88,3 +88,27 @@ def test_anomaly_out_of_clip_range_fails():
     cube = make_ensemble_cube()
     cube.arrays["wind_kt_anom"][0] = 30.0  # beyond the ±25 kt clip
     assert failing(validate_cube(cube), "physical_range[wind_kt_anom]")
+
+
+def test_ibi_coastal_missing_threshold_is_deliberate():
+    from ingest import cli
+    from ingest.sources import ibi
+
+    assert cli.MAX_MISSING[ibi.LAYER] == 0.45
+    assert validate_cube(
+        make_ibi_cube(missing_fraction=0.40),
+        max_missing=cli.MAX_MISSING[ibi.LAYER],
+        expected_axes={ibi.AXIS_NAME: ibi.STEP_AXIS},
+    ).ok
+    report = validate_cube(
+        make_ibi_cube(missing_fraction=0.50),
+        max_missing=cli.MAX_MISSING[ibi.LAYER],
+        expected_axes={ibi.AXIS_NAME: ibi.STEP_AXIS},
+    )
+    assert failing(report, "missing_fraction[cur_u_kt]")
+
+
+def test_ibi_current_physical_range_is_enforced():
+    cube = make_ibi_cube()
+    cube.arrays["cur_v_kt"][0, 1, 1] = 20.0
+    assert failing(validate_cube(cube, max_missing=0.45), "physical_range[cur_v_kt]")

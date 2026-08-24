@@ -10,6 +10,10 @@ Currents (CMEMS GLO12) are ESTIMATED analytically (no credentials in this
 environment): raw int16 size x ocean fraction x the gzip ratio measured on the
 GFS wind layer. Marked as an estimate in the output.
 
+The regional hourly IBI layer is measured from its real Copernicus source when
+requested explicitly (Copernicus credentials required):
+`uv run --extra currents scripts/size_prototype.py --layers currents-ibi`.
+
 Usage: uv run scripts/size_prototype.py [--layers weather,ensemble,waves,ecmwf,currents]
 """
 
@@ -536,6 +540,38 @@ def estimate_currents(wind_gz_ratio: float) -> dict:
     }
 
 
+def measure_ibi_currents() -> dict:
+    """Build and gzip the committed IBI axis with the production source path."""
+    from ingest.sources import ibi
+    from ingest.tile import build_tiles
+
+    t0 = time.time()
+    cycle = ibi.resolve()
+    cube = ibi.build_cube(cycle)
+    tiles = build_tiles(cube, generated_at="prototype")
+    sizes = {tile_id: len(gz) for tile_id, gz in tiles}
+    channel_ids = {"N40W010", "N40E000", "N50W010", "N50E000"}
+    missing = {
+        variable.name: float(np.isnan(cube.decoded(variable.name)).mean())
+        for variable in cube.variables
+    }
+    total = sum(sizes.values())
+    return {
+        "layer": ibi.LAYER,
+        "cycle": cube.cycle_iso,
+        "dataset_id": cube.provenance["dataset_id"],
+        "resolution_deg": cube.resolution_deg,
+        "horizon_h": cube.horizon_h,
+        "step_count": len(ibi.STEP_AXIS),
+        "estimated_full_gz": total,
+        "tile_count": len(tiles),
+        "channel_four_tiles_gz": sum(size for tile, size in sizes.items() if tile in channel_ids),
+        "missing_fraction": missing,
+        "note": "MEASURED from the real CMEMS IBI analysis-forecast source and PFT1 codec",
+        "wall_s": time.time() - t0,
+    }
+
+
 # -------------------------------------------------------------------- main
 
 
@@ -563,6 +599,8 @@ def main() -> int:
                 r = measure_ecmwf()
             elif layer == "currents":
                 r = estimate_currents(wind_gz_ratio)
+            elif layer == "currents-ibi":
+                r = measure_ibi_currents()
             else:
                 raise ValueError(f"unknown layer {layer}")
         except Exception as exc:  # keep measuring other layers
