@@ -90,6 +90,11 @@ tactician's `shore` read as a list of *forecast* layers to fetch tiles for.
 ### Coverage is the tile list, not the bounding box
 
 A domain is a set of whole tiles on the same 10° grid the forecast tiles use.
+`nweu` is the four covering 10°W–10°E, 40°N–60°N: a whole 2×2 block rather than
+the L-shape the races alone would need, because a race area resolves to tiles by
+its bounding box and the RORC Channel fleet's own box reaches a degree east of
+the course into the fourth tile. A domain cut to the courses would have put a
+coverage edge inside a race this index exists to serve.
 The manifest's bounding box is that set's envelope and may contain tiles that
 were never compiled, so **the tile list is the coverage**. A query outside a
 published tile is *unknown*, never *clear*. This is why the domain is

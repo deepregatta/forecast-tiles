@@ -36,10 +36,15 @@ DOMAINS: dict[str, Domain] = {
     "nweu": Domain(
         name="nweu",
         label=(
-            "North-west European shelf: Biscay, Brittany, the Channel and its western "
-            "approaches, and the southern North Sea"
+            "North-west European waters, 10 W to 10 E and 40 N to 60 N: Biscay, Brittany, "
+            "the Channel and its western approaches, and the southern North Sea"
         ),
-        tiles=((40, -10), (50, -10), (50, 0)),
+        # A whole 2x2 block of the forecast tiling rather than the L-shape the
+        # races alone would need. A race area resolves to tiles by its bounding
+        # box, and the RORC Channel fleet's own box reaches a degree east of
+        # the course into the fourth tile; a domain cut to the courses would
+        # have put a coverage edge inside a race the index exists to serve.
+        tiles=((40, -10), (40, 0), (50, -10), (50, 0)),
     ),
     # The committed contract fixture: one degree over the Raz de Sein, which
     # carries an islet, a rock chaussee and a legal passage between them. It is

@@ -98,7 +98,7 @@ instructions: **[docs/land-index-format.md](docs/land-index-format.md)**.
 | | |
 |---|---|
 | Sources | GSHHG 2.3.7 full-resolution shoreline (LGPL-3.0-or-later, attribution) · EMODnet Digital Bathymetry DTM 2024 (CC-BY-4.0) |
-| Domain `nweu` | 20°W–0° / 40°N–60°N and 0°–10°E / 50°N–60°N — Biscay, Brittany, the Channel and its western approaches, the southern North Sea |
+| Domain `nweu` | 10°W–10°E, 40°N–60°N (four 10° tiles) — Biscay, Brittany, the Channel and its western approaches, the southern North Sea |
 | Cell | 1/480° (~232 m of latitude), one bit per cell, packed south-to-north |
 | Conservatism | outward buffer **200 m**; safety contour **0 m below LAT**; no-data blocked; every step adds blocked area and none removes any |
 | Cadence | one-shot. `workflow_dispatch` only (`.github/workflows/land-index.yml`) |
