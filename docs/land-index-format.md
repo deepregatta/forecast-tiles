@@ -3,7 +3,8 @@
 **Status:** versioned contract. Producer: this repo (`ingest land`). Consumer:
 tactician's `core/land`, through `routing`'s `SpatialIndex` seam. Schemas:
 `contracts/land-index-{tile,manifest,latest}.schema.json`. Golden fixture:
-`tests/fixtures/land-index-raz/`, committed in both repos.
+`tests/fixtures/land-index-raz/`, committed here and at
+`core/land/fixtures/land-index-raz/` in tactician.
 
 ---
 
@@ -209,7 +210,7 @@ is reproducible. It is a *real* index of a small domain rather than a synthetic
 one, so the consumer's contract test reads exactly what the producer publishes.
 
 Both repositories commit the same bytes and both CIs decode them: this repo's
-`tests/test_land_fixture.py` and tactician's `core/land` contract test. Neither
+`tests/test_land_fixture.py` and tactician's `core/land/tests/contract.rs`. Neither
 vendors the other's implementation.
 
 Regenerate with:
