@@ -53,6 +53,12 @@ They are versioned properties of a published index, recorded in its manifest,
 and not tuning knobs anyone may quietly change: a different value is a
 different index id.
 
+Published `nweu` versions so far:
+
+| Index id | Built | Tiles | Bytes (gz) | Blocked | Source agreement |
+|---|---|---|---|---|---|
+| `nweu-20260825T07Z` | [run 32819560190](https://github.com/deepregatta/forecast-tiles/actions/runs/32819560190) | 4 | 154 KB | 49.768 % | 98.810 % |
+
 | Parameter | Value in `nweu` | Why |
 |---|---|---|
 | `buffer_m` | 200 | GSHHG's full-resolution shoreline and the EMODnet DTM's 115 m posting both carry positional error of this order. The dilation is applied per axis, computed from the *narrowest* cell in the tile — a longitude cell covers fewer metres than a latitude cell, and fewer still further north — so the guarantee holds everywhere in the tile rather than on average. |

@@ -107,6 +107,14 @@ Both sources carry **DO NOT USE FOR NAVIGATION**, and so does every manifest
 this pipeline writes. The index resolves shoal areas, not individual rocks:
 measured on the fixture region, neither source resolves Ar Men or La Vieille.
 
+First public index: **`nweu-20260825T07Z`** from [run 32819560190](https://github.com/deepregatta/forecast-tiles/actions/runs/32819560190) — 154 KB gzipped for 92
+million cells, 49.8 % of them blocked, the shoreline and the depth contour
+agreeing on 98.8 %, and every probe passing. It **reproduces**: the same sources
+and parameters compiled on a clean runner over a cold cache and locally over a
+warm one give bitmaps identical in all four tiles, differing only in the
+identity fields. Tactician consumes it through its `core/land` crate and routes
+the 2025 RORC Channel replay against it with no segment crossing land.
+
 Time axes reflect the Phase 0 size measurement — see
 [docs/phase0-results.md](docs/phase0-results.md) (verdict: GO at 3.26 GB per
 full generation, 6.53 GB at ×2 run retention against the 8 GB storage guard).
