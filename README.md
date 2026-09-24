@@ -86,7 +86,16 @@ exceed `MAX_BUCKET_BYTES` (default 8 GB).
 | `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | 1×/day |
 | `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | 1×/day |
 | `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; NOAA RTOFS fallback) | 1/12° | 1×/day |
-| `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 72 h; IBI domain only) | 1/36° | 1×/day |
+| `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 72 h; IBI domain only) | ≈1/36° (0.02777863°) | 1×/day |
+
+Tiles slice each provider grid without resampling, and every header carries
+that grid's geometry. The 0.25°/0.5° layers and GLO12 sit exactly on their
+lattices, so each tile starts on its 10° lines (GLO12: `dlat = dlon = 1/12`).
+Before 2026-09-24 GLO12 headers took the step from two float32 coordinates
+(0.0833282° of longitude), drifted by up to 0.02°, and put each true 10°
+column at the end of the western tile. IBI keeps the provider's own regular
+0.02777863° lattice, which sits up to 0.0013° off the 1/36° lines
+([docs/ibi-currents.md](docs/ibi-currents.md)).
 
 ## Routing index (`ingest land`)
 

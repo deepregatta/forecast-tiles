@@ -25,7 +25,13 @@ The domain and resolution were vendored from
 - `IBI_MIN_LON = -19.0`
 - `IBI_MAX_LON = 5.0`
 - `IBI_NOMINAL_RESOLUTION_DEG = 1 / 36`
-- measured provider grid step: `0.02777863000000025°`
+- measured provider grid: float64 coordinates on a regular `0.02777863°`
+  lattice (not the 1/36° lines: the domain's first row is 26.16535726°N and
+  first column 18.99950521°W; checked 2026-09-24,
+  `tests/fixtures/cmems-coordinates.npz`). Tiles keep these coordinates; the
+  step is taken across the whole axis, so manifests from 2026-09-24 carry
+  `resolution_deg` 0.02777863 where earlier ones carried the two-point
+  difference 0.02777863000000025.
 
 The Copernicus Product User Manual states one daily bulletin with a one-day
 hindcast and ten-day forecast, target delivery 14:00 UTC. The workflow runs at

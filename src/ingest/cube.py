@@ -15,6 +15,48 @@ import numpy as np
 
 from tilekit.codec import DTYPES
 
+# A coordinate array is one regular axis when origin + k*step reproduces it to
+# within this, or to within a few ULPs of its dtype at 180° when that is
+# coarser: float32 coordinates carry noise of that size at every longitude
+# (GLO12's are 1e-5° off at 10°W, where their own ULP is 1e-6°). Anything
+# else is refused rather than tiled.
+REGULAR_TOLERANCE_DEG = 1e-6
+
+
+def regular_axis(coords, *, cells_per_degree: int | None = None) -> tuple[float, float]:
+    """(origin, step) of a regular, ascending coordinate array, in float64.
+
+    The step spans the whole axis, (last - first) / (n - 1), rather than
+    differencing two neighbours: two float32 coordinates differ from the true
+    step by up to a float32 ULP, and origin + k*step multiplies that by k
+    (GLO12's first two longitudes give 0.0833282 for 1/12, 0.02° short by
+    180°E). With ``cells_per_degree`` the axis must lie on that exact lattice
+    and is returned snapped to it, so lattice points on the 10° tile lines
+    reconstruct exactly. Pass coordinates in their stored dtype: its precision
+    sets the tolerance.
+    """
+    stored = np.asarray(coords)
+    values = stored.astype(np.float64)
+    n = values.size
+    if values.ndim != 1 or n < 2:
+        raise ValueError("a regular axis needs at least two coordinates")
+    if cells_per_degree:
+        origin = round(float(values[0]) * cells_per_degree) / cells_per_degree
+        step = 1 / cells_per_degree
+    else:
+        origin = float(values[0])
+        step = float((values[-1] - values[0]) / (n - 1))
+    if not step > 0:
+        raise ValueError("coordinates are not ascending")
+    tolerance = max(REGULAR_TOLERANCE_DEG, 4 * float(np.spacing(stored.dtype.type(180))))
+    error = float(np.max(np.abs(origin + np.arange(n) * step - values)))
+    if error > tolerance:
+        lattice = f"the 1/{cells_per_degree}° lattice" if cells_per_degree else "a regular axis"
+        raise ValueError(
+            f"coordinates are not {lattice}: off by up to {error:.3g}° (tolerance {tolerance:.3g}°)"
+        )
+    return origin, step
+
 
 @dataclass(frozen=True)
 class GridMeta:
@@ -26,6 +68,13 @@ class GridMeta:
     dlon: float
     nlat: int
     nlon: int
+
+    @classmethod
+    def from_coordinates(cls, lats, lons, *, cells_per_degree: int | None = None) -> GridMeta:
+        """Grid of a provider's 1-D latitude/longitude arrays (see regular_axis)."""
+        lat0, dlat = regular_axis(lats, cells_per_degree=cells_per_degree)
+        lon0, dlon = regular_axis(lons, cells_per_degree=cells_per_degree)
+        return cls(lat0=lat0, lon0=lon0, dlat=dlat, dlon=dlon, nlat=len(lats), nlon=len(lons))
 
     def lats(self) -> np.ndarray:
         return self.lat0 + np.arange(self.nlat) * self.dlat

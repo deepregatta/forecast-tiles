@@ -33,8 +33,10 @@ DATASET_ID_ENV = "CMEMS_IBI_DATASET_ID"
 AXIS_NAME = "steps"
 
 # Vendored from oscar/analysis/src/coachregatta_analysis/environment_fetcher.py
-# RegionalModel "IBI" on 2026-08-24.  The provider grid is 1/36 degree and
-# reports an actual coordinate increment of about 0.02777863 degree.
+# RegionalModel "IBI" on 2026-08-24.  The provider grid is nominally 1/36
+# degree, but its float64 coordinates are their own regular 0.02777863 degree
+# lattice, off the 1/36 lines by up to 0.0013 degree (measured 2026-09-24), so
+# the tiles keep the provider's coordinates rather than snapping them.
 MIN_LAT = 26.0
 MAX_LAT = 56.0
 MIN_LON = -19.0
@@ -213,20 +215,13 @@ def build_cube(cycle: datetime) -> ForecastCube:
         if "depth" in ds.dims:
             ds = ds.isel(depth=0)
 
-        lats = np.asarray(ds["latitude"].values, dtype=np.float64)
-        lons = np.asarray(ds["longitude"].values, dtype=np.float64)
+        lats = np.asarray(ds["latitude"].values)
+        lons = np.asarray(ds["longitude"].values)
         if len(lats) < 2 or len(lons) < 2:
             raise RuntimeError("IBI subset did not return a two-dimensional grid")
         if lats[1] <= lats[0] or lons[1] <= lons[0]:
             raise RuntimeError("unexpected descending IBI latitude/longitude grid")
-        meta = GridMeta(
-            lat0=float(lats[0]),
-            lon0=float(lons[0]),
-            dlat=float(lats[1] - lats[0]),
-            dlon=float(lons[1] - lons[0]),
-            nlat=len(lats),
-            nlon=len(lons),
-        )
+        meta = GridMeta.from_coordinates(lats, lons)
 
         naive_cycle = cycle.astimezone(timezone.utc).replace(tzinfo=None)
         times = [np.datetime64(naive_cycle + timedelta(hours=h), "ns") for h in STEP_AXIS]

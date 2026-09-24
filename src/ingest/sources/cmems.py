@@ -30,6 +30,12 @@ DATASET_ID = os.environ.get("CMEMS_DATASET_ID", "cmems_mod_glo_phy-cur_anfc_0.08
 
 STEP_AXIS = axis_offsets((0, 240, 6))  # 41 steps (Phase 0 lever 2)
 
+# GLO12's native grid is exactly 1/12° (lat -80 + k/12, lon -180 + k/12); the
+# dataset's float32 coordinates only approximate it (measured 2026-09-24:
+# within 2.1e-5°). Tiles carry the exact lattice so that its 10° lines, which
+# 1/12 divides, start their tiles.
+CELLS_PER_DEGREE = 12
+
 # The Copernicus authentication service occasionally has short outages.  The
 # toolbox already retries each HTTP request, so these are deliberately coarse
 # retries of the authentication/open operation rather than every data read.
@@ -80,18 +86,12 @@ def build_cube(cycle: datetime) -> ForecastCube:
     if "depth" in ds.dims:
         ds = ds.isel(depth=0)  # surface layer
 
-    lats = np.asarray(ds["latitude"].values, dtype=np.float64)
-    lons = np.asarray(ds["longitude"].values, dtype=np.float64)
+    # stored float32: its precision is the tolerance for lying on the lattice
+    lats = np.asarray(ds["latitude"].values)
+    lons = np.asarray(ds["longitude"].values)
     if lats[1] < lats[0]:
         raise RuntimeError("unexpected descending latitude in GLO12 dataset")
-    meta = GridMeta(
-        lat0=float(lats[0]),
-        lon0=float(lons[0]),
-        dlat=float(lats[1] - lats[0]),
-        dlon=float(lons[1] - lons[0]),
-        nlat=len(lats),
-        nlon=len(lons),
-    )
+    meta = GridMeta.from_coordinates(lats, lons, cells_per_degree=CELLS_PER_DEGREE)
 
     naive_cycle = cycle.astimezone(timezone.utc).replace(tzinfo=None)
     times = [np.datetime64(naive_cycle + timedelta(hours=h)) for h in STEP_AXIS]
