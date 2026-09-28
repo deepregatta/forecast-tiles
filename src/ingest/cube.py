@@ -84,6 +84,20 @@ class GridMeta:
 
 
 @dataclass(frozen=True)
+class Statistic:
+    """Values are a statistic over the interval ending at each axis step, not
+    an instantaneous value at it (ECMWF gust: the maximum over the last 1, 3
+    or 6 h). window_h has one entry per axis step: the interval length in
+    hours, None where the step carries no value."""
+
+    kind: str  # "max"
+    window_h: tuple[int | None, ...]
+
+    def public(self) -> dict:
+        return {"kind": self.kind, "window_h": list(self.window_h)}
+
+
+@dataclass(frozen=True)
 class VariableSpec:
     """Public (header/manifest-facing) description of one encoded variable."""
 
@@ -93,6 +107,7 @@ class VariableSpec:
     scale: float
     offset: float = 0.0
     per_member: bool = False
+    statistic: Statistic | None = None  # None = instantaneous at each step
 
     def public(self) -> dict:
         out: dict = {"name": self.name, "axis": self.axis, "dtype": self.dtype, "scale": self.scale}
@@ -100,6 +115,8 @@ class VariableSpec:
             out["offset"] = self.offset
         if self.per_member:
             out["per_member"] = True
+        if self.statistic is not None:
+            out["statistic"] = self.statistic.public()
         return out
 
 

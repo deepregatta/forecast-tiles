@@ -36,6 +36,19 @@
           "scale": { "type": "number" },
           "offset": { "type": "number" },
           "per_member": { "type": "boolean" },
+          "statistic": {
+            "type": "object",
+            "description": "Present when each value is a statistic over the interval ending at its step rather than an instantaneous value (ECMWF gust: the maximum over the last 1, 3 or 6 h). Absent: instantaneous.",
+            "required": ["kind", "window_h"],
+            "properties": {
+              "kind": { "enum": ["max"] },
+              "window_h": {
+                "type": "array",
+                "description": "One entry per step of the variable's axis: the interval length in hours, null where the step carries no value.",
+                "items": { "type": ["integer", "null"], "minimum": 1 }
+              }
+            }
+          },
           "units": { "type": "string" }
         }
       }

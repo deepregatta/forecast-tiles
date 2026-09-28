@@ -136,6 +136,25 @@ def validate_cube(
             f"{missing_frac:.3f} > allowed {max_missing}",
         )
 
+        # a statistic (e.g. max over the last N h) needs a window for every
+        # step that carries data, or consumers can't label the interval
+        if spec.statistic is not None:
+            windows = spec.statistic.window_h
+            time_dim = 1 if spec.per_member else 0
+            other = tuple(d for d in range(values.ndim) if d != time_dim)
+            has_data = ~np.isnan(values).all(axis=other)
+            unlabeled = [
+                off
+                for off, w, data in zip(cube.time_axes[spec.axis], windows, has_data)
+                if data and not (w is not None and w > 0)
+            ]
+            report.check(
+                f"statistic_windows[{spec.name}]",
+                spec.statistic.kind == "max" and len(windows) == len(has_data) and not unlabeled,
+                f"kind {spec.statistic.kind!r}, {len(windows)} windows for "
+                f"{len(has_data)} steps, steps with data but no window: {unlabeled[:5]}",
+            )
+
     # --- gust >= wind speed at >= 99 % of jointly-valid points
     # (only checkable on variables that are present with the expected shape;
     # missing/misshapen ones already failed above)

@@ -44,8 +44,8 @@ uv run ingest land --domain nweu             # rebuild the routing index (one-sh
 Each run: resolve the latest **complete** provider cycle (`.idx` presence,
 falling back one cycle rather than publishing a partial run) → download via
 byte-range subsetting → decode/orient/quantize into a `ForecastCube` →
-validate (step coverage, physical ranges, gust ≥ wind, missing fraction; any
-failure aborts before upload) → 10°×10° gzipped PFT1 tiles → atomic publish
+validate (step coverage, physical ranges, gust ≥ wind, missing fraction,
+a window for every step of a `statistic` variable; any failure aborts before upload) → 10°×10° gzipped PFT1 tiles → atomic publish
 (storage guard first, tiles, `manifest.json` last, post-publish re-download
 check, `latest.json`, retention delete, `status/{layer}.json`).
 
@@ -82,7 +82,7 @@ exceed `MAX_BUCKET_BYTES` (default 8 GB).
 | Layer | Source | Resolution | Cadence |
 |---|---|---|---|
 | `weather` | NOAA GFS (wind u/v, gust hourly; vis/CAPE/temp/dew-point/precip 3-hourly) | 0.25° | 1×/day |
-| `weather-ecmwf` | ECMWF open data (wind u/v, gust) | 0.25° | 1×/day |
+| `weather-ecmwf` | ECMWF open data (wind u/v; gust = the maximum over the 1, 3 or 6 h before each step, published with its per-step window as the variable's `statistic`) | 0.25° | 1×/day |
 | `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | 1×/day |
 | `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | 1×/day |
 | `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; NOAA RTOFS fallback) | 1/12° | 1×/day |

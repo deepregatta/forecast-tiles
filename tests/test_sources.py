@@ -374,8 +374,174 @@ def test_rtofs_is_marked_skeleton():
         rtofs.build_cube(CYCLE)
 
 
-def test_ecmwf_axis_and_gust_probing_order():
+def test_ecmwf_axis_and_gust_params():
     assert ecmwf_open.STEP_AXIS[:2] == [0, 3]
     assert 144 in ecmwf_open.STEP_AXIS and 147 not in ecmwf_open.STEP_AXIS
+    assert len(ecmwf_open.STEP_AXIS) == 65
     assert ecmwf_open.GUST_PARAMS == ("10fg", "10fg3", "10fg6")
     assert ecmwf_open.GUST_VAR.scale == 0.1
+
+
+def _ecmwf_grib(short_name: str, step: int, window: int, value: float) -> bytes:
+    """One 3x2 GRIB2 message on the 0.25° grid across 0°, as ECMWF writes it:
+    wind instantaneous (template 4.0), gust a max over `window` h (4.8)."""
+    import eccodes
+
+    gid = eccodes.codes_grib_new_from_samples("regular_ll_sfc_grib2")
+    try:
+        for key, val in {
+            "centre": 98,
+            "Ni": 3,
+            "Nj": 2,
+            "latitudeOfFirstGridPointInDegrees": 50.25,
+            "longitudeOfFirstGridPointInDegrees": 359.75,
+            "latitudeOfLastGridPointInDegrees": 50.0,
+            "longitudeOfLastGridPointInDegrees": 0.25,
+            "iDirectionIncrementInDegrees": 0.25,
+            "jDirectionIncrementInDegrees": 0.25,
+        }.items():
+            eccodes.codes_set(gid, key, val)
+        if window:
+            eccodes.codes_set(gid, "productDefinitionTemplateNumber", 8)
+            for key, val in {
+                "discipline": 0,
+                "parameterCategory": 2,
+                "parameterNumber": 22,
+                "typeOfFirstFixedSurface": 103,
+                "scaleFactorOfFirstFixedSurface": 0,
+                "scaledValueOfFirstFixedSurface": 10,
+                "typeOfStatisticalProcessing": 2,
+                "indicatorOfUnitForTimeRange": 1,
+                "lengthOfTimeRange": window,
+                "forecastTime": step - window,
+            }.items():
+                eccodes.codes_set(gid, key, val)
+        else:
+            eccodes.codes_set(gid, "shortName", short_name)
+            eccodes.codes_set(gid, "forecastTime", step)
+        eccodes.codes_set_values(gid, np.full(6, value))
+        return eccodes.codes_get_message(gid)
+    finally:
+        eccodes.codes_release(gid)
+
+
+def test_ecmwf_parse_messages_reads_each_gust_window():
+    raw = b"".join(
+        [
+            _ecmwf_grib("10u", 3, 0, 5.0),
+            _ecmwf_grib("10fg", 3, 1, 11.0),
+            _ecmwf_grib("10fg3", 96, 3, 12.0),
+            _ecmwf_grib("10fg", 150, 6, 13.0),
+        ]
+    )
+    fields, meta = ecmwf_open.parse_messages(raw)
+    assert [(f.kind, f.start, f.end, f.window) for f in fields] == [
+        ("u", 3, 3, 0),
+        ("gust", 2, 3, 1),
+        ("gust", 93, 96, 3),
+        ("gust", 144, 150, 6),
+    ]
+    # ecCodes names them as ECMWF's own: 10fg (1 h and 6 h) and 10fg3
+    assert [f.short_name for f in fields[1:]] == ["10fg", "10fg3", "10fg"]
+    assert fields[2].values[0, 0] == pytest.approx(12.0)
+    assert (meta.lat0, meta.lon0, meta.nlat, meta.nlon) == (50.0, -0.25, 2, 3)
+
+
+def _gust(short_name, end, window, value=10.0):
+    values = np.full((2, 3), value, dtype=np.float32)
+    return ecmwf_open.Field("gust", short_name, end - window, end, values)
+
+
+# ECMWF open data 2026-09-28T00Z, from its .index files: the gust's name and
+# window change along the axis, and step 0 is a constant-zero placeholder
+def _live_gust_pattern(axis):
+    fields = [ecmwf_open.Field("gust", "10fg", 0, 0, np.zeros((2, 3), np.float32))]
+    for step in axis[1:]:
+        if step <= 90:
+            fields.append(_gust("10fg", step, 1))
+        elif step <= 144:
+            fields.append(_gust("10fg3", step, 3))
+        else:
+            fields.append(_gust("10fg", step, 6))
+    return fields
+
+
+def test_ecmwf_select_gust_takes_one_message_per_step_across_names():
+    chosen = ecmwf_open.select_gust(_live_gust_pattern(ecmwf_open.STEP_AXIS), ecmwf_open.STEP_AXIS)
+    assert sorted(chosen) == ecmwf_open.STEP_AXIS[1:]  # every step, step 0 excluded
+    windows = [chosen[s].window for s in ecmwf_open.STEP_AXIS[1:]]
+    assert windows == [1] * 30 + [3] * 18 + [6] * 16
+    assert chosen[93].short_name == "10fg3" and chosen[150].short_name == "10fg"
+    assert ecmwf_open.describe_gust(chosen) == (
+        "10fg 1 h max +3..+90 h; 10fg3 3 h max +93..+144 h; 10fg 6 h max +150..+240 h"
+    )
+
+
+def test_ecmwf_select_gust_prefers_the_longest_window_within_the_gap():
+    axis = [0, 3, 6, 12]
+    fields = [
+        _gust("10fg", 3, 1),
+        _gust("10fg3", 3, 3),  # fills the 3 h gap: kept
+        _gust("10fg6", 6, 6),  # longer than the 3 h gap
+        _gust("10fg", 6, 1),  # fits: kept over the overlapping 6 h window
+        _gust("10fg6", 12, 6),  # only one: kept
+    ]
+    chosen = ecmwf_open.select_gust(fields, axis)
+    assert {s: f.window for s, f in chosen.items()} == {3: 3, 6: 1, 12: 6}
+    only_long = ecmwf_open.select_gust([_gust("10fg6", 3, 6), _gust("10fg", 3, 12)], [0, 3])
+    assert only_long[3].window == 6  # nothing fits: the shortest
+
+
+def _fake_ecmwf(monkeypatch, gust_fields):
+    grid = base.GridMeta(lat0=50.0, lon0=-0.25, dlat=0.25, dlon=0.25, nlat=2, nlon=3)
+    calls = []
+
+    def retrieve(client, cycle, params, steps):
+        calls.append((tuple(params), tuple(steps)))
+        if params == ["10u", "10v"]:
+            wind = [
+                ecmwf_open.Field(k, "10" + k, s, s, np.full((2, 3), 4.0, np.float32))
+                for s in steps
+                for k in ("u", "v")
+            ]
+            return wind, grid
+        return [f for f in gust_fields if f.end in steps], grid
+
+    monkeypatch.setattr(ecmwf_open, "_client", lambda: object())
+    monkeypatch.setattr(ecmwf_open, "_retrieve", retrieve)
+    return calls
+
+
+def test_ecmwf_build_cube_publishes_complete_gust_with_windows(monkeypatch):
+    from ingest.validate import validate_cube
+
+    axis = ecmwf_open.STEP_AXIS
+    calls = _fake_ecmwf(monkeypatch, _live_gust_pattern(axis))
+    cube = ecmwf_open.build_cube(CYCLE)
+
+    assert calls[1] == (ecmwf_open.GUST_PARAMS, tuple(axis[1:]))  # all names, one request
+    assert [v.name for v in cube.variables] == ["wind_u_kt", "wind_v_kt", "gust_kt"]
+    gust = cube.var("gust_kt")
+    assert gust.statistic.kind == "max"
+    assert gust.statistic.window_h == (None,) + (1,) * 30 + (3,) * 18 + (6,) * 16
+    public = gust.public()["statistic"]
+    assert public["window_h"][:2] == [None, 1] and public["window_h"][-1] == 6
+    decoded = cube.decoded("gust_kt")
+    assert np.isnan(decoded[0]).all()  # no interval ends at step 0
+    assert decoded[1:] == pytest.approx(10.0 * MS_TO_KT, abs=0.05)
+    assert cube.provenance["gust"].startswith("10fg 1 h max +3..+90 h")
+
+    report = validate_cube(cube, expected_axes={"steps": axis})
+    assert report.ok, report.summary()
+    assert "statistic_windows[gust_kt]" in report.checks_passed
+
+
+def test_ecmwf_build_cube_is_wind_only_when_a_step_has_no_gust(monkeypatch):
+    # what a single-name request produced before 2026-09-28: no 10fg at 93–144
+    sparse = [f for f in _live_gust_pattern(ecmwf_open.STEP_AXIS) if f.short_name == "10fg"]
+    _fake_ecmwf(monkeypatch, sparse)
+    cube = ecmwf_open.build_cube(CYCLE)
+    assert [v.name for v in cube.variables] == ["wind_u_kt", "wind_v_kt"]
+    assert "gust_kt" not in cube.arrays
+    assert cube.provenance["gust"].startswith("unavailable — no gust message at steps [93, 96")
+    assert "(18 of 64)" in cube.provenance["gust"]

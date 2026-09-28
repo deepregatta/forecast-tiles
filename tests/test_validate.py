@@ -1,7 +1,9 @@
+from dataclasses import replace
+
 import numpy as np
 from conftest import make_ensemble_cube, make_ibi_cube, make_weather_cube
 
-from ingest.cube import VariableSpec
+from ingest.cube import Statistic, VariableSpec
 from ingest.validate import validate_cube
 
 
@@ -31,6 +33,26 @@ def test_gust_below_wind_fails():
     ).astype(np.float32)
     report = validate_cube(cube)
     assert failing(report, "gust_ge_wind[gust_kt]")
+
+
+def test_statistic_windows_must_label_every_step_with_data():
+    cube = make_weather_cube()
+    idx = next(i for i, v in enumerate(cube.variables) if v.name == "gust_kt")
+    gust = cube.variables[idx]
+
+    def with_windows(kind, windows):
+        cube.variables[idx] = replace(gust, statistic=Statistic(kind, windows))
+        return validate_cube(cube)
+
+    report = with_windows("max", (1, 1, 1))
+    assert report.ok and "statistic_windows[gust_kt]" in report.checks_passed
+    assert failing(
+        with_windows("max", (None, 1, 1)), "statistic_windows[gust_kt]"
+    )  # step 0 has data
+    assert failing(with_windows("max", (1, 1)), "statistic_windows[gust_kt]")  # wrong length
+    assert failing(with_windows("mean", (1, 1, 1)), "statistic_windows[gust_kt]")
+    cube.arrays["gust_kt"][0] = np.nan  # no data at step 0: no window needed there
+    assert "statistic_windows[gust_kt]" in with_windows("max", (None, 1, 1)).checks_passed
 
 
 def test_missing_fraction_threshold():
