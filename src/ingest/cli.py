@@ -6,21 +6,27 @@ one-shot artifact rather than a scheduled run. It shares this entry point, the
 object stores and the publish discipline, and nothing else.
 
 --dry-run DIR writes the exact R2 layout to a local directory instead of R2
-(local verification, browser dev fixtures)."""
+(local verification, browser dev fixtures).
+
+A run whose resolved cycle is already in the target's `latest.json` (or older
+than the one there) exits 0 before downloading anything, so a layer can be
+triggered as often as its provider might update. --force publishes anyway."""
 
 from __future__ import annotations
 
 import argparse
 import sys
 import time
+from datetime import datetime, timezone
 
-from ingest.cube import ForecastCube
+from ingest.cube import ForecastCube, cycle_iso
 from ingest.publish import (
     DirStore,
     PublishError,
     make_r2_store_from_env,
     max_bucket_bytes_from_env,
     publish_run,
+    published_layer,
 )
 from ingest.sources.base import CycleNotAvailableError, parse_cycle_arg
 from ingest.tile import build_tiles
@@ -45,30 +51,64 @@ MAX_MISSING = {
 }
 
 
-def _build(args: argparse.Namespace) -> ForecastCube:
-    requested = parse_cycle_arg(args.cycle) if args.cycle else None
+# Layers whose provider publishes late or rewrites in place: "not available
+# yet" is a normal outcome for a scheduled run, so it exits 0 and a later
+# trigger picks the cycle up.
+SKIP_WHEN_NOT_AVAILABLE = {"weather-ecmwf", "currents-ibi"}
+
+
+def _resolve(layer: str, requested: datetime | None) -> datetime:
+    """The cycle this run would publish, from provider metadata only."""
+    if layer == "weather":
+        from ingest.sources import gfs
+
+        return gfs.resolve(requested)
+    if layer == "ensemble":
+        from ingest.sources import gefs
+
+        return gefs.resolve(requested)
+    if layer == "waves":
+        from ingest.sources import gfswave
+
+        return gfswave.resolve(requested)
+    if layer == "weather-ecmwf":
+        from ingest.sources import ecmwf_open
+
+        return ecmwf_open.resolve(requested)
+    if layer == "currents":
+        from ingest.sources import cmems
+
+        return cmems.resolve(requested)
+    if layer == "currents-ibi":
+        from ingest.sources import ibi
+
+        return ibi.resolve(requested)
+    raise ValueError(f"unknown layer {layer}")
+
+
+def _build(args: argparse.Namespace, cycle: datetime, requested: datetime | None) -> ForecastCube:
     layer = args.layer
     if layer == "weather":
         from ingest.sources import gfs
 
-        return gfs.build_cube(gfs.resolve(requested))
+        return gfs.build_cube(cycle)
     if layer == "ensemble":
         from ingest.sources import gefs
 
-        return gefs.build_cube(gefs.resolve(requested), allow_member_drift=args.allow_member_drift)
+        return gefs.build_cube(cycle, allow_member_drift=args.allow_member_drift)
     if layer == "waves":
         from ingest.sources import gfswave
 
-        return gfswave.build_cube(gfswave.resolve(requested))
+        return gfswave.build_cube(cycle)
     if layer == "weather-ecmwf":
         from ingest.sources import ecmwf_open
 
-        return ecmwf_open.build_cube(ecmwf_open.resolve(requested))
+        return ecmwf_open.build_cube(cycle)
     if layer == "currents":
         from ingest.sources import cmems, rtofs
 
         try:
-            return cmems.build_cube(cmems.resolve(requested))
+            return cmems.build_cube(cycle)
         except Exception as exc:  # CMEMS outage: fall back to RTOFS
             print(f"ingest: CMEMS failed ({type(exc).__name__}: {exc}); trying RTOFS fallback")
             cube = rtofs.build_cube(rtofs.resolve(requested))
@@ -77,8 +117,25 @@ def _build(args: argparse.Namespace) -> ForecastCube:
     if layer == "currents-ibi":
         from ingest.sources import ibi
 
-        return ibi.build_cube(ibi.resolve(requested))
+        return ibi.build_cube(cycle)
     raise ValueError(f"unknown layer {layer}")
+
+
+def _utc(cycle: datetime) -> datetime:
+    return (
+        cycle.replace(tzinfo=timezone.utc)
+        if cycle.tzinfo is None
+        else cycle.astimezone(timezone.utc)
+    )
+
+
+def already_published(store, layer: str, cycle: datetime) -> dict | None:
+    """The layer's `latest.json` entry when it already holds `cycle` or a newer one."""
+    entry = published_layer(store, layer)
+    if not entry:
+        return None
+    published = datetime.strptime(entry["cycle"], "%Y-%m-%dT%H:%MZ").replace(tzinfo=timezone.utc)
+    return entry if published >= _utc(cycle) else None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -89,6 +146,15 @@ def main(argv: list[str] | None = None) -> int:
         "--dry-run",
         metavar="DIR",
         help="write the run layout to a local directory instead of R2",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help=(
+            "publish even when latest.json already has this cycle or a newer one; "
+            "re-publishing a live run id rewrites tiles clients cache forever, so "
+            "only repair a run that never served correct tiles"
+        ),
     )
     parser.add_argument(
         "--allow-member-drift",
@@ -123,11 +189,21 @@ def main(argv: list[str] | None = None) -> int:
         return run_land(args)
 
     t0 = time.time()
+    requested = parse_cycle_arg(args.cycle) if args.cycle else None
+    store = DirStore(args.dry_run) if args.dry_run else make_r2_store_from_env()
     try:
-        cube = _build(args)
+        cycle = _resolve(args.layer, requested)
+        published = None if args.force else already_published(store, args.layer, cycle)
+        if published:
+            print(
+                f"ingest {args.layer}: cycle {cycle_iso(cycle)} already published "
+                f"(latest {published['run_id']}, published {published['published_at']}); "
+                "nothing to do (--force publishes anyway)"
+            )
+            return 0
+        cube = _build(args, cycle, requested)
     except CycleNotAvailableError as exc:
-        if args.layer == "weather-ecmwf":
-            # ECMWF publishes late/partially; scheduled runs skip rather than fail
+        if args.layer in SKIP_WHEN_NOT_AVAILABLE:
             print(f"ingest {args.layer}: cycle not available yet, skipping ({exc})")
             return 0
         print(f"ingest {args.layer}: no complete cycle available ({exc})")
@@ -154,7 +230,6 @@ def main(argv: list[str] | None = None) -> int:
     total = sum(len(gz) for _, gz in tiles)
     print(f"ingest {args.layer}: {len(tiles)} tiles, {total / 1e6:.1f} MB gz")
 
-    store = DirStore(args.dry_run) if args.dry_run else make_r2_store_from_env()
     try:
         result = publish_run(
             store, cube, tiles, report, max_bucket_bytes=max_bucket_bytes_from_env(), started_at=t0

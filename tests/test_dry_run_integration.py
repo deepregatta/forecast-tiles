@@ -4,7 +4,7 @@ the vendored contract schemas (contracts/, copied from the passage repo)."""
 
 import gzip
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -129,3 +129,89 @@ def test_cli_currents_ibi_dry_run_wiring(tmp_path, monkeypatch):
     tile = decode_tile(gzip.decompress(tile_path.read_bytes()))
     jsonschema.validate(tile.header, load_schema("forecast-tile.schema.json"))
     assert (tmp_path / "status" / "currents-ibi.json").exists()
+
+
+def _stub_gfs(monkeypatch, cube, built):
+    from ingest.sources import gfs
+
+    monkeypatch.setattr(gfs, "resolve", lambda requested=None: requested or cube.cycle)
+
+    def build(cycle):
+        built.append(cycle)
+        return cube
+
+    monkeypatch.setattr(gfs, "build_cube", build)
+
+
+def test_cli_exits_before_downloading_a_cycle_already_published(tmp_path, monkeypatch, capsys):
+    cube = make_weather_cube()
+    built = []
+    _stub_gfs(monkeypatch, cube, built)
+    assert cli.main(["weather", "--dry-run", str(tmp_path)]) == 0
+    published_at = json.loads((tmp_path / "latest.json").read_text())["updated_at"]
+    capsys.readouterr()
+
+    assert cli.main(["weather", "--dry-run", str(tmp_path)]) == 0
+    out = capsys.readouterr().out
+    assert "cycle 2026-07-13T06:00Z already published" in out
+    assert f"latest {cube.run_id}" in out
+    assert len(built) == 1, "the second run must not build (download) anything"
+    assert json.loads((tmp_path / "latest.json").read_text())["updated_at"] == published_at
+
+
+def test_cli_exits_for_a_cycle_older_than_the_published_one(tmp_path, monkeypatch, capsys):
+    cube = make_weather_cube()
+    built = []
+    _stub_gfs(monkeypatch, cube, built)
+    assert cli.main(["weather", "--dry-run", str(tmp_path)]) == 0
+
+    assert cli.main(["weather", "--cycle", "20260712T18", "--dry-run", str(tmp_path)]) == 0
+    assert "cycle 2026-07-12T18:00Z already published" in capsys.readouterr().out
+    assert len(built) == 1
+
+
+def test_cli_force_publishes_a_cycle_already_published(tmp_path, monkeypatch):
+    cube = make_weather_cube()
+    built = []
+    _stub_gfs(monkeypatch, cube, built)
+    assert cli.main(["weather", "--dry-run", str(tmp_path)]) == 0
+    assert cli.main(["weather", "--force", "--dry-run", str(tmp_path)]) == 0
+    assert len(built) == 2
+
+
+def test_cli_publishes_a_newer_cycle(tmp_path, monkeypatch):
+    from ingest.sources import gfs
+
+    first = make_weather_cube()
+    second = make_weather_cube()
+    second.cycle = first.cycle + timedelta(hours=6)
+    cubes = iter([first, second])
+    current = {}
+
+    def resolve(requested=None):
+        current["cube"] = next(cubes)
+        return current["cube"].cycle
+
+    monkeypatch.setattr(gfs, "resolve", resolve)
+    monkeypatch.setattr(gfs, "build_cube", lambda cycle: current["cube"])
+    assert cli.main(["weather", "--dry-run", str(tmp_path)]) == 0
+    assert cli.main(["weather", "--dry-run", str(tmp_path)]) == 0
+    latest = json.loads((tmp_path / "latest.json").read_text())["layers"]["weather"]
+    assert latest["run_id"] == second.run_id
+    assert latest["previous_run_id"] == first.run_id
+
+
+def test_cli_currents_ibi_skips_while_the_provider_rewrites(tmp_path, monkeypatch, capsys):
+    from ingest.sources import ibi
+    from ingest.sources.base import CycleNotAvailableError
+
+    cube = make_ibi_cube()
+    monkeypatch.setattr(ibi, "resolve", lambda requested=None: cube.cycle)
+
+    def mid_update(cycle):
+        raise CycleNotAvailableError("IBI ARCO store is being updated")
+
+    monkeypatch.setattr(ibi, "build_cube", mid_update)
+    assert cli.main(["currents-ibi", "--dry-run", str(tmp_path)]) == 0
+    assert "cycle not available yet, skipping" in capsys.readouterr().out
+    assert not (tmp_path / "latest.json").exists()

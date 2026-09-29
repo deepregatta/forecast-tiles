@@ -64,7 +64,7 @@ def make_ensemble_cube(*, members: int = 5, seed: int = 7) -> ForecastCube:
 
 
 def make_ibi_cube(*, missing_fraction: float = 0.25) -> ForecastCube:
-    """Tiny native-shape IBI cube with its committed 0..72 h axis."""
+    """Tiny native-shape IBI cube with its committed 0..120 h axis."""
     from ingest.sources import ibi
 
     grid = GridMeta(lat0=40.0, lon0=-10.0, dlat=1 / 36, dlon=1 / 36, nlat=4, nlon=5)

@@ -2,14 +2,22 @@ name: ingest-currents-ibi
 
 on:
   schedule:
-    # IBI's Product User Manual states one daily bulletin, target delivery
-    # 14:00 UTC.  Leave one hour for catalogue/store propagation.
-    - cron: "0 15 * * *"
+    # The day-D bulletin finishes its ARCO update at about 09:55-11:40 UTC
+    # (measured 2026-09-24..28; the catalogue's "14:00 UTC" is a target), and
+    # GitHub starts scheduled runs 0-6 h late.  Hourly slots from 07:50 let the
+    # first run after the update publish; the others exit in about a minute
+    # ("already published", or "not available yet" while the store is being
+    # rewritten).  docs/ibi-currents.md -> "When CMEMS publishes".
+    - cron: "50 7-14 * * *"
   workflow_dispatch:
     inputs:
       cycle:
         description: "Cycle YYYYMMDDTHH (default: latest complete daily bulletin)"
         required: false
+      force:
+        description: "Publish even if latest.json already has this cycle (repairs only: run ids are cached forever)"
+        type: boolean
+        default: false
 
 concurrency:
   group: ingest-currents-ibi
@@ -28,9 +36,10 @@ jobs:
         with:
           python-version: '3.13'
       - run: uv sync --extra currents
-      - run: uv run ingest currents-ibi ${CYCLE:+--cycle "$CYCLE"}
+      - run: uv run ingest currents-ibi ${CYCLE:+--cycle "$CYCLE"} ${FORCE:+--force}
         env:
           CYCLE: ${{ inputs.cycle }}
+          FORCE: ${{ inputs.force == true && '1' || '' }}
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}

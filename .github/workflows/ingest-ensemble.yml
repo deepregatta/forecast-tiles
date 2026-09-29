@@ -12,6 +12,10 @@ on:
         description: "Proceed even when member count != 31"
         type: boolean
         default: false
+      force:
+        description: "Publish even if latest.json already has this cycle (repairs only: run ids are cached forever)"
+        type: boolean
+        default: false
 
 concurrency:
   group: ingest-ensemble
@@ -32,10 +36,11 @@ jobs:
       - run: uv sync
       - run: >
           uv run ingest ensemble ${CYCLE:+--cycle "$CYCLE"}
-          ${DRIFT:+--allow-member-drift}
+          ${DRIFT:+--allow-member-drift} ${FORCE:+--force}
         env:
           CYCLE: ${{ inputs.cycle }}
           DRIFT: ${{ inputs.allow_member_drift == true && '1' || '' }}
+          FORCE: ${{ inputs.force == true && '1' || '' }}
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}

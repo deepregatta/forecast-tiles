@@ -21,7 +21,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 
 from ingest.cube import ForecastCube, GridMeta, VariableSpec, axis_offsets, utcnow_iso
-from ingest.sources.base import MS_TO_KT
+from ingest.sources.base import MS_TO_KT, CycleNotAvailableError
 from ingest.sources.cmems import AUTH_RETRY_DELAYS_S
 from tilekit.codec import quantize
 
@@ -44,11 +44,15 @@ MAX_LON = 5.0
 NOMINAL_RESOLUTION_DEG = 1 / 36
 
 # The provider publishes 240 hourly forecast values in each daily bulletin.
-# The shore layer deliberately trims horizon, never resolution: the measured
-# four-tile Channel payload at 0..72 h is 19.778 MB gzipped (2026-08-24), close
-# to the existing four-layer Channel reference payload of about 19 MB.
+# The layer trims horizon, never resolution.  0..120 h (from 2026-09-29) keeps
+# "the next 3 days" inside the served run at every moment: the day-D bulletin
+# finishes its ARCO update at about 10:00-11:40 UTC on day D and is served
+# until the next one, so a run is up to about 40 h old when it is replaced,
+# and 72 h was 27-55 h of forecast ahead of now.  The four Channel tiles grow
+# from 21.6 MB (0..72 h, measured 2026-09-28) to about 36.6 MB.
+# docs/ibi-currents.md -> "Horizon: 0-120 h".
 NATIVE_FORECAST_HORIZON_H = 239
-PUBLISHED_HORIZON_H = 72
+PUBLISHED_HORIZON_H = 120
 STEP_AXIS = axis_offsets((0, PUBLISHED_HORIZON_H, 1))
 
 VARS = [
@@ -130,6 +134,58 @@ def resolve_dataset_id(copernicusmarine) -> str:
     )
 
 
+def _catalogue_instant(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
+
+
+def arco_update_state(copernicusmarine, dataset_id: str) -> tuple[datetime | None, datetime | None]:
+    """Return (last completed ARCO update, first data instant being rewritten).
+
+    Copernicus rewrites the rolling ARCO store in place after each bulletin.
+    While it does, the catalogue's `arco_updating_start_date` names the first
+    data instant that "may not be up to date"; the toolbox only warns about it,
+    for subset requests, and not at all for open_dataset.  On 2026-09-28 the
+    store's zarr metadata was rewritten at 09:54 UTC and its data finished at
+    11:36 (`arco_updated_date`), so a read in between can mix two bulletins.
+    """
+    try:
+        catalogue = copernicusmarine.describe(dataset_id=dataset_id, disable_progress_bar=True)
+    except Exception as exc:
+        if os.environ.get(DATASET_ID_ENV):
+            print(
+                f"ingest currents-ibi: catalogue unavailable ({type(exc).__name__}); "
+                f"ARCO update state not checked under {DATASET_ID_ENV}"
+            )
+            return None, None
+        raise RuntimeError(
+            "IBI catalogue unavailable: cannot tell whether the ARCO store is mid-update"
+        ) from exc
+    for product in getattr(catalogue, "products", []):
+        for dataset in getattr(product, "datasets", []):
+            if getattr(dataset, "dataset_id", None) != dataset_id:
+                continue
+            for version in getattr(dataset, "versions", []):
+                for part in getattr(version, "parts", []):
+                    return (
+                        _catalogue_instant(getattr(part, "arco_updated_date", None)),
+                        _catalogue_instant(getattr(part, "arco_updating_start_date", None)),
+                    )
+    raise RuntimeError(f"IBI dataset {dataset_id} has no part in the catalogue")
+
+
+def _require_settled(state: tuple[datetime | None, datetime | None], cycle: datetime) -> None:
+    """Refuse a window the provider is still rewriting."""
+    _, updating_from = state
+    end = cycle + timedelta(hours=PUBLISHED_HORIZON_H)
+    if updating_from is not None and updating_from <= end:
+        raise CycleNotAvailableError(
+            f"IBI ARCO store is being updated from {updating_from:%Y-%m-%dT%H:%MZ}, inside "
+            f"{cycle:%Y%m%dT%H}Z +0..{PUBLISHED_HORIZON_H} h; a later run picks it up"
+        )
+
+
 def _open_dataset_with_auth_retries(
     copernicusmarine,
     *,
@@ -205,6 +261,8 @@ def build_cube(cycle: datetime) -> ForecastCube:
 
     dataset_id = resolve_dataset_id(copernicusmarine)
     end = cycle + timedelta(hours=PUBLISHED_HORIZON_H)
+    state = arco_update_state(copernicusmarine, dataset_id)
+    _require_settled(state, cycle)
     ds = _open_dataset_with_auth_retries(
         copernicusmarine,
         dataset_id=dataset_id,
@@ -235,8 +293,8 @@ def build_cube(cycle: datetime) -> ForecastCube:
 
         # Pull the selected Dask/Zarr chunks in one graph per variable. Reading
         # one timestamp at a time made 146 separate provider computations and
-        # took more than ten minutes in the real size run. The 73-hour axis is
-        # bounded (~271 MB float32 per variable), so bulk reads remain within
+        # took more than ten minutes in the real size run. The 121-hour axis is
+        # bounded (~454 MB float32 per variable), so bulk reads remain within
         # the runner budget while the toolbox can fetch chunks in parallel.
         selected = ds.sel(time=times)
         u_values = np.asarray(selected["uo"].values, dtype=np.float32)
@@ -251,6 +309,14 @@ def build_cube(cycle: datetime) -> ForecastCube:
         close = getattr(ds, "close", None)
         if close:
             close()
+
+    # An update that started or finished while we read may have mixed bulletins.
+    if arco_update_state(copernicusmarine, dataset_id) != state:
+        raise CycleNotAvailableError(
+            f"IBI ARCO store changed while cycle {cycle:%Y%m%dT%H}Z was read; "
+            "a later run picks it up"
+        )
+    provider_updated, _ = state
 
     return ForecastCube(
         layer=LAYER,
@@ -270,6 +336,10 @@ def build_cube(cycle: datetime) -> ForecastCube:
             "tidal_caveat": (
                 "ocean-model currents including tide; resolves the tidal cycle; "
                 "not a tidal-stream prediction"
+            ),
+            # when Copernicus finished writing this bulletin to the ARCO store
+            "provider_updated_at": (
+                provider_updated.strftime("%Y-%m-%dT%H:%M:%SZ") if provider_updated else None
             ),
             "fetched_at": utcnow_iso(),
         },

@@ -347,23 +347,124 @@ def test_ibi_resolve_derives_latest_complete_daily_cycle(monkeypatch):
     assert ds.closed
 
 
+UPDATED = datetime(2026, 7, 13, 11, 36, 46, tzinfo=timezone.utc)
+
+
+def _settled_state(monkeypatch, *states):
+    """Stub the catalogue's ARCO update state; successive calls return `states`."""
+    calls = []
+
+    def fake(copernicusmarine, dataset_id):
+        calls.append(dataset_id)
+        return states[min(len(calls), len(states)) - 1]
+
+    monkeypatch.setattr(ibi, "arco_update_state", fake)
+    return calls
+
+
 def test_ibi_build_cube_hourly_surface_currents(monkeypatch):
     cycle = CYCLE.replace(hour=0)
     ds = _FakeIbiDataset(cycle, ibi.STEP_AXIS)
     monkeypatch.setattr(ibi, "resolve_dataset_id", lambda _: ibi.DEFAULT_DATASET_ID)
     monkeypatch.setattr(ibi, "_open_dataset_with_auth_retries", lambda *args, **kwargs: ds)
+    calls = _settled_state(monkeypatch, (UPDATED, None))
 
     cube = ibi.build_cube(cycle)
     assert cube.layer == "currents-ibi"
     assert cube.model == "cmems_ibi"
-    assert cube.time_axes == {"steps": list(range(73))}
-    assert cube.arrays["cur_u_kt"].shape == (73, 2, 3)
+    assert cube.time_axes == {"steps": list(range(121))}
+    assert cube.arrays["cur_u_kt"].shape == (121, 2, 3)
     assert cube.decoded("cur_u_kt")[0, 1, 1] == pytest.approx(MS_TO_KT, abs=0.005)
     assert cube.decoded("cur_v_kt")[0, 1, 1] == pytest.approx(-2 * MS_TO_KT, abs=0.005)
     assert np.isnan(cube.decoded("cur_u_kt")[0, 0, 0])
     assert cube.provenance["dataset_id"] == ibi.DEFAULT_DATASET_ID
     assert "including tide" in cube.provenance["tidal_caveat"]
+    assert "not a tidal-stream prediction" in cube.provenance["tidal_caveat"]
+    assert cube.provenance["provider_updated_at"] == "2026-07-13T11:36:46Z"
+    assert calls == [ibi.DEFAULT_DATASET_ID] * 2  # before and after the read
     assert ds.closed
+
+
+def test_ibi_build_cube_refuses_a_window_being_rewritten(monkeypatch):
+    cycle = CYCLE.replace(hour=0)
+    monkeypatch.setattr(ibi, "resolve_dataset_id", lambda _: ibi.DEFAULT_DATASET_ID)
+
+    def never_open(*args, **kwargs):
+        raise AssertionError("must not read a store that is mid-update")
+
+    monkeypatch.setattr(ibi, "_open_dataset_with_auth_retries", never_open)
+    # the update rewrites from the previous day's hindcast onward: inside 0..120 h
+    _settled_state(monkeypatch, (UPDATED, cycle - timedelta(days=1)))
+    with pytest.raises(CycleNotAvailableError, match="being updated"):
+        ibi.build_cube(cycle)
+
+
+def test_ibi_build_cube_ignores_an_update_past_its_window(monkeypatch):
+    cycle = CYCLE.replace(hour=0)
+    ds = _FakeIbiDataset(cycle, ibi.STEP_AXIS)
+    monkeypatch.setattr(ibi, "resolve_dataset_id", lambda _: ibi.DEFAULT_DATASET_ID)
+    monkeypatch.setattr(ibi, "_open_dataset_with_auth_retries", lambda *args, **kwargs: ds)
+    beyond = cycle + timedelta(hours=ibi.PUBLISHED_HORIZON_H + 1)
+    _settled_state(monkeypatch, (UPDATED, beyond))
+    assert ibi.build_cube(cycle).horizon_h == ibi.PUBLISHED_HORIZON_H
+
+
+def test_ibi_build_cube_refuses_an_update_during_the_read(monkeypatch):
+    cycle = CYCLE.replace(hour=0)
+    ds = _FakeIbiDataset(cycle, ibi.STEP_AXIS)
+    monkeypatch.setattr(ibi, "resolve_dataset_id", lambda _: ibi.DEFAULT_DATASET_ID)
+    monkeypatch.setattr(ibi, "_open_dataset_with_auth_retries", lambda *args, **kwargs: ds)
+    _settled_state(monkeypatch, (UPDATED, None), (UPDATED, cycle))
+    with pytest.raises(CycleNotAvailableError, match="changed while"):
+        ibi.build_cube(cycle)
+    assert ds.closed
+
+
+def _catalog_part(updated, updating_start):
+    from types import SimpleNamespace
+
+    part = SimpleNamespace(
+        name="default", arco_updated_date=updated, arco_updating_start_date=updating_start
+    )
+    dataset = SimpleNamespace(
+        dataset_id=ibi.DEFAULT_DATASET_ID, versions=[SimpleNamespace(parts=[part])]
+    )
+    return SimpleNamespace(
+        products=[SimpleNamespace(product_id=ibi.PRODUCT_ID, datasets=[dataset])]
+    )
+
+
+def test_ibi_arco_update_state_reads_the_catalogue_part():
+    class FakeCopernicus:
+        @staticmethod
+        def describe(**kwargs):
+            assert kwargs == {"dataset_id": ibi.DEFAULT_DATASET_ID, "disable_progress_bar": True}
+            return _catalog_part("2026-09-28T11:36:46.577Z", "2026-09-28T00:00:00Z")
+
+    updated, updating_from = ibi.arco_update_state(FakeCopernicus, ibi.DEFAULT_DATASET_ID)
+    assert updated == datetime(2026, 9, 28, 11, 36, 46, 577000, tzinfo=timezone.utc)
+    assert updating_from == datetime(2026, 9, 28, tzinfo=timezone.utc)
+
+    class Settled:
+        @staticmethod
+        def describe(**kwargs):
+            return _catalog_part("2026-09-28T11:36:46.577Z", None)
+
+    assert ibi.arco_update_state(Settled, ibi.DEFAULT_DATASET_ID)[1] is None
+
+
+def test_ibi_arco_update_state_needs_the_catalogue_unless_overridden(monkeypatch):
+    class Down:
+        @staticmethod
+        def describe(**kwargs):
+            raise OSError("catalogue down")
+
+    monkeypatch.delenv(ibi.DATASET_ID_ENV, raising=False)
+    with pytest.raises(RuntimeError, match="mid-update"):
+        ibi.arco_update_state(Down, ibi.DEFAULT_DATASET_ID)
+    # the operator override exists for catalogue outages; it must keep working
+    monkeypatch.setenv(ibi.DATASET_ID_ENV, ibi.DEFAULT_DATASET_ID)
+    assert ibi.arco_update_state(Down, ibi.DEFAULT_DATASET_ID) == (None, None)
 
 
 def test_rtofs_is_marked_skeleton():

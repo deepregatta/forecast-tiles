@@ -38,11 +38,15 @@ uv run ingest weather --cycle 20260713T06    # explicit cycle
 uv run ingest weather --dry-run /tmp/tiles   # write the R2 layout locally instead
 uv run ingest ensemble|waves|currents|weather-ecmwf
 uv run ingest currents-ibi                   # hourly regional current field
+uv run ingest weather --force                # re-publish a cycle latest.json already has (repairs only)
 uv run ingest land --domain nweu             # rebuild the routing index (one-shot)
 ```
 
 Each run: resolve the latest **complete** provider cycle (`.idx` presence,
-falling back one cycle rather than publishing a partial run) → download via
+falling back one cycle rather than publishing a partial run) → exit 0 with
+"already published" when `latest.json` already has that cycle or a newer one
+(`--force` overrides; a live run id's tiles are cached forever, so only to
+repair a run) → download via
 byte-range subsetting → decode/orient/quantize into a `ForecastCube` →
 validate (step coverage, physical ranges, gust ≥ wind, missing fraction,
 a window for every step of a `statistic` variable; any failure aborts before upload) → 10°×10° gzipped PFT1 tiles → atomic publish
@@ -50,9 +54,14 @@ a window for every step of a `statistic` variable; any failure aborts before upl
 check, `latest.json`, retention delete, `status/{layer}.json`).
 
 Scheduled GitHub Actions run each layer daily. GLO12 currents run after their
-provider update; IBI runs at 15:00 UTC after its documented 14:00 UTC target
-delivery — see `.github/workflows/ingest-*.yml`. `ingest weather-ecmwf` exits 0 with a log
-line when ECMWF hasn't published a full-horizon cycle yet.
+provider update. IBI runs in hourly slots from 07:50 to 14:50 UTC, because the
+bulletin finishes its ARCO update at about 09:55–11:40 UTC (measured; the
+catalogue says 14:00) and GitHub starts scheduled runs up to about 6 h late:
+the first slot after the update publishes and the others exit in a minute
+([docs/ibi-currents.md](docs/ibi-currents.md#when-cmems-publishes)). See
+`.github/workflows/ingest-*.yml`. `ingest weather-ecmwf` exits 0 with a log
+line when ECMWF hasn't published a full-horizon cycle yet, and `ingest
+currents-ibi` does the same while Copernicus is rewriting the bulletin.
 
 The Phase 0 size-measurement prototype is still runnable:
 `uv run scripts/size_prototype.py --layers weather`.
@@ -86,7 +95,7 @@ exceed `MAX_BUCKET_BYTES` (default 8 GB).
 | `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | 1×/day |
 | `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | 1×/day |
 | `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; NOAA RTOFS fallback) | 1/12° | 1×/day |
-| `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 72 h; IBI domain only) | ≈1/36° (0.02777863°) | 1×/day |
+| `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 120 h; 72 h before 2026-09-29; IBI domain only) | ≈1/36° (0.02777863°) | 1×/day |
 
 Tiles slice each provider grid without resampling, and every header carries
 that grid's geometry. The 0.25°/0.5° layers and GLO12 sit exactly on their
@@ -127,9 +136,11 @@ the 2025 RORC Channel replay against it with no segment crossing land.
 Time axes reflect the Phase 0 size measurement — see
 [docs/phase0-results.md](docs/phase0-results.md) (verdict: GO at 3.26 GB per
 full generation, 6.53 GB at ×2 run retention against the 8 GB storage guard).
-The IBI axis comes from a separate real-data size gate: 65.39 MB per full
-regional run and 19.779 MB for the four Channel tiles. See
-[docs/ibi-currents.md](docs/ibi-currents.md).
+The IBI axis comes from a separate real-data size gate and a coverage rule:
+0–120 h is the shortest horizon that keeps the next 3 days in the served run
+at any moment, about 114 MB per full regional run and 36.6 MB for the four
+Channel tiles (0–72 h until 2026-09-29: 67.5 MB and 21.6 MB). See
+[docs/ibi-currents.md](docs/ibi-currents.md#horizon-0120-h).
 
 The PFT1 format and the manifest/latest JSON schemas are canonically specified
 in the Passage repo ([`docs/forecast-tile-format.md`](https://github.com/deepregatta/passage/blob/main/docs/forecast-tile-format.md), `contracts/forecast-*.schema.json`);

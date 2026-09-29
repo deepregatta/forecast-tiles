@@ -185,6 +185,12 @@ def _get_json(store, key: str) -> dict | None:
     return json.loads(raw) if raw is not None else None
 
 
+def published_layer(store, layer: str) -> dict | None:
+    """This layer's `latest.json` entry, or None before its first publish."""
+    latest = _get_json(store, "latest.json") or {}
+    return latest.get("layers", {}).get(layer)
+
+
 def _layer_run_ids(store, layer: str) -> list[str]:
     """Existing run ids for this layer, sorted ascending by cycle. The regex
     keeps `weather-…` from matching `weather-ecmwf-…` runs."""
