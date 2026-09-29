@@ -175,7 +175,10 @@ Worker's logs as an error.
 **Dry run.** `DRY_RUN = "true"` in `wrangler.toml` is the default: the
 Worker then only logs what it would do, one line per slot, e.g.
 `would dispatch ingest-weather cycle=20260930T06 wait=90 scheduled=10:25:00Z fired=10:25:02Z`.
-Cloudflare documents no timing for Cron Triggers, so a day of these lines
+`scheduled` is the timetable minute and `fired` the Worker's clock, so the
+difference is Cloudflare's start delay. Cloudflare documents no timing for
+Cron Triggers, and its own `scheduledTime` already includes the delay
+(22:25:27 for the first slot, on 2026-09-29), so a day of these lines
 measures it. Only the exact string `"false"` dispatches.
 
 **Token.** A fine-grained personal access token scoped to
@@ -184,6 +187,10 @@ read is added automatically), stored as the Worker secret `GITHUB_TOKEN`. It
 can start, cancel and re-run workflows, delete run logs, and enable or
 disable workflows; it cannot read secrets or change code. It is never
 committed and never passed through anything but `wrangler secret put`.
+
+**Status:** deployed 2026-09-29 21:24 UTC in dry-run, with the token set;
+the first slot (22:25, `weather`) logged `cycle=20260929T18`. Dispatching
+switches on in Phase 5B.
 
 **Setup** (once, by a maintainer):
 
@@ -203,6 +210,9 @@ committed and never passed through anything but `wrangler secret put`.
    npx wrangler deploy
    npx wrangler secret put GITHUB_TOKEN   # paste the token at the prompt
    ```
+   If the shell exports a `CLOUDFLARE_API_TOKEN` without Workers
+   permissions, wrangler uses it and refuses `login`; prefix each command
+   with `env -u CLOUDFLARE_API_TOKEN`.
 4. Watch the dry run for a day: the Worker's **Logs** tab in the Cloudflare
    dashboard (kept 3 days on the free plan) or `npx wrangler tail`.
 

@@ -29,15 +29,23 @@ export class DispatchError extends Error {}
 
 const hms = (ms: number) => `${new Date(ms).toISOString().slice(11, 19)}Z`;
 
-/** Handle one cron fire. Throws after logging when any due dispatch failed. */
+/**
+ * Handle one cron fire. Throws after logging when any due dispatch failed.
+ *
+ * `scheduled=` is the timetable minute. Cloudflare's own `scheduledTime`
+ * already carries its start delay (22:25:27 for the 22:25 slot on
+ * 2026-09-29), so `fired − scheduled` measures that delay only against the
+ * minute.
+ */
 export async function runScheduled(scheduledTime: number, env: Env, deps: Deps): Promise<void> {
   const fired = deps.now();
+  const slot = Math.floor(scheduledTime / 60_000) * 60_000;
   const due = dueAt(scheduledTime);
   const dryRun = env.DRY_RUN !== 'false';
   const failed: string[] = [];
   for (const dispatch of due) {
     const line = `ingest-${dispatch.layer} cycle=${dispatch.cycle} wait=${dispatch.waitMinutes} ` +
-      `scheduled=${hms(scheduledTime)} fired=${hms(fired)}`;
+      `scheduled=${hms(slot)} fired=${hms(fired)}`;
     if (dryRun) {
       deps.log(`would dispatch ${line}`);
       continue;

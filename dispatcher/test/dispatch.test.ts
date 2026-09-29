@@ -55,6 +55,16 @@ describe('dry run', () => {
     expect(calls).toEqual([]);
   });
 
+  it('logs the timetable minute as scheduled, so fired − scheduled is the start delay', async () => {
+    // 2026-09-29: Cloudflare's scheduledTime for the 22:25 slot was 22:25:27
+    const { deps, lines } = github();
+    const fired = Date.parse('2026-09-29T22:25:27.400Z');
+    await runScheduled(fired, { DRY_RUN: 'true' }, { ...deps, now: () => fired });
+    expect(lines).toEqual([
+      'would dispatch ingest-weather cycle=20260929T18 wait=90 scheduled=22:25:00Z fired=22:25:27Z',
+    ]);
+  });
+
   it('is the default: only the exact string "false" dispatches', async () => {
     for (const env of [{}, { DRY_RUN: 'FALSE' }, { DRY_RUN: '0' }, { GITHUB_TOKEN: 't' }]) {
       const { deps, calls, lines } = github();
