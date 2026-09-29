@@ -123,6 +123,26 @@ GLO12 `currents` layer and never these tiles.
 The ingest reads 121 × 1078 × 871 values per component, about 454 MB of
 float32 each, within the runner's memory.
 
+First 0–120 h run, 2026-09-29:
+
+- [GitHub Actions run 36560134762](https://github.com/deepregatta/forecast-tiles/actions/runs/36560134762),
+  dispatched by hand once the catalogue showed the update finished (source
+  commit `ba29df9`; the 07:50 slot had not been started by GitHub at 11:10);
+- `currents-ibi-20260929T00Z`: 121 hourly steps, `horizon_h` 120, 11 tiles,
+  111,632,781 bytes, 121.5 s; the largest tile 21.94 MB;
+- `provider_updated_at` 11:08:40, `published_at` 11:12:21: **11 h 12 min
+  after the cycle and 3 min 41 s after Copernicus**, against D+17–21 h
+  before;
+- the four Channel tiles: 34.995 MB (N40W010 17.34 MB), close to the 36.6 MB
+  estimate; the bucket then retained 6.114 GB (one IBI run at each horizon);
+- a second dispatch of the same cycle
+  ([run 36560487159](https://github.com/deepregatta/forecast-tiles/actions/runs/36560487159))
+  printed "already published" and finished its job in 54 s with no upload;
+- Passage's GRIB export of the box 48.9–51°N, 4.7°W–1.2°E for the next 3
+  days from 11:00 UTC: 73 hourly steps, 29 Sep 11:00 → 2 Oct 11:00, nothing
+  clipped (it ended 43 h ahead from the previous 0–72 h run at 05:00). The
+  run itself reaches 4 Oct 00:00, 85 h ahead of its publication.
+
 ## Measured size and chosen axis
 
 Resolution is fixed; horizon is the size lever. The four Channel tiles are
