@@ -45,6 +45,7 @@ jobs:
         env:
           CYCLE: ${{ inputs.cycle }}
           WAIT: ${{ inputs.wait_minutes }}
+          PYTHONUNBUFFERED: "1" # log lines carry the time they happened
           DRIFT: ${{ inputs.allow_member_drift == true && '1' || '' }}
           FORCE: ${{ inputs.force == true && '1' || '' }}
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}

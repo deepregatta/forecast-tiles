@@ -4,6 +4,7 @@ pair for gust when GUST is present in the pgrb2b files (spec § Layers)."""
 
 from __future__ import annotations
 
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
@@ -11,11 +12,13 @@ import numpy as np
 
 from ingest.cube import ForecastCube, GridMeta, VariableSpec, axis_offsets, utcnow_iso
 from ingest.sources.base import (
+    MISSING_RETRY_S,
     MS_TO_KT,
     decode_field,
     fetch_fields,
     head_ok,
     http,
+    missing_files_grace,
     parse_idx,
     resolve_cycle,
     urls_digest,
@@ -129,9 +132,18 @@ def _speed_stack(
 
 
 def build_cube(
-    cycle: datetime, *, allow_member_drift: bool = False, workers: int = 16
+    cycle: datetime, *, allow_member_drift: bool = False, workers: int = 16, sleep=time.sleep
 ) -> ForecastCube:
     members = available_members(cycle)
+    # Members finish uploading at slightly different times (see base.http).
+    while len(members) < EXPECTED_MEMBERS and missing_files_grace():
+        print(
+            f"ingest ensemble: {len(members)}/{EXPECTED_MEMBERS} members uploaded; "
+            f"checking again in {MISSING_RETRY_S} s",
+            flush=True,
+        )
+        sleep(MISSING_RETRY_S)
+        members = available_members(cycle)
     if len(members) != EXPECTED_MEMBERS and not allow_member_drift:
         raise RuntimeError(
             f"GEFS cycle {cycle:%Y%m%dT%H}Z has {len(members)}/{EXPECTED_MEMBERS} members "

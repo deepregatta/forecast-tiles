@@ -259,3 +259,104 @@ def test_a_cycle_one_day_on_is_not_ready_before_its_update(monkeypatch):
     )
     with pytest.raises(CycleNotAvailableError, match="not published yet"):
         cmems.require_published(state, cycle, 240, "GLO12")
+
+
+# ------------------------------------------- late files of a ready cycle
+
+
+class _Response:
+    def __init__(self, status: int, content: bytes = b""):
+        self.status_code = status
+        self.content = content
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            import requests
+
+            raise requests.HTTPError(f"{self.status_code} for url")
+
+
+class _Session:
+    def __init__(self, *statuses):
+        self.statuses = list(statuses)
+        self.urls = []
+
+    def get(self, url, **kwargs):
+        self.urls.append(url)
+        status = self.statuses.pop(0)
+        return _Response(status, b"idx" if status == 200 else b"")
+
+
+F219 = (
+    "https://noaa-gfs-bdp-pds.s3.amazonaws.com/gfs.20260929/18/atmos/gfs.t18z.pgrb2.0p25.f219.idx"
+)
+
+
+def test_a_late_file_of_a_just_published_cycle_is_waited_for(monkeypatch):
+    # GFS 18Z, 2026-09-29: f240.idx at 22:39:44, f219.idx still 404 at 22:40:35
+    from ingest.sources import base
+
+    fake, session = FakeClock(), _Session(404, 404, 200)
+    monkeypatch.setattr(base, "SESSION", session)
+    base.allow_missing_files(15 * 60, clock=fake.clock)
+    assert base.http(F219, sleep=fake.sleep, clock=fake.clock) == b"idx"
+    assert fake.sleeps == [30, 30]
+    assert len(session.urls) == 3
+
+
+def test_without_the_grace_a_404_fails_as_before(monkeypatch):
+    import requests
+
+    from ingest.sources import base
+
+    fake, session = FakeClock(), _Session(404, 404, 404)
+    monkeypatch.setattr(base, "SESSION", session)
+    with pytest.raises(requests.HTTPError):
+        base.http(F219, sleep=fake.sleep, clock=fake.clock)
+    assert fake.sleeps == [2, 4]  # the ordinary retries
+
+
+def test_the_grace_ends(monkeypatch):
+    import requests
+
+    from ingest.sources import base
+
+    fake = FakeClock()
+    monkeypatch.setattr(base, "SESSION", _Session(*[404] * 40))
+    base.allow_missing_files(90, clock=fake.clock)
+    with pytest.raises(requests.HTTPError):
+        base.http(F219, sleep=fake.sleep, clock=fake.clock)
+    assert fake.sleeps == [30, 30, 30, 2, 4]
+
+
+def test_a_waited_for_cycle_opens_the_grace(monkeypatch):
+    from ingest.sources import base
+
+    cube, fake = make_weather_cube(), FakeClock()
+    _gfs_ready_after(monkeypatch, cube, 1, [])
+    assert not base.missing_files_grace()
+    cli.wait_for_cycle("weather", cube.cycle, 90, clock=fake.clock, sleep=fake.sleep)
+    assert base.missing_files_grace()
+
+
+def test_ensemble_waits_for_late_members_during_the_grace(monkeypatch):
+    import numpy as np
+
+    from ingest.cube import GridMeta
+    from ingest.sources import base, gefs
+
+    counts = iter([29, 30, 31])
+    monkeypatch.setattr(gefs, "available_members", lambda cycle: gefs.MEMBERS[: next(counts)])
+    monkeypatch.setattr(gefs, "gust_available", lambda cycle: False)
+    grid = GridMeta(lat0=40.0, lon0=-10.0, dlat=0.5, dlon=0.5, nlat=2, nlon=2)
+
+    def stack(cycle, members, url_fn, wanted, workers):
+        shape = (len(members), len(gefs.STEP_AXIS), 2, 2)
+        return np.full(shape, 10.0, dtype=np.float32), grid
+
+    monkeypatch.setattr(gefs, "_speed_stack", stack)
+    sleeps = []
+    base.allow_missing_files(15 * 60)
+    cube = gefs.build_cube(make_weather_cube().cycle, sleep=sleeps.append)
+    assert cube.member_count == 31
+    assert sleeps == [30, 30]

@@ -41,6 +41,7 @@ jobs:
         env:
           CYCLE: ${{ inputs.cycle }}
           WAIT: ${{ inputs.wait_minutes }}
+          PYTHONUNBUFFERED: "1" # log lines carry the time they happened
           FORCE: ${{ inputs.force == true && '1' || '' }}
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}

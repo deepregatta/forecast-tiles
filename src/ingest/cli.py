@@ -35,7 +35,7 @@ from ingest.publish import (
     publish_run,
     published_layer,
 )
-from ingest.sources.base import CycleNotAvailableError, parse_cycle_arg
+from ingest.sources.base import CycleNotAvailableError, allow_missing_files, parse_cycle_arg
 from ingest.tile import build_tiles
 from ingest.validate import validate_cube
 
@@ -74,6 +74,11 @@ POLL_SECONDS = {
     "currents": 120,
     "currents-ibi": 120,
 }
+
+
+# How long a waited-for cycle's other files may still be uploading after its
+# readiness file appears (see ingest.sources.base.allow_missing_files).
+MISSING_FILES_GRACE_MINUTES = 15
 
 
 class CycleWaitExpired(RuntimeError):
@@ -181,12 +186,18 @@ def wait_for_cycle(
             if checks == 1:
                 print(
                     f"ingest {layer}: waiting up to {wait_minutes:g} min for cycle "
-                    f"{cycle_iso(requested)}, checking every {interval} s ({exc})"
+                    f"{cycle_iso(requested)}, checking every {interval} s ({exc})",
+                    flush=True,
                 )
             sleep(min(interval, remaining))
             continue
         if checks > 1:
-            print(f"ingest {layer}: cycle {cycle_iso(cycle)} available after {checks} checks")
+            print(
+                f"ingest {layer}: cycle {cycle_iso(cycle)} available after {checks} checks",
+                flush=True,
+            )
+        # its readiness file can land before the rest of the cycle's files
+        allow_missing_files(MISSING_FILES_GRACE_MINUTES * 60)
         return cycle
 
 

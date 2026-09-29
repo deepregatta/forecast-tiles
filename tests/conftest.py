@@ -94,3 +94,12 @@ def weather_cube() -> ForecastCube:
 @pytest.fixture
 def ensemble_cube() -> ForecastCube:
     return make_ensemble_cube()
+
+
+@pytest.fixture(autouse=True)
+def _no_missing_files_grace():
+    """A waited-for cycle opens a module-level 404 grace; keep it per test."""
+    from ingest.sources import base
+
+    yield
+    base.allow_missing_files(0)

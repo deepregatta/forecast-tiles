@@ -31,17 +31,51 @@ class CycleNotAvailableError(RuntimeError):
 # ---------------------------------------------------------------- download
 
 
-def http(url: str, *, headers: dict | None = None, retries: int = 3) -> bytes:
-    for attempt in range(retries):
+# NOAA uploads a cycle's files in parallel, so the final step's .idx (the
+# readiness signal) can land before earlier steps': GFS 18Z on 2026-09-29 had
+# f240.idx at 22:39:44 UTC and f219.idx still missing about 50 s later. A run
+# that waited for its cycle (--wait-minutes) therefore retries a 404 for a
+# while instead of failing. Runs started hours late never need it.
+MISSING_RETRY_S = 30
+_missing_grace_until: float | None = None
+
+
+def allow_missing_files(seconds: float, *, clock=time.monotonic) -> None:
+    """Retry 404s for `seconds` from now: the cycle has just been published."""
+    global _missing_grace_until
+    _missing_grace_until = clock() + seconds if seconds > 0 else None
+
+
+def missing_files_grace(*, clock=time.monotonic) -> bool:
+    """True while a just-published cycle's late files are still worth waiting for."""
+    return _missing_grace_until is not None and clock() < _missing_grace_until
+
+
+def http(
+    url: str,
+    *,
+    headers: dict | None = None,
+    retries: int = 3,
+    sleep=time.sleep,
+    clock=time.monotonic,
+) -> bytes:
+    attempt = 0
+    while True:
         try:
             r = SESSION.get(url, headers=headers or {}, timeout=120)
+            if r.status_code == 404 and missing_files_grace(clock=clock):
+                print(
+                    f"ingest: {url} not uploaded yet; retrying in {MISSING_RETRY_S} s", flush=True
+                )
+                sleep(MISSING_RETRY_S)
+                continue
             r.raise_for_status()
             return r.content
         except Exception:
-            if attempt == retries - 1:
+            attempt += 1
+            if attempt >= retries:
                 raise
-            time.sleep(2 * (attempt + 1))
-    raise AssertionError("unreachable")
+            sleep(2 * attempt)
 
 
 def head_ok(url: str) -> bool:
