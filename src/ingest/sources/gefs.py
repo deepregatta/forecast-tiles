@@ -54,12 +54,24 @@ def resolve(requested: datetime | None = None) -> datetime:
     return resolve_cycle(_IDX_TEMPLATE, requested)
 
 
-def mean_and_anomaly(speeds: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """[member, time, nlat, nlon] speeds -> (ensemble mean, anomalies clipped
-    to ±25 kt). Members reconstruct as mean + anomaly."""
+def quantize_mean_and_anomaly(speeds: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """[member, time, nlat, nlon] float32 speeds -> (ensemble mean as i16 at
+    0.01 kt, anomalies clipped to ±25 kt as i8 at 0.2 kt). Members
+    reconstruct as mean + anomaly.
+
+    Anomalies are formed and quantized one member at a time. Doing it for the
+    whole stack held the float32 anomalies and two float64 working copies in
+    `quantize` next to the speeds: a 15-16 GB peak at 31 members x 89 steps on
+    a 16 GB runner. Per member it is about 4.9 GB (scaled replay of 2026-09-29,
+    scripts/ensemble_memory.py).
+    """
     mean = speeds.mean(axis=0, dtype=np.float64).astype(np.float32)
-    anom = np.clip(speeds - mean[None], -ANOM_CLIP_KT, ANOM_CLIP_KT)
-    return mean, anom
+    anom = np.empty(speeds.shape, dtype=np.int8)
+    for m in range(speeds.shape[0]):
+        member = speeds[m] - mean
+        np.clip(member, -ANOM_CLIP_KT, ANOM_CLIP_KT, out=member)
+        anom[m] = quantize(member, "i8", 0.2)
+    return quantize(mean, "i16", 0.01), anom
 
 
 def available_members(cycle: datetime) -> list[str]:
@@ -137,23 +149,17 @@ def build_cube(
     arrays: dict[str, np.ndarray] = {}
 
     speeds, meta = _speed_stack(cycle, members, a_url, WIND_GRIB, workers)
-    mean, anom = mean_and_anomaly(speeds)
+    arrays["wind_kt_mean"], arrays["wind_kt_anom"] = quantize_mean_and_anomaly(speeds)
     del speeds
-    arrays["wind_kt_mean"] = quantize(mean, "i16", 0.01)
-    arrays["wind_kt_anom"] = quantize(anom, "i8", 0.2)
-    del mean, anom
 
     if with_gust:
         gusts, _ = _speed_stack(cycle, members, b_url, [GUST_GRIB], workers)
-        g_mean, g_anom = mean_and_anomaly(gusts)
+        arrays["gust_kt_mean"], arrays["gust_kt_anom"] = quantize_mean_and_anomaly(gusts)
         del gusts
         variables += [
             VariableSpec("gust_kt_mean", AXIS_NAME, "i16", 0.01),
             VariableSpec("gust_kt_anom", AXIS_NAME, "i8", 0.2, per_member=True),
         ]
-        arrays["gust_kt_mean"] = quantize(g_mean, "i16", 0.01)
-        arrays["gust_kt_anom"] = quantize(g_anom, "i8", 0.2)
-        del g_mean, g_anom
 
     provenance = {
         "source": "NOAA GEFS 0.5deg (noaa-gefs-pds), pgrb2ap5 wind"

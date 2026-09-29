@@ -79,6 +79,15 @@ these needs credentials.
   0 ("not available yet") and a later slot publishes. Each manifest's
   `provenance.provider_updated_at` records when Copernicus finished the
   bulletin.
+- **Waiting for a bulletin** (from 2026-09-29). A run given an explicit
+  `--cycle` (the dispatcher's, with `--wait-minutes`) first reads the
+  dataset's public STAC item,
+  `…/IBI_ANALYSISFORECAST_PHY_005_001/cmems_mod_ibi_phy_anfc_0.027deg-2D_PT1H-m_202411/dataset.stac.json`.
+  The cycle is ready when `end_datetime` has reached its lead 239 h,
+  `admp_updating_start_date` is null and `admp_updated_data` is on or after
+  the cycle; a waiting run re-reads it every 2 minutes. The catalogue checks
+  above then run as for any other run. The item needs no credentials, and
+  GLO12 uses the same check on its own item (its data must reach 240 h).
 - **Our lag before 2026-09-29.** The workflow ran daily at 15:00 UTC and GitHub
   started it 0.75–9.3 h late. Over the 31 scheduled runs from 29 Aug to 28 Sep
   it published the same-day bulletin at D+17:16 to D+21:11 (median D+18:29),

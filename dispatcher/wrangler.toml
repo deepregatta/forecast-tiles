@@ -1,0 +1,31 @@
+# The forecast-tiles dispatcher: starts each ingest workflow at its
+# provider's usual publication time (README.md → Dispatcher). Cron Triggers
+# only: no fetch handler, no routes, no workers.dev URL.
+name = "forecast-tiles-dispatcher"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+workers_dev = false
+preview_urls = false
+
+[triggers]
+# UTC. These five expressions are all 5 Cron Triggers of the Workers Free
+# plan; src/timetable.ts decides which layer each fire time dispatches, and
+# test/wrangler.test.ts keeps the two in step. If the account needs a
+# trigger elsewhere, replace them with the single "*/5 * * * *": a tick with
+# no layer due contacts nothing.
+crons = [
+  "25 4,10,16,22 * * *", # weather (GFS)
+  "0 5,11,17,23 * * *",  # waves (GFS-Wave)
+  "15 0,6,12,18 * * *",  # ensemble (GEFS)
+  "20 7,19 * * *",       # weather-ecmwf (00Z and 12Z)
+  "45 5,9 * * *",        # 05:45 currents (GLO12), 09:45 currents-ibi
+]
+
+[vars]
+# "true" logs "would dispatch …" lines instead of starting workflows. Only
+# the exact string "false" dispatches. The GITHUB_TOKEN secret is set with
+# `npx wrangler secret put GITHUB_TOKEN`, never here.
+DRY_RUN = "true"
+
+[observability]
+enabled = true

@@ -21,8 +21,8 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 
 from ingest.cube import ForecastCube, GridMeta, VariableSpec, axis_offsets, utcnow_iso
-from ingest.sources.base import MS_TO_KT, CycleNotAvailableError
-from ingest.sources.cmems import AUTH_RETRY_DELAYS_S
+from ingest.sources.base import MS_TO_KT, CycleNotAvailableError, http
+from ingest.sources.cmems import AUTH_RETRY_DELAYS_S, provider_state, require_published, stac_url
 from tilekit.codec import quantize
 
 LAYER = "currents-ibi"
@@ -30,6 +30,8 @@ MODEL = "cmems_ibi"
 PRODUCT_ID = "IBI_ANALYSISFORECAST_PHY_005_001"
 DEFAULT_DATASET_ID = "cmems_mod_ibi_phy_anfc_0.027deg-2D_PT1H-m"
 DATASET_ID_ENV = "CMEMS_IBI_DATASET_ID"
+# The public STAC item is per dataset version; set it with DATASET_ID_ENV.
+DATASET_VERSION = os.environ.get("CMEMS_IBI_DATASET_VERSION", "202411")
 AXIS_NAME = "steps"
 
 # Vendored from oscar/analysis/src/coachregatta_analysis/environment_fetcher.py
@@ -233,8 +235,14 @@ def _datetime64_to_utc(value: np.datetime64) -> datetime:
     return datetime.fromtimestamp(seconds, timezone.utc)
 
 
-def resolve(requested: datetime | None = None) -> datetime:
-    """Return an explicit cycle or derive the latest complete daily bulletin.
+def resolve(requested: datetime | None = None, *, fetch: Callable[[str], bytes] = http) -> datetime:
+    """Return an explicit cycle once published, or derive the latest complete
+    daily bulletin.
+
+    An explicit cycle is checked against the dataset's public STAC item: the
+    data must reach its lead 239 h and no update may be running (a waiting
+    run polls this without credentials).  build_cube then applies the
+    catalogue checks as for any run.
 
     The rolling analysis-forecast dataset does not expose an issue-time
     coordinate.  Its documented bulletin contains 240 forecast hours, so the
@@ -242,6 +250,9 @@ def resolve(requested: datetime | None = None) -> datetime:
     independently requires every published step before it will return.
     """
     if requested is not None:
+        dataset_id = os.environ.get(DATASET_ID_ENV) or DEFAULT_DATASET_ID
+        state = provider_state(stac_url(PRODUCT_ID, dataset_id, DATASET_VERSION), fetch=fetch)
+        require_published(state, requested, NATIVE_FORECAST_HORIZON_H, "IBI")
         return requested
 
     import copernicusmarine

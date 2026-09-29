@@ -9,6 +9,7 @@ from conftest import make_weather_cube
 
 from ingest.publish import (
     CACHE_IMMUTABLE,
+    CADENCE_HOURS,
     CACHE_MUTABLE,
     PublishError,
     StorageGuardError,
@@ -204,6 +205,7 @@ def test_manifest_fnv64_matches_stored_objects_and_schema():
     latest = json.loads(store.objects["latest.json"])
     latest_schema = json.loads((SCHEMA_DIR / "forecast-latest.schema.json").read_text())
     jsonschema.validate(latest, latest_schema)
+    assert latest["layers"]["weather"]["cadence_hours"] == 24
 
     status = json.loads(store.objects["status/weather.json"])
     assert status["tile_count"] == len(tiles)
@@ -253,3 +255,14 @@ def test_build_manifest_shape():
     assert manifest["horizon_h"] == 3
     assert manifest["tiling"]["path_template"] == "weather/z250/{tile_id}.bin.gz"
     assert manifest["totals"]["bytes"] == sum(len(gz) for _, gz in tiles)
+
+
+def test_every_published_layer_has_a_cadence_the_schema_accepts():
+    """cadence_hours stays 24 for every layer until the dispatcher switches the
+    provider cadences on (Passage docs/grib-export-plan.md, Phase 5B)."""
+    schema = json.loads((SCHEMA_DIR / "forecast-latest.schema.json").read_text())
+    entry = schema["properties"]["layers"]["additionalProperties"]["properties"]
+    assert entry["cadence_hours"] == {**entry["cadence_hours"], "type": "integer", "minimum": 1}
+    layers = set(schema["properties"]["layers"]["propertyNames"]["enum"])
+    assert set(CADENCE_HOURS) == layers
+    assert set(CADENCE_HOURS.values()) == {24}

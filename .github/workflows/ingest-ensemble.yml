@@ -1,4 +1,5 @@
 name: ingest-ensemble
+run-name: ingest-ensemble ${{ inputs.cycle || 'scheduled' }}
 
 on:
   schedule:
@@ -8,6 +9,10 @@ on:
       cycle:
         description: "Cycle YYYYMMDDTHH (default: latest complete)"
         required: false
+      wait_minutes:
+        description: "With a cycle: wait up to N minutes for the provider to publish it, then fail (the dispatcher sets this)"
+        required: false
+        default: "0"
       allow_member_drift:
         description: "Proceed even when member count != 31"
         type: boolean
@@ -27,7 +32,7 @@ permissions:
 jobs:
   ingest:
     runs-on: ubuntu-latest
-    timeout-minutes: 240 # 31 members x 89 steps is the slowest layer
+    timeout-minutes: 240 # a dispatcher wait (90-180 min) plus the job, under the 6 h job limit
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
@@ -35,10 +40,11 @@ jobs:
           python-version: '3.13'
       - run: uv sync
       - run: >
-          uv run ingest ensemble ${CYCLE:+--cycle "$CYCLE"}
+          uv run ingest ensemble ${CYCLE:+--cycle "$CYCLE"} ${CYCLE:+--wait-minutes "${WAIT:-0}"}
           ${DRIFT:+--allow-member-drift} ${FORCE:+--force}
         env:
           CYCLE: ${{ inputs.cycle }}
+          WAIT: ${{ inputs.wait_minutes }}
           DRIFT: ${{ inputs.allow_member_drift == true && '1' || '' }}
           FORCE: ${{ inputs.force == true && '1' || '' }}
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}

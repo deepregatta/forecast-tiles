@@ -35,6 +35,20 @@ OCTET_STREAM = "application/octet-stream"
 APPLICATION_JSON = "application/json"
 
 DEFAULT_MAX_BUCKET_BYTES = 8_000_000_000  # 8 GB storage guard
+
+# Hours between a layer's scheduled publications, written to latest.json as
+# `cadence_hours` so consumers can estimate the next run without copying this
+# repo's schedule. Every layer publishes once a day until the dispatcher
+# switches on each provider cycle (Passage docs/grib-export-plan.md, Phase 5B:
+# weather, waves and ensemble 6; weather-ecmwf 12; currents 24).
+CADENCE_HOURS = {
+    "weather": 24,
+    "weather-ecmwf": 24,
+    "ensemble": 24,
+    "waves": 24,
+    "currents": 24,
+    "currents-ibi": 24,
+}
 _RUN_ID_RE_TAIL = r"\d{8}T\d{2}Z"
 
 
@@ -291,13 +305,16 @@ def _update_latest(store, cube: ForecastCube, published_at: str) -> str | None:
         previous = latest["layers"][cube.layer].get("previous_run_id")
     latest["schema_version"] = latest.get("schema_version", 1)
     latest["updated_at"] = published_at
-    latest["layers"][cube.layer] = {
+    entry = {
         "run_id": cube.run_id,
         "previous_run_id": previous,
         "cycle": cube.cycle_iso,
         "member_count": cube.member_count,
         "published_at": published_at,
     }
+    if cube.layer in CADENCE_HOURS:
+        entry["cadence_hours"] = CADENCE_HOURS[cube.layer]
+    latest["layers"][cube.layer] = entry
     store.put(
         "latest.json",
         json_bytes(latest),

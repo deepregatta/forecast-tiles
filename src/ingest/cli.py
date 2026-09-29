@@ -10,13 +10,20 @@ object stores and the publish discipline, and nothing else.
 
 A run whose resolved cycle is already in the target's `latest.json` (or older
 than the one there) exits 0 before downloading anything, so a layer can be
-triggered as often as its provider might update. --force publishes anyway."""
+triggered as often as its provider might update. --force publishes anyway.
+
+--wait-minutes N (with --cycle) lets a run start before its provider has
+finished the cycle: it re-checks readiness every minute or two until the
+cycle is out, then continues as above, and exits 1 if N minutes pass first.
+The dispatcher (dispatcher/) starts each layer this way at its provider's
+usual publication time."""
 
 from __future__ import annotations
 
 import argparse
 import sys
 import time
+from collections.abc import Callable
 from datetime import datetime, timezone
 
 from ingest.cube import ForecastCube, cycle_iso
@@ -53,8 +60,24 @@ MAX_MISSING = {
 
 # Layers whose provider publishes late or rewrites in place: "not available
 # yet" is a normal outcome for a scheduled run, so it exits 0 and a later
-# trigger picks the cycle up.
-SKIP_WHEN_NOT_AVAILABLE = {"weather-ecmwf", "currents-ibi"}
+# trigger picks the cycle up. For GLO12 it must not fall back to RTOFS either.
+SKIP_WHEN_NOT_AVAILABLE = {"weather-ecmwf", "currents", "currents-ibi"}
+
+# Seconds between readiness checks while --wait-minutes runs. ECMWF answers
+# frequent requests with 429s; Copernicus's metadata updates once a minute at
+# best, so both are polled more gently than NOAA's S3 buckets.
+POLL_SECONDS = {
+    "weather": 60,
+    "waves": 60,
+    "ensemble": 60,
+    "weather-ecmwf": 120,
+    "currents": 120,
+    "currents-ibi": 120,
+}
+
+
+class CycleWaitExpired(RuntimeError):
+    """--wait-minutes ran out before the provider published the cycle."""
 
 
 def _resolve(layer: str, requested: datetime | None) -> datetime:
@@ -109,6 +132,8 @@ def _build(args: argparse.Namespace, cycle: datetime, requested: datetime | None
 
         try:
             return cmems.build_cube(cycle)
+        except CycleNotAvailableError:
+            raise  # GLO12 not written yet: skip or wait, never publish RTOFS for the day
         except Exception as exc:  # CMEMS outage: fall back to RTOFS
             print(f"ingest: CMEMS failed ({type(exc).__name__}: {exc}); trying RTOFS fallback")
             cube = rtofs.build_cube(rtofs.resolve(requested))
@@ -129,6 +154,42 @@ def _utc(cycle: datetime) -> datetime:
     )
 
 
+def wait_for_cycle(
+    layer: str,
+    requested: datetime,
+    wait_minutes: float,
+    *,
+    clock: Callable[[], float] = time.monotonic,
+    sleep: Callable[[float], None] = time.sleep,
+) -> datetime:
+    """Resolve `requested`, re-checking every POLL_SECONDS while the provider
+    reports it not available, for at most `wait_minutes`."""
+    deadline = clock() + wait_minutes * 60
+    interval = POLL_SECONDS[layer]
+    checks = 0
+    while True:
+        checks += 1
+        try:
+            cycle = _resolve(layer, requested)
+        except CycleNotAvailableError as exc:
+            remaining = deadline - clock()
+            if remaining <= 0:
+                raise CycleWaitExpired(
+                    f"cycle {cycle_iso(requested)} not available after {wait_minutes:g} min "
+                    f"({checks} checks; last: {exc})"
+                ) from exc
+            if checks == 1:
+                print(
+                    f"ingest {layer}: waiting up to {wait_minutes:g} min for cycle "
+                    f"{cycle_iso(requested)}, checking every {interval} s ({exc})"
+                )
+            sleep(min(interval, remaining))
+            continue
+        if checks > 1:
+            print(f"ingest {layer}: cycle {cycle_iso(cycle)} available after {checks} checks")
+        return cycle
+
+
 def already_published(store, layer: str, cycle: datetime) -> dict | None:
     """The layer's `latest.json` entry when it already holds `cycle` or a newer one."""
     entry = published_layer(store, layer)
@@ -138,10 +199,25 @@ def already_published(store, layer: str, cycle: datetime) -> dict | None:
     return entry if published >= _utc(cycle) else None
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(
+    argv: list[str] | None = None,
+    *,
+    clock: Callable[[], float] = time.monotonic,
+    sleep: Callable[[float], None] = time.sleep,
+) -> int:
     parser = argparse.ArgumentParser(prog="ingest", description=__doc__)
     parser.add_argument("layer", choices=LAYERS)
     parser.add_argument("--cycle", help="explicit cycle YYYYMMDDTHH (default: latest complete)")
+    parser.add_argument(
+        "--wait-minutes",
+        type=float,
+        default=0,
+        metavar="N",
+        help=(
+            "with --cycle: re-check every minute or two until the provider has published "
+            "the cycle, for at most N minutes, then exit 1 (default 0: check once)"
+        ),
+    )
     parser.add_argument(
         "--dry-run",
         metavar="DIR",
@@ -188,11 +264,26 @@ def main(argv: list[str] | None = None) -> int:
 
         return run_land(args)
 
+    if args.wait_minutes < 0:
+        parser.error("--wait-minutes must be 0 or more")
+    if args.wait_minutes and not args.cycle:
+        parser.error("--wait-minutes needs --cycle: a run waits for one named cycle")
+
     t0 = time.time()
     requested = parse_cycle_arg(args.cycle) if args.cycle else None
     store = DirStore(args.dry_run) if args.dry_run else make_r2_store_from_env()
     try:
-        cycle = _resolve(args.layer, requested)
+        if args.wait_minutes:
+            try:
+                cycle = wait_for_cycle(
+                    args.layer, requested, args.wait_minutes, clock=clock, sleep=sleep
+                )
+            except CycleWaitExpired as exc:
+                print(f"ingest {args.layer}: {exc}")
+                return 1
+            t0 = time.time()  # status duration_s covers the job, not the wait
+        else:
+            cycle = _resolve(args.layer, requested)
         published = None if args.force else already_published(store, args.layer, cycle)
         if published:
             print(

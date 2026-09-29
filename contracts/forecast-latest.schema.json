@@ -18,7 +18,12 @@
           "previous_run_id": { "type": ["string", "null"] },
           "cycle": { "type": "string" },
           "member_count": { "type": "integer", "minimum": 1 },
-          "published_at": { "type": "string" }
+          "published_at": { "type": "string" },
+          "cadence_hours": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Hours between the layer's scheduled publications, from the producer's configuration. Optional: consumers fall back to their own schedule when it is absent."
+          }
         }
       }
     }

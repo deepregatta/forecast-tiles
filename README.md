@@ -39,6 +39,7 @@ uv run ingest weather --dry-run /tmp/tiles   # write the R2 layout locally inste
 uv run ingest ensemble|waves|currents|weather-ecmwf
 uv run ingest currents-ibi                   # hourly regional current field
 uv run ingest weather --force                # re-publish a cycle latest.json already has (repairs only)
+uv run ingest weather --cycle 20260930T06 --wait-minutes 90   # wait for the provider, then publish
 uv run ingest land --domain nweu             # rebuild the routing index (one-shot)
 ```
 
@@ -61,7 +62,20 @@ the first slot after the update publishes and the others exit in a minute
 ([docs/ibi-currents.md](docs/ibi-currents.md#when-cmems-publishes)). See
 `.github/workflows/ingest-*.yml`. `ingest weather-ecmwf` exits 0 with a log
 line when ECMWF hasn't published a full-horizon cycle yet, and `ingest
-currents-ibi` does the same while Copernicus is rewriting the bulletin.
+currents` and `ingest currents-ibi` do the same until Copernicus has finished
+writing the bulletin (the public STAC item of the dataset says so; GLO12
+never falls back to RTOFS for that).
+
+`--wait-minutes N` (workflow input `wait_minutes`, default 0) lets a run
+start before the provider has finished its cycle. With an explicit
+`--cycle`, it re-checks readiness every 60 s (ECMWF and Copernicus: 120 s)
+until the cycle is out, then continues as above; if N minutes pass first it
+exits 1 ("cycle not available after N min"), so a missed slot shows as a
+failed run. This is how the [dispatcher](#dispatcher) starts each layer once
+it is switched on. Readiness is the provider's own completion signal: the
+final-step `.idx` for GFS, GFS-Wave and GEFS; the latest full-horizon cycle
+for ECMWF; the STAC item's data end, finished update and no update in
+progress for GLO12 and IBI.
 
 The Phase 0 size-measurement prototype is still runnable:
 `uv run scripts/size_prototype.py --layers weather`.
@@ -88,14 +102,26 @@ exceed `MAX_BUCKET_BYTES` (default 8 GB).
 
 ## Layers
 
-| Layer | Source | Resolution | Cadence |
-|---|---|---|---|
-| `weather` | NOAA GFS (wind u/v, gust hourly; vis/CAPE/temp/dew-point/precip 3-hourly) | 0.25° | 1×/day |
-| `weather-ecmwf` | ECMWF open data (wind u/v; gust = the maximum over the 1, 3 or 6 h before each step, published with its per-step window as the variable's `statistic`) | 0.25° | 1×/day |
-| `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | 1×/day |
-| `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | 1×/day |
-| `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; NOAA RTOFS fallback) | 1/12° | 1×/day |
-| `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 120 h; 72 h before 2026-09-29; IBI domain only) | ≈1/36° (0.02777863°) | 1×/day |
+| Layer | Source | Resolution | Cadence | Target after 5B |
+|---|---|---|---|---|
+| `weather` | NOAA GFS (wind u/v, gust hourly; vis/CAPE/temp/dew-point/precip 3-hourly) | 0.25° | 1×/day | every cycle (00/06/12/18Z) |
+| `weather-ecmwf` | ECMWF open data (wind u/v; gust = the maximum over the 1, 3 or 6 h before each step, published with its per-step window as the variable's `statistic`) | 0.25° | 1×/day | 00Z and 12Z |
+| `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | 1×/day | every cycle |
+| `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | 1×/day | every cycle |
+| `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; NOAA RTOFS fallback) | 1/12° | 1×/day | 1×/day, soon after Copernicus |
+| `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 120 h; 72 h before 2026-09-29; IBI domain only) | ≈1/36° (0.02777863°) | 1×/day | 1×/day, soon after Copernicus |
+
+"Target after 5B" is the cadence once the [dispatcher](#dispatcher) is
+switched on (Passage `docs/grib-export-plan.md`, Phase 5B). Each layer's
+`latest.json` entry carries `cadence_hours`, the hours between its scheduled
+publications (`CADENCE_HOURS` in `src/ingest/publish.py`); it is 24 for every
+layer until then, and 6 (GFS, GFS-Wave, GEFS) and 12 (ECMWF) after.
+
+Retention is by count (current + previous run per layer), so publishing more
+often does not add storage; a superseded run is deleted one cycle later. The
+ensemble quantizes its anomalies one member at a time, which keeps its array
+peak near 4.9 GB of a runner's 16 GB (scaled replay, 2026-09-29,
+`uv run scripts/ensemble_memory.py`; about 16 GB before).
 
 Tiles slice each provider grid without resampling, and every header carries
 that grid's geometry. The 0.25°/0.5° layers and GLO12 sit exactly on their
@@ -105,6 +131,101 @@ Before 2026-09-24 GLO12 headers took the step from two float32 coordinates
 column at the end of the western tile. IBI keeps the provider's own regular
 0.02777863° lattice, which sits up to 0.0013° off the 1/36° lines
 ([docs/ibi-currents.md](docs/ibi-currents.md)).
+
+## Dispatcher
+
+GitHub's `schedule` starts runs hours late and drops slots (measured
+2026-09-29: every daily cron 5.5–6.5 h late; one of eight hourly IBI slots
+run by 18:40), while `workflow_dispatch` runs start within about 10 s. So a
+small Cloudflare Worker, [`dispatcher/`](dispatcher/), keeps the clock: at
+each provider's usual publication time it dispatches that layer's ingest
+workflow with the cycle and a `wait_minutes`, and the ingest waits for the
+cycle. The Worker only calls GitHub's API. It never contacts a provider,
+`latest.json` or the runs list, and a cycle that is already published exits
+in about a minute.
+
+**Timetable** (UTC; `dispatcher/src/timetable.ts`, crons in
+`dispatcher/wrangler.toml`):
+
+| Cron | Layer | Cycle dispatched | Provider ready (measured) | `wait_minutes` |
+|---|---|---|---|---|
+| `25 4,10,16,22 * * *` | `weather` | fire time − 4 h 25 | cycle + 4 h 37–4 h 41 | 90 |
+| `0 5,11,17,23 * * *` | `waves` | fire time − 5 h | + 5 h 10–5 h 25 | 90 |
+| `15 0,6,12,18 * * *` | `ensemble` | fire time − 6 h 15 (00:15 → previous day 18Z) | + 6 h 29–6 h 31 | 90 |
+| `20 7,19 * * *` | `weather-ecmwf` | fire time − 7 h 20 | + 7 h 34 | 120 |
+| `45 5,9 * * *` | 05:45 `currents`, 09:45 `currents-ibi` | that day's 00Z | GLO12 06:25 (seen once); IBI 09:54–11:36 | 180 each |
+
+That is 16 dispatches a day on 5 cron expressions, all of the Workers Free
+plan's 5 Cron Triggers per account. If the account needs a trigger for
+another Worker, replace them with the single `*/5 * * * *`: the timetable
+stays in code, and a tick with no layer due contacts nothing.
+
+**On each fire** the Worker takes the cycle from the *scheduled* time, not
+the clock, and posts
+`{"ref":"main","inputs":{"cycle":"YYYYMMDDTHH","wait_minutes":"N"}}` to
+`/repos/deepregatta/forecast-tiles/actions/workflows/ingest-<layer>.yml/dispatches`.
+It logs the run URL from the 200 response. A 401 or 403 is logged as
+`GITHUB TOKEN REJECTED`. If GitHub refuses the dispatch and the workflow's
+`state` is `disabled_inactivity` (scheduled workflows in a public repo are
+disabled after 60 days without repository activity), it re-enables the
+workflow and dispatches once more; a workflow disabled by hand is left
+alone. A failed dispatch also fails the invocation, so it shows in the
+Worker's logs as an error.
+
+**Dry run.** `DRY_RUN = "true"` in `wrangler.toml` is the default: the
+Worker then only logs what it would do, one line per slot, e.g.
+`would dispatch ingest-weather cycle=20260930T06 wait=90 scheduled=10:25:00Z fired=10:25:02Z`.
+Cloudflare documents no timing for Cron Triggers, so a day of these lines
+measures it. Only the exact string `"false"` dispatches.
+
+**Token.** A fine-grained personal access token scoped to
+`deepregatta/forecast-tiles` only, with **Actions: read and write** (Metadata:
+read is added automatically), stored as the Worker secret `GITHUB_TOKEN`. It
+can start, cancel and re-run workflows, delete run logs, and enable or
+disable workflows; it cannot read secrets or change code. It is never
+committed and never passed through anything but `wrangler secret put`.
+
+**Setup** (once, by a maintainer):
+
+1. Create the token on GitHub (Settings → Developer settings → Fine-grained
+   tokens): resource owner `deepregatta`, only the repository
+   `forecast-tiles`, Repository permissions → Actions: Read and write; no
+   expiry if the organization allows it, otherwise at most a year with a
+   reminder to renew. Approve it if the organization requires approval.
+2. Check that no other Worker on the Cloudflare account uses Cron Triggers
+   (the dispatcher uses all five of the free plan). If one does, switch to
+   the single `*/5` expression above.
+3. Deploy and store the token:
+   ```sh
+   cd dispatcher
+   npm ci
+   npx wrangler login
+   npx wrangler deploy
+   npx wrangler secret put GITHUB_TOKEN   # paste the token at the prompt
+   ```
+4. Watch the dry run for a day: the Worker's **Logs** tab in the Cloudflare
+   dashboard (kept 3 days on the free plan) or `npx wrangler tail`.
+
+**Switching on** (Passage plan, Phase 5B): set `DRY_RUN = "false"`, redeploy,
+set `CADENCE_HOURS` to the provider cadences, and move every workflow's
+`schedule` to the fallback `37 2,8,14,20 * * *`, away from the dispatch
+times. The fallback covers a missed dispatch; the "already published" exit
+makes it harmless when it isn't needed.
+
+**Runbook.**
+
+- *A run failed with "cycle not available after N min".* The provider was
+  later than the wait. The fallback cron publishes the cycle later; if it
+  recurs, widen that layer's `waitMinutes` or move its fire time.
+- *`GITHUB TOKEN REJECTED` in the Worker logs.* Create a new token as in step
+  1 and run `npx wrangler secret put GITHUB_TOKEN`. Meanwhile the fallback
+  crons keep a slower cadence.
+- *`re-enabled ingest-….yml`.* Expected after 60 quiet days; nothing to do.
+- *A layer did not run at all.* Check the Worker's logs for that minute: no
+  line means Cloudflare skipped the trigger; a `FAILED` line gives GitHub's
+  answer. `gh workflow run ingest-<layer>.yml -f cycle=YYYYMMDDTHH` starts one
+  by hand.
+- *Local check:* `cd dispatcher && npm ci && npm test`.
 
 ## Routing index (`ingest land`)
 
@@ -147,10 +268,11 @@ in the Passage repo ([`docs/forecast-tile-format.md`](https://github.com/deepreg
 this repo vendors copies plus a shared golden fixture that both CIs must decode
 identically. The routing index's own spec, schemas and golden fixture are
 canonical **here** and consumed by tactician's `core/land` (`docs/land-index-format.md`,
-`contracts/land-index-*.schema.json`, `tests/fixtures/land-index-raz/`). The IBI shore deliverable extends the local layer-name enums with
-`currents-ibi`; mirroring that enum into Passage is explicitly `OPEN:` before
-Passage claims schema parity. No per-tile provenance/resolution extension has
-been made; the later blended-current contract remains separate.
+`contracts/land-index-*.schema.json`, `tests/fixtures/land-index-raz/`). The
+`forecast-*` schemas here match Passage's, `currents-ibi` included (since
+2026-09-28) and `latest.json`'s optional `cadence_hours` (since 2026-09-29).
+No per-tile provenance/resolution extension has been made; the later
+blended-current contract remains separate.
 
 ## Data licensing
 

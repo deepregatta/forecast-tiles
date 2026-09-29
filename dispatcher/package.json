@@ -1,0 +1,19 @@
+{
+  "name": "forecast-tiles-dispatcher",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Cloudflare Worker that starts each forecast-tiles ingest workflow at its provider's publication time",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260929.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.143.1"
+  }
+}

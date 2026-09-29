@@ -105,6 +105,26 @@ def test_gefs_member_list():
     assert gefs.MEMBERS[-1] == "gep30"
 
 
+def test_gefs_member_by_member_quantization_matches_the_whole_stack():
+    """The per-member loop only bounds memory: the bytes are those of
+    quantizing the whole stack at once, as before 2026-09-29."""
+    from tilekit.codec import quantize
+
+    rng = np.random.default_rng(3)
+    speeds = rng.gamma(3.0, 5.0, size=(31, 4, 5, 6)).astype(np.float32)
+    speeds[4, 1] += 60.0  # one member far above the rest: anomalies clip at +25 kt
+    speeds[:, 2, 0, 0] = np.nan
+    mean = speeds.mean(axis=0, dtype=np.float64).astype(np.float32)
+    anom = np.clip(speeds - mean[None], -gefs.ANOM_CLIP_KT, gefs.ANOM_CLIP_KT)
+
+    got_mean, got_anom = gefs.quantize_mean_and_anomaly(speeds)
+    assert got_mean.dtype == np.int16 and got_anom.dtype == np.int8
+    assert np.array_equal(got_mean, quantize(mean, "i16", 0.01))
+    assert np.array_equal(got_anom, quantize(anom, "i8", 0.2))
+    assert got_anom.max() == round(gefs.ANOM_CLIP_KT / 0.2)
+    assert (got_anom[:, 2, 0, 0] == -128).all()  # NaN stays the sentinel
+
+
 def test_gefs_urls():
     assert gefs.a_url(CYCLE, "gep07", 150).endswith(
         "/gefs.20260713/06/atmos/pgrb2ap5/gep07.t06z.pgrb2a.0p50.f150"
@@ -119,16 +139,18 @@ def test_mean_and_anomaly_encoding_math():
     speeds = rng.uniform(0, 40, (31, 4, 5, 5)).astype(np.float32)
     speeds[5, 2] += 40.0  # push one member far from the mean
 
-    mean, anom = gefs.mean_and_anomaly(speeds)
+    mean_q, anom_q = gefs.quantize_mean_and_anomaly(speeds)
+    mean, anom = mean_q * 0.01, anom_q * 0.2
     assert mean.shape == (4, 5, 5)
     assert anom.shape == (31, 4, 5, 5)
-    np.testing.assert_allclose(mean, speeds.mean(axis=0), atol=1e-4)
+    np.testing.assert_allclose(mean, speeds.mean(axis=0), atol=0.005 + 1e-4)
     assert anom.max() <= 25.0 and anom.min() >= -25.0  # clipped before quantize
 
-    # members reconstruct as mean + anomaly wherever the clip did not bite
+    # members reconstruct as mean + anomaly, to the quantization steps,
+    # wherever the clip did not bite
     recon = mean[None] + anom
-    unclipped = np.abs(speeds - mean[None]) < 25.0
-    np.testing.assert_allclose(recon[unclipped], speeds[unclipped], atol=1e-3)
+    unclipped = np.abs(speeds - speeds.mean(axis=0)[None]) < 25.0
+    np.testing.assert_allclose(recon[unclipped], speeds[unclipped], atol=0.105)
 
     # hypot + m/s -> kt member speed definition
     u, v = np.array([3.0]), np.array([4.0])
@@ -167,7 +189,134 @@ def test_cmems_constants():
     assert cmems.DATASET_ID == "cmems_mod_glo_phy-cur_anfc_0.083deg_PT6H-i"
     assert [v.name for v in cmems.VARS] == ["cur_u_kt", "cur_v_kt"]
     assert all(v.scale == 0.01 for v in cmems.VARS)
-    assert cmems.resolve(CYCLE) == CYCLE
+
+
+def _stac(end, updated, updating=None, urls=None):
+    """A fetch() serving one STAC item with these properties (ISO strings)."""
+    import json
+
+    def fetch(url):
+        if urls is not None:
+            urls.append(url)
+        return json.dumps(
+            {
+                "type": "Feature",
+                "properties": {
+                    "end_datetime": end,
+                    "admp_updated_data": updated,
+                    "admp_updating_start_date": updating,
+                },
+            }
+        ).encode()
+
+    return fetch
+
+
+GLO12_CYCLE = datetime(2026, 9, 29, tzinfo=timezone.utc)
+
+
+def test_glo12_is_ready_once_its_stac_item_shows_the_cycle_written():
+    # the item as read on 2026-09-29 at 20:05 UTC
+    urls = []
+    fetch = _stac("2026-10-09T00:00:00Z", "2026-09-29T06:25:55.524Z", urls=urls)
+    assert cmems.resolve(GLO12_CYCLE, fetch=fetch) == GLO12_CYCLE
+    assert urls == [
+        "https://s3.waw3-1.cloudferro.com/mdl-metadata/metadata/"
+        "GLOBAL_ANALYSISFORECAST_PHY_001_024/"
+        "cmems_mod_glo_phy-cur_anfc_0.083deg_PT6H-i_202406/dataset.stac.json"
+    ]
+    state = cmems.glo12_state(fetch=fetch)
+    assert state.updated == datetime(2026, 9, 29, 6, 25, 55, 524000, tzinfo=timezone.utc)
+    assert state.updating_from is None
+
+
+@pytest.mark.parametrize(
+    ("item", "reason"),
+    [
+        # 05:45 UTC: yesterday's bulletin is the latest one
+        (("2026-10-08T00:00:00Z", "2026-09-28T06:31:02Z"), "not published yet"),
+        # the axis already moved, but the data are still being rewritten
+        (("2026-10-09T00:00:00Z", "2026-09-28T06:31:02Z", "2026-09-29T00:00:00Z"), "updating"),
+        # an update finished the day before and nothing since
+        (("2026-10-09T00:00:00Z", "2026-09-28T23:59:00Z"), "before cycle"),
+        ((None, None), "not published yet"),
+    ],
+)
+def test_glo12_is_not_ready_before_copernicus_finishes(item, reason):
+    with pytest.raises(CycleNotAvailableError, match=reason):
+        cmems.resolve(GLO12_CYCLE, fetch=_stac(*item))
+
+
+def test_an_unreadable_stac_item_is_not_available_yet():
+    def down(url):
+        raise OSError("connection reset")
+
+    with pytest.raises(CycleNotAvailableError, match="metadata unreadable"):
+        cmems.resolve(GLO12_CYCLE, fetch=down)
+    with pytest.raises(CycleNotAvailableError, match="metadata unreadable"):
+        cmems.resolve(GLO12_CYCLE, fetch=lambda url: b"<html>not json</html>")
+
+
+class _FakeGlo12Dataset:
+    dims = {}
+
+    def __init__(self, cycle, steps):
+        self.times = np.array(
+            [np.datetime64(cycle.replace(tzinfo=None) + timedelta(hours=h), "ns") for h in steps]
+        )
+
+    def __getitem__(self, name):
+        return _FakeArray(
+            {
+                "time": self.times,
+                "latitude": np.array([40.0, 40 + 1 / 12], dtype=np.float32),
+                "longitude": np.array([-10.0, -10 + 1 / 12, -10 + 2 / 12], dtype=np.float32),
+            }[name]
+        )
+
+    def sel(self, *, time):
+        field = np.full((2, 3), 0.5, dtype=np.float32)
+        return {"uo": _FakeArray(field), "vo": _FakeArray(-field)}
+
+
+def test_glo12_build_cube_records_when_copernicus_finished(monkeypatch):
+    ds = _FakeGlo12Dataset(GLO12_CYCLE, cmems.STEP_AXIS)
+    monkeypatch.setattr(cmems, "_open_dataset_with_auth_retries", lambda *a, **k: ds)
+    fetch = _stac("2026-10-09T00:00:00Z", "2026-09-29T06:25:55.524Z")
+    cube = cmems.build_cube(GLO12_CYCLE, fetch=fetch)
+    assert cube.provenance["provider_updated_at"] == "2026-09-29T06:25:55Z"
+    assert cube.arrays["cur_u_kt"].shape == (41, 2, 3)
+
+
+def test_glo12_build_cube_refuses_before_reading_an_unfinished_cycle(monkeypatch):
+    def never_open(*args, **kwargs):
+        raise AssertionError("must not open the dataset before the cycle is written")
+
+    monkeypatch.setattr(cmems, "_open_dataset_with_auth_retries", never_open)
+    fetch = _stac("2026-10-08T00:00:00Z", "2026-09-28T06:31:02Z")
+    with pytest.raises(CycleNotAvailableError):
+        cmems.build_cube(GLO12_CYCLE, fetch=fetch)
+
+
+def test_ibi_explicit_cycle_waits_for_its_stac_item():
+    # the item as read on 2026-09-29 at 20:05 UTC: bulletin D ends D+239 h
+    cycle = GLO12_CYCLE
+    urls = []
+    ready = _stac("2026-10-08T23:00:00Z", "2026-09-29T11:08:40.988Z", urls=urls)
+    assert ibi.resolve(cycle, fetch=ready) == cycle
+    assert urls == [
+        "https://s3.waw3-1.cloudferro.com/mdl-metadata/metadata/"
+        "IBI_ANALYSISFORECAST_PHY_005_001/"
+        "cmems_mod_ibi_phy_anfc_0.027deg-2D_PT1H-m_202411/dataset.stac.json"
+    ]
+    # 09:48 on 2026-09-29: the new day appended, the update still running
+    mid_update = _stac("2026-10-08T23:00:00Z", "2026-09-28T11:36:46Z", "2026-10-08T00:00:00Z")
+    with pytest.raises(CycleNotAvailableError, match="updating"):
+        ibi.resolve(cycle, fetch=mid_update)
+    # before 09:44: the previous bulletin ends a day early
+    previous = _stac("2026-10-07T23:00:00Z", "2026-09-28T11:36:46Z")
+    with pytest.raises(CycleNotAvailableError, match="not published yet"):
+        ibi.resolve(cycle, fetch=previous)
 
 
 def test_cmems_retries_authentication_service_outages_only():
