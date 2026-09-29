@@ -54,19 +54,29 @@ these needs credentials.
 - **Cycle label.** `resolve()` labels the bulletin D 00Z (its last hour minus
   239 h). That is `FC01`'s first hour, so the label and the GRIB reference
   time are correct. The data only exist from about 10:00 on day D.
-- **When.** The native files land at 09:40–09:44 UTC (five of five, 24–28 Sep).
+- **When.** The native files land at 09:40–09:45 UTC (six of six, 24–29 Sep).
   The ARCO store, which the ingest reads through `open_dataset`, is rewritten
   in place after them. Its hindcast-day chunks were written at 09:54, 10:40,
-  10:14, 09:57 and 11:33 UTC (24–28 Sep). On 28 Sep the zarr metadata was
-  rewritten at 09:54 but the catalogue's `arco_updated_date` says the data
-  finished at **11:36:46**.
+  10:14, 09:57, 11:33 and 11:05 UTC (24–29 Sep). The catalogue's
+  `arco_updated_date` says the data finished at **11:36:46** on 28 Sep and
+  **11:08:40** on 29 Sep.
+- **One update, watched every 2 minutes (2026-09-29).** Native files 09:44:59.
+  At 09:47:43 the zarr metadata was rewritten and the time axis reached the
+  new last hour (2026-10-08 23:00), so `resolve()` would already have
+  returned 29 Sep 00Z. `arco_updating_start_date` first named only that
+  appended day (2026-10-08T00:00), widened to 2026-09-28T00:00 by 09:56, and
+  cleared when the update finished at 11:08:40 (chunks written at 11:05).
+  For 80 minutes the store advertised the new bulletin while its values for
+  29 Sep onward were still the previous one's.
 - **Mid-update reads.** While the store is rewritten, the catalogue part sets
   `arco_updating_start_date` to the first data instant that "may not be up to
   date". The toolbox only warns about it for `subset`, and not for
-  `open_dataset`. `build_cube` therefore reads the part's update state before
-  and after its read. A window the provider is still rewriting, or a state
-  that changed during the read, raises `CycleNotAvailableError`, and the CLI
-  exits 0 ("not available yet") so a later slot publishes. Each manifest's
+  `open_dataset`, and the range it names can be too narrow (above).
+  `build_cube` therefore reads the part's update state before and after its
+  read and raises `CycleNotAvailableError` when any update is in progress,
+  whatever range it names, when the last finished update predates the
+  cycle's day, or when the state changed during the read. The CLI then exits
+  0 ("not available yet") and a later slot publishes. Each manifest's
   `provenance.provider_updated_at` records when Copernicus finished the
   bulletin.
 - **Our lag before 2026-09-29.** The workflow ran daily at 15:00 UTC and GitHub

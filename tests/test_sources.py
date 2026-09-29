@@ -399,14 +399,30 @@ def test_ibi_build_cube_refuses_a_window_being_rewritten(monkeypatch):
         ibi.build_cube(cycle)
 
 
-def test_ibi_build_cube_ignores_an_update_past_its_window(monkeypatch):
+def _never_open(*args, **kwargs):
+    raise AssertionError("must not read the store")
+
+
+def test_ibi_build_cube_refuses_an_update_whose_named_range_is_past_its_window(monkeypatch):
+    # 2026-09-29 09:48 UTC: the new day was appended and named as the only
+    # range being updated, while D..D+5 still held the previous bulletin.
     cycle = CYCLE.replace(hour=0)
-    ds = _FakeIbiDataset(cycle, ibi.STEP_AXIS)
     monkeypatch.setattr(ibi, "resolve_dataset_id", lambda _: ibi.DEFAULT_DATASET_ID)
-    monkeypatch.setattr(ibi, "_open_dataset_with_auth_retries", lambda *args, **kwargs: ds)
-    beyond = cycle + timedelta(hours=ibi.PUBLISHED_HORIZON_H + 1)
-    _settled_state(monkeypatch, (UPDATED, beyond))
-    assert ibi.build_cube(cycle).horizon_h == ibi.PUBLISHED_HORIZON_H
+    monkeypatch.setattr(ibi, "_open_dataset_with_auth_retries", _never_open)
+    previous_update = cycle - timedelta(hours=12, minutes=24)
+    appended_day = cycle + timedelta(hours=ibi.NATIVE_FORECAST_HORIZON_H - 23)
+    _settled_state(monkeypatch, (previous_update, appended_day))
+    with pytest.raises(CycleNotAvailableError, match="being updated"):
+        ibi.build_cube(cycle)
+
+
+def test_ibi_build_cube_refuses_a_cycle_newer_than_the_last_finished_update(monkeypatch):
+    cycle = CYCLE.replace(hour=0)
+    monkeypatch.setattr(ibi, "resolve_dataset_id", lambda _: ibi.DEFAULT_DATASET_ID)
+    monkeypatch.setattr(ibi, "_open_dataset_with_auth_retries", _never_open)
+    _settled_state(monkeypatch, (cycle - timedelta(hours=12), None))
+    with pytest.raises(CycleNotAvailableError, match="before cycle"):
+        ibi.build_cube(cycle)
 
 
 def test_ibi_build_cube_refuses_an_update_during_the_read(monkeypatch):

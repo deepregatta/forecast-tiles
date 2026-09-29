@@ -176,13 +176,24 @@ def arco_update_state(copernicusmarine, dataset_id: str) -> tuple[datetime | Non
 
 
 def _require_settled(state: tuple[datetime | None, datetime | None], cycle: datetime) -> None:
-    """Refuse a window the provider is still rewriting."""
-    _, updating_from = state
-    end = cycle + timedelta(hours=PUBLISHED_HORIZON_H)
-    if updating_from is not None and updating_from <= end:
+    """Refuse to read while the provider rewrites the store, whatever range it
+    names, or before it has finished any update on or after the cycle's day.
+
+    The named range under-states the rewrite: on 2026-09-29 the time axis
+    reached the new bulletin's last hour at 09:48 UTC while the range named
+    only that appended day (2026-10-08), and it widened to 2026-09-28 onward
+    by 09:56.  In between, D..D+5 still held the previous bulletin's values.
+    """
+    updated, updating_from = state
+    if updating_from is not None:
         raise CycleNotAvailableError(
-            f"IBI ARCO store is being updated from {updating_from:%Y-%m-%dT%H:%MZ}, inside "
-            f"{cycle:%Y%m%dT%H}Z +0..{PUBLISHED_HORIZON_H} h; a later run picks it up"
+            f"IBI ARCO store is being updated (data from {updating_from:%Y-%m-%dT%H:%MZ}); "
+            "a later run picks it up"
+        )
+    if updated is not None and updated < cycle:
+        raise CycleNotAvailableError(
+            f"IBI ARCO store last finished an update at {updated:%Y-%m-%dT%H:%MZ}, before "
+            f"cycle {cycle:%Y%m%dT%H}Z began; a later run picks it up"
         )
 
 
