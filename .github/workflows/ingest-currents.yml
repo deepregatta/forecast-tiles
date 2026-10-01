@@ -3,7 +3,12 @@ run-name: ingest-currents ${{ inputs.cycle || 'scheduled' }}
 
 on:
   schedule:
-    - cron: "0 13 * * *" # daily, after the CMEMS GLO12 update
+    # Fallback only: the dispatcher Worker (README.md -> Dispatcher) starts
+    # each provider cycle with workflow_dispatch. This catches a missed
+    # dispatch, hours late as GitHub's crons are; a cycle already published
+    # exits in about a minute. Away from the dispatch minutes, so it rarely
+    # queues behind a waiting run.
+    - cron: "37 2,8,14,20 * * *"
   workflow_dispatch:
     inputs:
       cycle:

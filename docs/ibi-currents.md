@@ -117,6 +117,9 @@ age:
 
 So 0–120 h keeps the next 3 days in the served run at any moment with the
 hourly slots. It still covers about 56 h ahead if one day's ingest is missed.
+Since 2026-10-01 the dispatcher starts IBI at 09:45 UTC and the run waits up
+to 3 h for Copernicus (README → Dispatcher); the hourly slots became one
+fallback cron.
 The four Channel tiles (`N40W010`, `N40E000`, `N50W010`, `N50E000`) measured
 21.6 MB at 0–72 h on 2026-09-28 (compressibility varies: 19.8 MB on
 2026-08-23). At 0–120 h they are about 36.6 MB: the August measurement below

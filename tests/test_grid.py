@@ -2,6 +2,7 @@
 scripts/record_cmems_coordinates.py) and the tile boundaries it produces."""
 
 import gzip
+import json
 from datetime import timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -141,7 +142,17 @@ def test_glo12_build_cube_snaps_the_float32_coordinates(monkeypatch):
     cycle = CYCLE.replace(hour=0)
     ds = _FakeGlo12Dataset(cycle, slice(1437, 1443), slice(2037, 2043))
     monkeypatch.setattr(cmems, "_open_dataset_with_auth_retries", lambda *args, **kwargs: ds)
-    cube = cmems.build_cube(cycle)
+    # a STAC item showing the cycle written, so the test never reads Copernicus's
+    # live one (it failed while GLO12 was updating, 2026-10-01 06:43 UTC)
+    end = cycle + timedelta(hours=cmems.STEP_AXIS[-1])
+    item = {
+        "properties": {
+            "end_datetime": f"{end:%Y-%m-%dT%H:%M:%SZ}",
+            "admp_updated_data": f"{cycle + timedelta(hours=6):%Y-%m-%dT%H:%M:%SZ}",
+            "admp_updating_start_date": None,
+        }
+    }
+    cube = cmems.build_cube(cycle, fetch=lambda url: json.dumps(item).encode())
     assert cube.grid == GridMeta(lat0=39.75, lon0=-10.25, dlat=1 / 12, dlon=1 / 12, nlat=6, nlon=6)
     assert cube.resolution_deg == 1 / 12
 

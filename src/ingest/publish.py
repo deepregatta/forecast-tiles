@@ -38,14 +38,14 @@ DEFAULT_MAX_BUCKET_BYTES = 8_000_000_000  # 8 GB storage guard
 
 # Hours between a layer's scheduled publications, written to latest.json as
 # `cadence_hours` so consumers can estimate the next run without copying this
-# repo's schedule. Every layer publishes once a day until the dispatcher
-# switches on each provider cycle (Passage docs/grib-export-plan.md, Phase 5B:
-# weather, waves and ensemble 6; weather-ecmwf 12; currents 24).
+# repo's schedule. Since 2026-10-01 the dispatcher (README.md -> Dispatcher)
+# ingests every provider cycle: four a day for GFS, GFS-Wave and GEFS, the
+# two full-horizon ECMWF cycles, and one Copernicus bulletin a day.
 CADENCE_HOURS = {
-    "weather": 24,
-    "weather-ecmwf": 24,
-    "ensemble": 24,
-    "waves": 24,
+    "weather": 6,
+    "weather-ecmwf": 12,
+    "ensemble": 6,
+    "waves": 6,
     "currents": 24,
     "currents-ibi": 24,
 }

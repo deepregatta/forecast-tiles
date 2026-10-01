@@ -7,7 +7,7 @@ Public repo. Scheduled ingestion pipeline turning open NOAA / Copernicus / ECMWF
 - `src/` — Python pipeline (uv-managed): resolve latest complete provider cycle → byte-range download → decode/orient/quantize into a `ForecastCube` → 10°×10° tiles → gzip → R2. `src/landkit/` + `src/ingest/land/` are the second, non-scheduled pipeline: the **conservative routing index** (`docs/land-index-format.md`), consumed by tactician's `core/land`.
 - `contracts/` — tile/manifest/latest JSON Schemas. The `forecast-*` ones are vendored from passage's `contracts/`; keep in sync when the spec changes. The `land-index-*` ones are **canonical here** — tactician consumes them.
 - `scripts/`, `tests/` — tooling and pytest suite.
-- Production runs are GitHub Actions workflows, one per layer: daily crons today. `dispatcher/` is a Cloudflare Worker (TypeScript, Cron Triggers only) that dispatches each layer at its provider's publication time with `--wait-minutes`; it ships with `DRY_RUN = "true"` until Passage plan Phase 5B switches it on (README → Dispatcher).
+- Production runs are GitHub Actions workflows, one per layer. `dispatcher/` is a Cloudflare Worker (TypeScript, Cron Triggers only) that dispatches each layer at its provider's publication time with `--wait-minutes`, live since 2026-10-01 (Passage plan Phase 5B); each workflow keeps a 6-hourly fallback cron (README → Dispatcher).
 
 ## Commands
 

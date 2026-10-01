@@ -205,7 +205,7 @@ def test_manifest_fnv64_matches_stored_objects_and_schema():
     latest = json.loads(store.objects["latest.json"])
     latest_schema = json.loads((SCHEMA_DIR / "forecast-latest.schema.json").read_text())
     jsonschema.validate(latest, latest_schema)
-    assert latest["layers"]["weather"]["cadence_hours"] == 24
+    assert latest["layers"]["weather"]["cadence_hours"] == 6
 
     status = json.loads(store.objects["status/weather.json"])
     assert status["tile_count"] == len(tiles)
@@ -258,11 +258,18 @@ def test_build_manifest_shape():
 
 
 def test_every_published_layer_has_a_cadence_the_schema_accepts():
-    """cadence_hours stays 24 for every layer until the dispatcher switches the
-    provider cadences on (Passage docs/grib-export-plan.md, Phase 5B)."""
+    """cadence_hours follows each provider since the dispatcher switched on
+    (Passage docs/grib-export-plan.md, Phase 5B)."""
     schema = json.loads((SCHEMA_DIR / "forecast-latest.schema.json").read_text())
     entry = schema["properties"]["layers"]["additionalProperties"]["properties"]
     assert entry["cadence_hours"] == {**entry["cadence_hours"], "type": "integer", "minimum": 1}
     layers = set(schema["properties"]["layers"]["propertyNames"]["enum"])
     assert set(CADENCE_HOURS) == layers
-    assert set(CADENCE_HOURS.values()) == {24}
+    assert CADENCE_HOURS == {
+        "weather": 6,
+        "waves": 6,
+        "ensemble": 6,
+        "weather-ecmwf": 12,
+        "currents": 24,
+        "currents-ibi": 24,
+    }

@@ -74,10 +74,34 @@ describe('dry run', () => {
     }
   });
 
-  it('logs nothing on a tick with no layer due', async () => {
-    const { deps, calls, lines } = github();
-    await runScheduled(Date.parse('2026-09-30T10:30:00Z'), live, deps);
+  it('logs nothing on a */5 tick with no layer due', async () => {
+    const { deps, calls, lines, errors } = github();
+    await runScheduled(Date.parse('2026-09-30T10:30:00Z'), live, deps, '*/5 * * * *');
+    expect([...calls, ...lines, ...errors]).toEqual([]);
+  });
+});
+
+describe('a late fire', () => {
+  it('still dispatches its slot, logged against the timetable minute', async () => {
+    // 2026-10-01: the 05:00 slot started 48 s late
+    const fired = Date.parse('2026-10-01T05:00:48.300Z');
+    const { deps, calls, lines } = github(dispatched());
+    await runScheduled(fired, live, { ...deps, now: () => fired }, '0 5,11,17,23 * * *');
+    expect(calls[0]!.body).toEqual({ ref: 'main', inputs: { cycle: '20261001T00', wait_minutes: '90' } });
+    expect(lines[0]).toMatch(/^dispatched ingest-waves cycle=20261001T00 wait=90 scheduled=05:00:00Z fired=05:00:48Z /);
+  });
+
+  it('fails loudly when it matches no slot, dispatching nothing', async () => {
+    const fired = Date.parse('2026-09-30T10:30:05Z');
+    const { deps, calls, lines, errors } = github();
+    await expect(
+      runScheduled(fired, live, { ...deps, now: () => fired }, '25 4,10,16,22 * * *'),
+    ).rejects.toThrow(/MISSED SLOT/);
     expect([...calls, ...lines]).toEqual([]);
+    expect(errors).toEqual([
+      'MISSED SLOT: cron "25 4,10,16,22 * * *" started at 10:30:05Z (fired=10:30:05Z), more than 4 min ' +
+        'after any timetable slot; nothing dispatched, the fallback crons pick the cycle up',
+    ]);
   });
 });
 

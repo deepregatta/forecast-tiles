@@ -57,19 +57,46 @@ export function cycleId(ms: number): string {
 }
 
 /**
+ * How late a fire may start and still count for its slot. Cloudflare's
+ * `scheduledTime` already carries its start delay (27-48 s over the
+ * 2026-09-29..10-01 dry run), so flooring it to the minute alone would drop
+ * a slot fired a minute late. Under 5 min, so a `*\/5` tick never
+ * dispatches the slot before it again.
+ */
+export const MAX_LATE_MINUTES = 4;
+
+const entriesAt = (minuteMs: number) => {
+  const t = new Date(minuteMs);
+  return TIMETABLE.filter(
+    (entry) => entry.minute === t.getUTCMinutes() && entry.hours.includes(t.getUTCHours()),
+  );
+};
+
+/**
+ * The timetable minute a fire belongs to: the latest slot at most
+ * MAX_LATE_MINUTES before `scheduledTime`, or null when there is none.
+ */
+export function slotAt(scheduledTime: number): number | null {
+  const minuteMs = Math.floor(scheduledTime / MINUTE_MS) * MINUTE_MS;
+  for (let late = 0; late <= MAX_LATE_MINUTES; late++) {
+    const slot = minuteMs - late * MINUTE_MS;
+    if (entriesAt(slot).length) return slot;
+  }
+  return null;
+}
+
+/**
  * The dispatches due at a scheduled fire time (`controller.scheduledTime`,
  * never the clock at run time, so a late start still asks for the right
  * cycle). Empty when no layer is due, as for most ticks of a `*\/5` cron.
  */
 export function dueAt(scheduledTime: number): Dispatch[] {
-  const minuteMs = Math.floor(scheduledTime / MINUTE_MS) * MINUTE_MS;
-  const t = new Date(minuteMs);
-  return TIMETABLE.filter(
-    (entry) => entry.minute === t.getUTCMinutes() && entry.hours.includes(t.getUTCHours()),
-  ).map((entry) => ({
+  const slot = slotAt(scheduledTime);
+  if (slot === null) return [];
+  return entriesAt(slot).map((entry) => ({
     layer: entry.layer,
     workflow: `ingest-${entry.layer}.yml`,
-    cycle: cycleId(minuteMs - entry.lagMinutes * MINUTE_MS),
+    cycle: cycleId(slot - entry.lagMinutes * MINUTE_MS),
     waitMinutes: entry.waitMinutes,
   }));
 }

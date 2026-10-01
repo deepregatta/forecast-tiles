@@ -54,12 +54,11 @@ a window for every step of a `statistic` variable; any failure aborts before upl
 (storage guard first, tiles, `manifest.json` last, post-publish re-download
 check, `latest.json`, retention delete, `status/{layer}.json`).
 
-Scheduled GitHub Actions run each layer daily. GLO12 currents run after their
-provider update. IBI runs in hourly slots from 07:50 to 14:50 UTC, because the
-bulletin finishes its ARCO update at about 09:55–11:40 UTC (measured; the
-catalogue says 14:00) and GitHub starts scheduled runs up to about 6 h late:
-the first slot after the update publishes and the others exit in a minute
-([docs/ibi-currents.md](docs/ibi-currents.md#when-cmems-publishes)). See
+Since 2026-10-01 the [dispatcher](#dispatcher) starts each layer's workflow
+at its provider's usual publication time, for every provider cycle, and the
+run waits for its cycle. Each workflow also keeps a fallback `schedule`
+(`37 2,8,14,20 * * *`) for a missed dispatch; GitHub starts those hours late,
+and a cycle already published exits in about a minute. See
 `.github/workflows/ingest-*.yml`. `ingest weather-ecmwf` exits 0 with a log
 line when ECMWF hasn't published a full-horizon cycle yet, and `ingest
 currents` and `ingest currents-ibi` do the same until Copernicus has finished
@@ -71,8 +70,8 @@ start before the provider has finished its cycle. With an explicit
 `--cycle`, it re-checks readiness every 60 s (ECMWF and Copernicus: 120 s)
 until the cycle is out, then continues as above; if N minutes pass first it
 exits 1 ("cycle not available after N min"), so a missed slot shows as a
-failed run. This is how the [dispatcher](#dispatcher) starts each layer once
-it is switched on. Readiness is the provider's own completion signal: the
+failed run. This is how the [dispatcher](#dispatcher) starts each layer.
+Readiness is the provider's own completion signal: the
 final-step `.idx` for GFS, GFS-Wave and GEFS; the latest full-horizon cycle
 for ECMWF; the STAC item's data end, finished update and no update in
 progress for GLO12 and IBI.
@@ -102,20 +101,22 @@ exceed `MAX_BUCKET_BYTES` (default 8 GB).
 
 ## Layers
 
-| Layer | Source | Resolution | Cadence | Target after 5B |
-|---|---|---|---|---|
-| `weather` | NOAA GFS (wind u/v, gust hourly; vis/CAPE/temp/dew-point/precip 3-hourly) | 0.25° | 1×/day | every cycle (00/06/12/18Z) |
-| `weather-ecmwf` | ECMWF open data (wind u/v; gust = the maximum over the 1, 3 or 6 h before each step, published with its per-step window as the variable's `statistic`) | 0.25° | 1×/day | 00Z and 12Z |
-| `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | 1×/day | every cycle |
-| `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | 1×/day | every cycle |
-| `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; NOAA RTOFS fallback) | 1/12° | 1×/day | 1×/day, soon after Copernicus |
-| `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 120 h; 72 h before 2026-09-29; IBI domain only) | ≈1/36° (0.02777863°) | 1×/day | 1×/day, soon after Copernicus |
+| Layer | Source | Resolution | Cadence (since 2026-10-01) |
+|---|---|---|---|
+| `weather` | NOAA GFS (wind u/v, gust hourly; vis/CAPE/temp/dew-point/precip 3-hourly) | 0.25° | every cycle (00/06/12/18Z) |
+| `weather-ecmwf` | ECMWF open data (wind u/v; gust = the maximum over the 1, 3 or 6 h before each step, published with its per-step window as the variable's `statistic`) | 0.25° | 00Z and 12Z (the full 240 h cycles) |
+| `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | every cycle |
+| `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | every cycle |
+| `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; NOAA RTOFS fallback) | 1/12° | 1×/day, soon after Copernicus |
+| `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 120 h; 72 h before 2026-09-29; IBI domain only) | ≈1/36° (0.02777863°) | 1×/day, soon after Copernicus |
 
-"Target after 5B" is the cadence once the [dispatcher](#dispatcher) is
+Every layer was ingested once a day until the [dispatcher](#dispatcher)
 switched on (Passage `docs/grib-export-plan.md`, Phase 5B). Each layer's
 `latest.json` entry carries `cadence_hours`, the hours between its scheduled
-publications (`CADENCE_HOURS` in `src/ingest/publish.py`); it is 24 for every
-layer until then, and 6 (GFS, GFS-Wave, GEFS) and 12 (ECMWF) after.
+publications (`CADENCE_HOURS` in `src/ingest/publish.py`): 6 for GFS,
+GFS-Wave and GEFS, 12 for ECMWF and 24 for both current layers. It was 24
+for every layer before 2026-10-01; each entry changes at its layer's next
+publish.
 
 Retention is by count (current + previous run per layer), so publishing more
 often does not add storage; a superseded run is deleted one cycle later. The
@@ -160,6 +161,13 @@ plan's 5 Cron Triggers per account. If the account needs a trigger for
 another Worker, replace them with the single `*/5 * * * *`: the timetable
 stays in code, and a tick with no layer due contacts nothing.
 
+Cloudflare starts a fire 27–48 s after its minute (the dry run of
+2026-09-29 to 10-01, 22 fires), and the `scheduledTime` it hands the Worker
+already carries that delay. So a fire counts for the latest slot up to
+4 min 59 s before it (`MAX_LATE_MINUTES`, under the 5 min of a `*/5` tick).
+A fire of one of the five crons that matches no slot logs `MISSED SLOT` and
+fails the invocation.
+
 **On each fire** the Worker takes the cycle from the *scheduled* time, not
 the clock, and posts
 `{"ref":"main","inputs":{"cycle":"YYYYMMDDTHH","wait_minutes":"N"}}` to
@@ -172,14 +180,15 @@ workflow and dispatches once more; a workflow disabled by hand is left
 alone. A failed dispatch also fails the invocation, so it shows in the
 Worker's logs as an error.
 
-**Dry run.** `DRY_RUN = "true"` in `wrangler.toml` is the default: the
-Worker then only logs what it would do, one line per slot, e.g.
+**Dry run.** Any `DRY_RUN` but the exact string `"false"` (live in
+`wrangler.toml` since 2026-10-01) makes the Worker only log what it would
+do, one line per slot, e.g.
 `would dispatch ingest-weather cycle=20260930T06 wait=90 scheduled=10:25:00Z fired=10:25:02Z`.
 `scheduled` is the timetable minute and `fired` the Worker's clock, so the
 difference is Cloudflare's start delay. Cloudflare documents no timing for
 Cron Triggers, and its own `scheduledTime` already includes the delay
 (22:25:27 for the first slot, on 2026-09-29), so a day of these lines
-measures it. Only the exact string `"false"` dispatches.
+measured it. Live, the line reads `dispatched … run=<run URL>`.
 
 **Token.** A fine-grained personal access token scoped to
 `deepregatta/forecast-tiles` only, with **Actions: read and write** (Metadata:
@@ -188,9 +197,10 @@ can start, cancel and re-run workflows, delete run logs, and enable or
 disable workflows; it cannot read secrets or change code. It is never
 committed and never passed through anything but `wrangler secret put`.
 
-**Status:** deployed 2026-09-29 21:24 UTC in dry-run, with the token set;
-the first slot (22:25, `weather`) logged `cycle=20260929T18`. Dispatching
-switches on in Phase 5B.
+**Status:** deployed 2026-09-29 21:24 UTC in dry-run, with the token set.
+The dry run logged all 16 slots of 2026-09-30, each for the timetable's
+cycle, 27–48 s after the minute. Dispatching is live since 2026-10-01
+(Passage plan, Phase 5B).
 
 **Setup** (once, by a maintainer):
 
@@ -216,11 +226,12 @@ switches on in Phase 5B.
 4. Watch the dry run for a day: the Worker's **Logs** tab in the Cloudflare
    dashboard (kept 3 days on the free plan) or `npx wrangler tail`.
 
-**Switching on** (Passage plan, Phase 5B): set `DRY_RUN = "false"`, redeploy,
-set `CADENCE_HOURS` to the provider cadences, and move every workflow's
-`schedule` to the fallback `37 2,8,14,20 * * *`, away from the dispatch
-times. The fallback covers a missed dispatch; the "already published" exit
-makes it harmless when it isn't needed.
+**Switched on** 2026-10-01 (Passage plan, Phase 5B): `DRY_RUN = "false"`,
+`CADENCE_HOURS` set to the provider cadences, and every workflow's
+`schedule` moved to the fallback `37 2,8,14,20 * * *`, away from the
+dispatch times. The fallback covers a missed dispatch; the "already
+published" exit makes it harmless when it isn't needed. To pause
+dispatching, set `DRY_RUN = "true"` and `npx wrangler deploy`.
 
 **Runbook.**
 
@@ -232,8 +243,8 @@ makes it harmless when it isn't needed.
   crons keep a slower cadence.
 - *`re-enabled ingest-….yml`.* Expected after 60 quiet days; nothing to do.
 - *A layer did not run at all.* Check the Worker's logs for that minute: no
-  line means Cloudflare skipped the trigger; a `FAILED` line gives GitHub's
-  answer. `gh workflow run ingest-<layer>.yml -f cycle=YYYYMMDDTHH` starts one
+  line means Cloudflare skipped the trigger; `MISSED SLOT` means it started
+  more than 4 min late; a `FAILED` line gives GitHub's answer. `gh workflow run ingest-<layer>.yml -f cycle=YYYYMMDDTHH` starts one
   by hand.
 - *Local check:* `cd dispatcher && npm ci && npm test`.
 

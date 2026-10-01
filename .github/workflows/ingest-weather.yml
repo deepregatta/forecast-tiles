@@ -3,7 +3,12 @@ run-name: ingest-weather ${{ inputs.cycle || 'scheduled' }}
 
 on:
   schedule:
-    - cron: "30 3 * * *" # daily, ~3.5 h after the 00Z GFS cycle
+    # Fallback only: the dispatcher Worker (README.md -> Dispatcher) starts
+    # each provider cycle with workflow_dispatch. This catches a missed
+    # dispatch, hours late as GitHub's crons are; a cycle already published
+    # exits in about a minute. Away from the dispatch minutes, so it rarely
+    # queues behind a waiting run.
+    - cron: "37 2,8,14,20 * * *"
   workflow_dispatch:
     inputs:
       cycle:

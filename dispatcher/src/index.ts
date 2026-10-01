@@ -13,6 +13,6 @@ export default {
       now: () => Date.now(),
       log: (line) => console.log(line),
       error: (line) => console.error(line),
-    });
+    }, controller.cron);
   },
 } satisfies ExportedHandler<Env>;

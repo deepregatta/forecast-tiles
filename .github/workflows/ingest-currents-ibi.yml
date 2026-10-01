@@ -3,13 +3,12 @@ run-name: ingest-currents-ibi ${{ inputs.cycle || 'scheduled' }}
 
 on:
   schedule:
-    # The day-D bulletin finishes its ARCO update at about 09:55-11:40 UTC
-    # (measured 2026-09-24..28; the catalogue's "14:00 UTC" is a target), and
-    # GitHub starts scheduled runs 0-6 h late.  Hourly slots from 07:50 let the
-    # first run after the update publish; the others exit in about a minute
-    # ("already published", or "not available yet" while the store is being
-    # rewritten).  docs/ibi-currents.md -> "When CMEMS publishes".
-    - cron: "50 7-14 * * *"
+    # Fallback only: the dispatcher Worker (README.md -> Dispatcher) starts
+    # each provider cycle with workflow_dispatch. This catches a missed
+    # dispatch, hours late as GitHub's crons are; a cycle already published
+    # exits in about a minute. Away from the dispatch minutes, so it rarely
+    # queues behind a waiting run.
+    - cron: "37 2,8,14,20 * * *"
   workflow_dispatch:
     inputs:
       cycle:

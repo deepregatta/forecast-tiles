@@ -3,7 +3,12 @@ run-name: ingest-weather-ecmwf ${{ inputs.cycle || 'scheduled' }}
 
 on:
   schedule:
-    - cron: "15 5 * * *" # daily, after the 00Z ECMWF open data publish
+    # Fallback only: the dispatcher Worker (README.md -> Dispatcher) starts
+    # each provider cycle with workflow_dispatch. This catches a missed
+    # dispatch, hours late as GitHub's crons are; a cycle already published
+    # exits in about a minute. Away from the dispatch minutes, so it rarely
+    # queues behind a waiting run.
+    - cron: "37 2,8,14,20 * * *"
   workflow_dispatch:
     inputs:
       cycle:

@@ -22,10 +22,10 @@ crons = [
 ]
 
 [vars]
-# "true" logs "would dispatch …" lines instead of starting workflows. Only
-# the exact string "false" dispatches. The GITHUB_TOKEN secret is set with
-# `npx wrangler secret put GITHUB_TOKEN`, never here.
-DRY_RUN = "true"
+# "false" dispatches (live since Phase 5B, 2026-10-01). Anything else logs
+# "would dispatch …" lines instead of starting workflows. The GITHUB_TOKEN
+# secret is set with `npx wrangler secret put GITHUB_TOKEN`, never here.
+DRY_RUN = "false"
 
 [observability]
 enabled = true

@@ -5,7 +5,7 @@
  * already published.
  */
 
-import { dueAt, type Dispatch } from './timetable.js';
+import { dueAt, MAX_LATE_MINUTES, slotAt, type Dispatch } from './timetable.js';
 
 export const REPO = 'deepregatta/forecast-tiles';
 export const REF = 'main';
@@ -30,16 +30,32 @@ export class DispatchError extends Error {}
 const hms = (ms: number) => `${new Date(ms).toISOString().slice(11, 19)}Z`;
 
 /**
- * Handle one cron fire. Throws after logging when any due dispatch failed.
+ * Handle one cron fire. Throws after logging when any due dispatch failed,
+ * or when a fire of one of the timetable's own crons matches no slot.
  *
  * `scheduled=` is the timetable minute. Cloudflare's own `scheduledTime`
  * already carries its start delay (22:25:27 for the 22:25 slot on
  * 2026-09-29), so `fired − scheduled` measures that delay only against the
  * minute.
  */
-export async function runScheduled(scheduledTime: number, env: Env, deps: Deps): Promise<void> {
+export async function runScheduled(
+  scheduledTime: number,
+  env: Env,
+  deps: Deps,
+  cron = '',
+): Promise<void> {
   const fired = deps.now();
-  const slot = Math.floor(scheduledTime / 60_000) * 60_000;
+  const slot = slotAt(scheduledTime);
+  if (slot === null) {
+    // An ordinary tick of a `*/5` cron. Every other cron in wrangler.toml
+    // fires on a slot, so this one started too late to tell which.
+    if (cron.startsWith('*/')) return;
+    const message = `MISSED SLOT: cron "${cron}" started at ${hms(scheduledTime)} (fired=${hms(fired)}), ` +
+      `more than ${MAX_LATE_MINUTES} min after any timetable slot; nothing dispatched, ` +
+      'the fallback crons pick the cycle up';
+    deps.error(message);
+    throw new DispatchError(message);
+  }
   const due = dueAt(scheduledTime);
   const dryRun = env.DRY_RUN !== 'false';
   const failed: string[] = [];
