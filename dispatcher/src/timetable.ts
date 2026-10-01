@@ -8,7 +8,14 @@
  * 2026-09-24..29 (Copernicus); see Passage docs/grib-export-plan.md, Phase 5.
  */
 
-export type Layer = 'weather' | 'waves' | 'ensemble' | 'weather-ecmwf' | 'currents' | 'currents-ibi';
+export type Layer =
+  | 'weather'
+  | 'waves'
+  | 'ensemble'
+  | 'weather-ecmwf'
+  | 'weather-ecmwf-short'
+  | 'currents'
+  | 'currents-ibi';
 
 export interface TimetableEntry {
   layer: Layer;
@@ -30,6 +37,9 @@ export const TIMETABLE: readonly TimetableEntry[] = [
   { layer: 'waves', hours: [5, 11, 17, 23], minute: 0, lagMinutes: h(5), waitMinutes: 90 },
   // GEFS gep30 f384 .idx at + 6 h 29 to 6 h 31; 00:15 asks for the previous day's 18Z
   { layer: 'ensemble', hours: [0, 6, 12, 18], minute: 15, lagMinutes: h(6, 15), waitMinutes: 90 },
+  // ECMWF releases a 06Z/18Z cycle (to 144 h) all at once at + 6 h 27 (29-30 Sep,
+  // four cycles). Shares the ensemble's cron: 00:15 is the previous day's 18Z.
+  { layer: 'weather-ecmwf-short', hours: [0, 12], minute: 15, lagMinutes: h(6, 15), waitMinutes: 120 },
   // ECMWF's 240 h index at + 7 h 34; only 00Z and 12Z reach 240 h
   { layer: 'weather-ecmwf', hours: [7, 19], minute: 20, lagMinutes: h(7, 20), waitMinutes: 120 },
   // Copernicus GLO12 finished at 06:26, 06:10 and 09:05 (29 Sep-1 Oct; on

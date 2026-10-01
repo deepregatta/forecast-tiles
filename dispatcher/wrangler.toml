@@ -16,7 +16,7 @@ preview_urls = false
 crons = [
   "25 4,10,16,22 * * *", # weather (GFS)
   "0 5,11,17,23 * * *",  # waves (GFS-Wave)
-  "15 0,6,12,18 * * *",  # ensemble (GEFS)
+  "15 0,6,12,18 * * *",  # ensemble (GEFS); 00:15 and 12:15 also weather-ecmwf-short (06Z/18Z)
   "20 7,19 * * *",       # weather-ecmwf (00Z and 12Z)
   "45 5,9 * * *",        # 05:45 currents (GLO12), 09:45 currents-ibi
 ]

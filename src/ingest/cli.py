@@ -39,7 +39,16 @@ from ingest.sources.base import CycleNotAvailableError, allow_missing_files, par
 from ingest.tile import build_tiles
 from ingest.validate import validate_cube
 
-LAYERS = ("weather", "weather-ecmwf", "ensemble", "waves", "currents", "currents-ibi", "land")
+LAYERS = (
+    "weather",
+    "weather-ecmwf",
+    "weather-ecmwf-short",
+    "ensemble",
+    "waves",
+    "currents",
+    "currents-ibi",
+    "land",
+)
 
 # Allowed missing fraction per layer: atmospheric grids are global (only
 # quantization-time gaps like APCP@f000 or polar masks), ocean-only layers
@@ -47,6 +56,7 @@ LAYERS = ("weather", "weather-ecmwf", "ensemble", "waves", "currents", "currents
 MAX_MISSING = {
     "weather": 0.05,
     "weather-ecmwf": 0.05,
+    "weather-ecmwf-short": 0.05,
     "ensemble": 0.05,
     "waves": 0.80,
     "currents": 0.80,
@@ -61,7 +71,7 @@ MAX_MISSING = {
 # Layers whose provider publishes late or rewrites in place: "not available
 # yet" is a normal outcome for a scheduled run, so it exits 0 and a later
 # trigger picks the cycle up. For GLO12 it must not fall back to RTOFS either.
-SKIP_WHEN_NOT_AVAILABLE = {"weather-ecmwf", "currents", "currents-ibi"}
+SKIP_WHEN_NOT_AVAILABLE = {"weather-ecmwf", "weather-ecmwf-short", "currents", "currents-ibi"}
 
 # Seconds between readiness checks while --wait-minutes runs. ECMWF answers
 # frequent requests with 429s; Copernicus's metadata updates once a minute at
@@ -71,6 +81,7 @@ POLL_SECONDS = {
     "waves": 60,
     "ensemble": 60,
     "weather-ecmwf": 120,
+    "weather-ecmwf-short": 120,
     "currents": 120,
     "currents-ibi": 120,
 }
@@ -103,6 +114,10 @@ def _resolve(layer: str, requested: datetime | None) -> datetime:
         from ingest.sources import ecmwf_open
 
         return ecmwf_open.resolve(requested)
+    if layer == "weather-ecmwf-short":
+        from ingest.sources import ecmwf_open
+
+        return ecmwf_open.resolve_short(requested)
     if layer == "currents":
         from ingest.sources import cmems
 
@@ -132,6 +147,10 @@ def _build(args: argparse.Namespace, cycle: datetime, requested: datetime | None
         from ingest.sources import ecmwf_open
 
         return ecmwf_open.build_cube(cycle)
+    if layer == "weather-ecmwf-short":
+        from ingest.sources import ecmwf_open
+
+        return ecmwf_open.build_short_cube(cycle)
     if layer == "currents":
         from ingest.sources import cmems, rtofs
 

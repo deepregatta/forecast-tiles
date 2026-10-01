@@ -15,7 +15,7 @@ Public repo. Scheduled ingestion pipeline turning open NOAA / Copernicus / ECMWF
 uv sync
 uv run pytest
 uv run ingest weather --dry-run /tmp/tiles   # local run, no R2 writes
-uv run ingest weather|ensemble|waves|currents|weather-ecmwf
+uv run ingest weather|ensemble|waves|currents|weather-ecmwf|weather-ecmwf-short
 uv run ingest land --domain nweu             # routing index; one-shot, not a cron
 cd dispatcher && npm ci && npm test          # dispatcher Worker (deploys are Davi's: README → Dispatcher)
 ```

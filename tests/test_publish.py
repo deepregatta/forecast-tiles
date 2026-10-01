@@ -270,6 +270,7 @@ def test_every_published_layer_has_a_cadence_the_schema_accepts():
         "waves": 6,
         "ensemble": 6,
         "weather-ecmwf": 12,
+        "weather-ecmwf-short": 12,
         "currents": 24,
         "currents-ibi": 24,
     }

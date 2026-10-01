@@ -128,11 +128,23 @@ describe('dispatch', () => {
     expect(errors).toEqual([]);
   });
 
-  it('dispatches the ensemble for the previous day at 00:15', async () => {
-    const { deps, calls } = github(dispatched());
+  it('dispatches the ensemble and ECMWF 18Z for the previous day at 00:15', async () => {
+    const { deps, calls, lines } = github(dispatched(1), dispatched(2));
     await runScheduled(Date.parse('2026-10-01T00:15:00Z'), live, deps);
-    expect(calls[0]!.url).toBe(`${API}/ingest-ensemble.yml/dispatches`);
-    expect(calls[0]!.body).toEqual({ ref: 'main', inputs: { cycle: '20260930T18', wait_minutes: '90' }, return_run_details: true });
+    expect(calls.map((c) => [c.url, c.body])).toEqual([
+      [`${API}/ingest-ensemble.yml/dispatches`, { ref: 'main', inputs: { cycle: '20260930T18', wait_minutes: '90' }, return_run_details: true }],
+      [`${API}/ingest-weather-ecmwf-short.yml/dispatches`, { ref: 'main', inputs: { cycle: '20260930T18', wait_minutes: '120' }, return_run_details: true }],
+    ]);
+    expect(lines).toHaveLength(2);
+    expect(lines[1]).toMatch(/^dispatched ingest-weather-ecmwf-short cycle=20260930T18 wait=120 .* run=.*\/runs\/2$/);
+  });
+
+  it('still dispatches the second layer of a shared slot when the first fails, then fails the fire', async () => {
+    const { deps, calls, lines, errors } = github(json(500, { message: 'Server Error' }), json(200, { state: 'active' }), dispatched(7));
+    await expect(runScheduled(Date.parse('2026-09-30T12:15:00Z'), live, deps)).rejects.toThrow('dispatch failed for ensemble');
+    expect(calls.at(-1)!.url).toBe(`${API}/ingest-weather-ecmwf-short.yml/dispatches`);
+    expect(lines).toEqual([expect.stringMatching(/^dispatched ingest-weather-ecmwf-short cycle=20260930T06 wait=120 /)]);
+    expect(errors).toEqual([expect.stringMatching(/^FAILED to dispatch ingest-ensemble cycle=20260930T06/)]);
   });
 
   it('accepts a 204 without run details', async () => {

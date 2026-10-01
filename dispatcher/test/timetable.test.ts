@@ -21,13 +21,30 @@ describe('dueAt', () => {
     ['2026-09-30T18:15:00Z', 'ensemble', '20260930T12', 90],
     ['2026-09-30T07:20:00Z', 'weather-ecmwf', '20260930T00', 120],
     ['2026-09-30T19:20:00Z', 'weather-ecmwf', '20260930T12', 120],
+    // the ensemble's expression also starts ECMWF's 06Z/18Z runs; 00:15 is the previous day's 18Z
+    ['2026-09-30T00:15:00Z', 'weather-ecmwf-short', '20260929T18', 120],
+    ['2026-09-30T12:15:00Z', 'weather-ecmwf-short', '20260930T06', 120],
     // one expression, two layers: each at its own hour, both for that day's 00Z
     ['2026-09-30T05:45:00Z', 'currents', '20260930T00', 240],
     ['2026-09-30T09:45:00Z', 'currents-ibi', '20260930T00', 180],
   ] as const)('%s dispatches %s for %s, waiting %i min', (scheduled, layer, cycle, wait) => {
-    expect(dueAt(at(scheduled))).toEqual([
+    expect(dueAt(at(scheduled))).toContainEqual(
       { layer, workflow: `ingest-${layer}.yml`, cycle, waitMinutes: wait },
+    );
+  });
+
+  it('starts GEFS and the short-range ECMWF run together at 00:15 and 12:15 only', () => {
+    expect(dueAt(at('2026-09-30T12:15:00Z'))).toEqual([
+      { layer: 'ensemble', workflow: 'ingest-ensemble.yml', cycle: '20260930T06', waitMinutes: 90 },
+      { layer: 'weather-ecmwf-short', workflow: 'ingest-weather-ecmwf-short.yml', cycle: '20260930T06', waitMinutes: 120 },
     ]);
+    expect(dueAt(at('2026-10-01T00:17:10Z')).map((d) => `${d.layer} ${d.cycle}`)).toEqual([
+      'ensemble 20260930T18',
+      'weather-ecmwf-short 20260930T18',
+    ]);
+    for (const iso of ['2026-09-30T06:15:00Z', '2026-09-30T18:15:00Z']) {
+      expect(dueAt(at(iso)).map((d) => d.layer)).toEqual(['ensemble']);
+    }
   });
 
   it('rolls over months and years', () => {
@@ -67,23 +84,29 @@ describe('dueAt', () => {
     }
   });
 
-  it('fires 16 times a day, one layer each time, always on a cycle the layer has', () => {
+  it('fires 16 times a day for 18 dispatches, always on a cycle the layer has', () => {
     const cycleHours: Record<string, number[]> = {
       weather: [0, 6, 12, 18], waves: [0, 6, 12, 18], ensemble: [0, 6, 12, 18],
-      'weather-ecmwf': [0, 12], currents: [0], 'currents-ibi': [0],
+      'weather-ecmwf': [0, 12], 'weather-ecmwf-short': [6, 18], currents: [0], 'currents-ibi': [0],
     };
     let fires = 0;
+    const dispatched: Record<string, number> = {};
     for (let minute = 0; minute < 24 * 60; minute++) {
       const t = at('2026-09-30T00:00:00Z') + minute * 60_000;
       if (slotAt(t) !== t) continue; // a late start of an earlier slot
       const due = dueAt(t);
-      expect(due.length).toBe(1);
+      expect(due.length).toBeGreaterThan(0);
+      fires += 1;
       for (const dispatch of due) {
-        fires += 1;
+        dispatched[dispatch.layer] = (dispatched[dispatch.layer] ?? 0) + 1;
         expect(cycleHours[dispatch.layer]).toContain(Number(dispatch.cycle.slice(9)));
       }
     }
     expect(fires).toBe(16);
+    // every provider cycle once a day
+    expect(dispatched).toEqual(Object.fromEntries(
+      Object.entries(cycleHours).map(([layer, hours]) => [layer, hours.length]),
+    ));
   });
 
   it('formats cycles as the ingest --cycle argument', () => {
@@ -102,9 +125,10 @@ describe('wrangler.toml', () => {
       expect(rest).toEqual(['*', '*', '*']);
       return hours!.split(',').map((hour) => `${Number(hour)}:${Number(minute)}`);
     });
-    const slots = TIMETABLE.flatMap((entry) => entry.hours.map((hour) => `${hour}:${entry.minute}`));
-    expect(new Set(fireTimes)).toEqual(new Set(slots));
-    expect(fireTimes).toHaveLength(slots.length);
+    // two layers may share a slot (00:15 and 12:15), but each slot fires once
+    const slots = new Set(TIMETABLE.flatMap((entry) => entry.hours.map((hour) => `${hour}:${entry.minute}`)));
+    expect(new Set(fireTimes)).toEqual(slots);
+    expect(fireTimes).toHaveLength(slots.size);
   });
 
   it('dispatches (switched on in Phase 5B) and exposes no URL', () => {

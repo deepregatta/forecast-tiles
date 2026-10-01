@@ -215,3 +215,48 @@ def test_cli_currents_ibi_skips_while_the_provider_rewrites(tmp_path, monkeypatc
     assert cli.main(["currents-ibi", "--dry-run", str(tmp_path)]) == 0
     assert "cycle not available yet, skipping" in capsys.readouterr().out
     assert not (tmp_path / "latest.json").exists()
+
+
+def test_cli_weather_ecmwf_short_dry_run_wiring(tmp_path, monkeypatch):
+    """`ingest weather-ecmwf-short` publishes its own layer next to the full one."""
+    from ingest.sources import ecmwf_open
+
+    jsonschema = pytest.importorskip("jsonschema")
+    cube = make_weather_cube()  # cycle 06Z
+    cube.layer, cube.model = "weather-ecmwf-short", "ecmwf_ifs_0p25"
+    resolved = []
+    monkeypatch.setattr(
+        ecmwf_open, "resolve_short", lambda requested=None: resolved.append(requested) or cube.cycle
+    )
+    monkeypatch.setattr(ecmwf_open, "build_short_cube", lambda cycle: cube)
+
+    assert cli.main(["weather-ecmwf-short", "--dry-run", str(tmp_path)]) == 0
+    assert resolved == [None]
+    run_dir = tmp_path / "forecast-runs" / "weather-ecmwf-short-20260713T06Z"
+    manifest = json.loads((run_dir / "manifest.json").read_text())
+    jsonschema.validate(manifest, load_schema("forecast-manifest.schema.json"))
+    assert manifest["tiling"]["path_template"] == "weather-ecmwf-short/z250/{tile_id}.bin.gz"
+    latest = json.loads((tmp_path / "latest.json").read_text())
+    jsonschema.validate(latest, load_schema("forecast-latest.schema.json"))
+    assert latest["layers"]["weather-ecmwf-short"]["cadence_hours"] == 12
+    tile_id = next(iter(manifest["tiles"]))
+    tile_path = run_dir / manifest["tiling"]["path_template"].format(tile_id=tile_id)
+    tile = decode_tile(gzip.decompress(tile_path.read_bytes()))
+    jsonschema.validate(tile.header, load_schema("forecast-tile.schema.json"))
+
+
+def test_weather_ecmwf_runs_are_retained_apart_from_the_short_layer(tmp_path):
+    """Retention matches `weather-ecmwf-<cycle>` exactly, so publishing one
+    ECMWF layer never deletes the other's runs."""
+    store = DirStore(tmp_path)
+    published = {}
+    for layer, hours in (("weather-ecmwf", (0, 12, 24)), ("weather-ecmwf-short", (6, 18, 30))):
+        for hour in hours:
+            cube = make_weather_cube()
+            cube.layer, cube.model = layer, "ecmwf_ifs_0p25"
+            cube.cycle = datetime(2026, 9, 30, tzinfo=timezone.utc) + timedelta(hours=hour)
+            publish_run(store, cube, build_tiles(cube), validate_cube(cube))
+            published.setdefault(layer, []).append(cube.run_id)
+    runs = sorted(p.name for p in (tmp_path / "forecast-runs").iterdir())
+    assert runs == sorted(published["weather-ecmwf"][1:] + published["weather-ecmwf-short"][1:])
+    assert runs[0] == "weather-ecmwf-20260930T12Z"

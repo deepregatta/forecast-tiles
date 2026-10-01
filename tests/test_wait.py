@@ -360,3 +360,27 @@ def test_ensemble_waits_for_late_members_during_the_grace(monkeypatch):
     cube = gefs.build_cube(make_weather_cube().cycle, sleep=sleeps.append)
     assert cube.member_count == 31
     assert sleeps == [30, 30]
+
+
+def test_wait_for_a_short_range_ecmwf_cycle_as_the_dispatcher_starts_it(tmp_path, monkeypatch):
+    """The 00:15 / 12:15 dispatch: an 06Z/18Z cycle, polled every 2 min, then published."""
+    from ingest.sources import ecmwf_open
+
+    cube, fake, calls = make_weather_cube(), FakeClock(), []
+    cube.layer, cube.model = "weather-ecmwf-short", "ecmwf_ifs_0p25"
+
+    def resolve_short(requested=None):
+        calls.append(requested)
+        if len(calls) < 3:
+            raise CycleNotAvailableError("not published to 144 h yet")
+        return requested
+
+    monkeypatch.setattr(ecmwf_open, "resolve_short", resolve_short)
+    monkeypatch.setattr(ecmwf_open, "build_short_cube", lambda cycle: cube)
+    args = _wait_args(tmp_path, minutes="120", layer="weather-ecmwf-short")
+    assert cli.main(args, clock=fake.clock, sleep=fake.sleep) == 0
+    assert calls == [cube.cycle] * 3
+    assert fake.sleeps == [120, 120]
+    assert (
+        tmp_path / "forecast-runs" / "weather-ecmwf-short-20260713T06Z" / "manifest.json"
+    ).exists()

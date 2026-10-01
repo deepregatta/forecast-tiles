@@ -811,3 +811,97 @@ def test_ecmwf_build_cube_is_wind_only_when_a_step_has_no_gust(monkeypatch):
     assert "gust_kt" not in cube.arrays
     assert cube.provenance["gust"].startswith("unavailable — no gust message at steps [93, 96")
     assert "(18 of 64)" in cube.provenance["gust"]
+
+
+# ------------------------------------------------- weather-ecmwf-short (06Z/18Z)
+
+
+def test_ecmwf_short_axis_is_the_first_part_of_the_full_one():
+    assert ecmwf_open.SHORT_STEP_AXIS == ecmwf_open.STEP_AXIS[:49]
+    assert ecmwf_open.SHORT_STEP_AXIS[0] == 0 and ecmwf_open.SHORT_STEP_AXIS[-1] == 144
+    assert ecmwf_open.SHORT_CYCLE_HOURS == (6, 18)
+    assert ecmwf_open.SHORT_LAYER == "weather-ecmwf-short"
+
+
+def test_ecmwf_build_short_cube_keeps_the_gust_windows_to_144_h(monkeypatch):
+    from ingest.validate import validate_cube
+
+    axis = ecmwf_open.SHORT_STEP_AXIS
+    # checked against the messages of 2026-09-30 06Z and 18Z: the 00Z names and
+    # windows, 10fg (1 h) to +90 h then 10fg3 (3 h) to +144 h
+    calls = _fake_ecmwf(monkeypatch, _live_gust_pattern(axis))
+    cube = ecmwf_open.build_short_cube(CYCLE)
+
+    assert calls == [(("10u", "10v"), tuple(axis)), (ecmwf_open.GUST_PARAMS, tuple(axis[1:]))]
+    assert cube.layer == "weather-ecmwf-short"
+    assert cube.model == ecmwf_open.MODEL == "ecmwf_ifs_0p25"
+    assert cube.run_id == "weather-ecmwf-short-20260713T06Z"
+    assert cube.time_axes == {"steps": axis}
+    assert cube.horizon_h == 144
+    gust = cube.var("gust_kt")
+    assert gust.statistic.window_h == (None,) + (1,) * 30 + (3,) * 18
+    assert cube.provenance["gust"] == "10fg 1 h max +3..+90 h; 10fg3 3 h max +93..+144 h"
+    report = validate_cube(cube, expected_axes={"steps": axis})
+    assert report.ok, report.summary()
+
+
+class _LatestClient:
+    """ecmwf.opendata's latest(): the newest cycle with `step`, per cycle hour."""
+
+    def __init__(self, by_hour):
+        self.by_hour = by_hour
+        self.calls = []
+
+    def latest(self, **request):
+        self.calls.append(request)
+        found = self.by_hour.get(request.get("time"))
+        if found is None:
+            raise ValueError("Cannot establish latest date")
+        return found
+
+
+def _short_client(monkeypatch, by_hour):
+    client = _LatestClient(by_hour)
+    monkeypatch.setattr(ecmwf_open, "_client", lambda: client)
+    return client
+
+
+def test_ecmwf_resolve_short_takes_the_newest_06z_or_18z_with_step_144(monkeypatch):
+    client = _short_client(
+        monkeypatch, {6: datetime(2026, 9, 30, 6), 18: datetime(2026, 9, 30, 18)}
+    )
+    assert ecmwf_open.resolve_short() == datetime(2026, 9, 30, 18, tzinfo=timezone.utc)
+    assert [c["time"] for c in client.calls] == [6, 18]
+    assert {c["step"] for c in client.calls} == {144}
+
+    # 18Z of the day before is the newest while 1 Oct 06Z is still running
+    _short_client(monkeypatch, {6: datetime(2026, 10, 1, 6), 18: datetime(2026, 9, 30, 18)})
+    assert ecmwf_open.resolve_short() == datetime(2026, 10, 1, 6, tzinfo=timezone.utc)
+
+
+def test_ecmwf_resolve_short_checks_an_explicit_cycle_against_its_hour(monkeypatch):
+    client = _short_client(monkeypatch, {6: datetime(2026, 9, 30, 6)})
+    requested = datetime(2026, 10, 1, 6, tzinfo=timezone.utc)
+    with pytest.raises(CycleNotAvailableError, match="not published to 144 h yet"):
+        ecmwf_open.resolve_short(requested)
+    assert [c["time"] for c in client.calls] == [6]
+
+    _short_client(monkeypatch, {6: datetime(2026, 10, 1, 6)})
+    assert ecmwf_open.resolve_short(requested) == requested
+    older = datetime(2026, 9, 30, 6, tzinfo=timezone.utc)
+    assert ecmwf_open.resolve_short(older) == older
+
+
+def test_ecmwf_resolve_short_refuses_a_full_horizon_cycle(monkeypatch):
+    _short_client(monkeypatch, {6: datetime(2026, 10, 1, 6)})
+    with pytest.raises(ValueError, match="only 06Z and 18Z"):
+        ecmwf_open.resolve_short(datetime(2026, 10, 1, 0, tzinfo=timezone.utc))
+
+
+def test_ecmwf_resolve_short_without_any_cycle_is_not_available(monkeypatch):
+    _short_client(monkeypatch, {})
+    with pytest.raises(CycleNotAvailableError, match="no 06Z/18Z cycle with step 144"):
+        ecmwf_open.resolve_short()
+    # one hour missing is not an outage
+    _short_client(monkeypatch, {18: datetime(2026, 9, 30, 18)})
+    assert ecmwf_open.resolve_short() == datetime(2026, 9, 30, 18, tzinfo=timezone.utc)

@@ -37,6 +37,7 @@ uv run ingest weather                        # latest complete GFS cycle -> R2
 uv run ingest weather --cycle 20260713T06    # explicit cycle
 uv run ingest weather --dry-run /tmp/tiles   # write the R2 layout locally instead
 uv run ingest ensemble|waves|currents|weather-ecmwf
+uv run ingest weather-ecmwf-short             # ECMWF's 06Z/18Z runs, to 144 h
 uv run ingest currents-ibi                   # hourly regional current field
 uv run ingest weather --force                # re-publish a cycle latest.json already has (repairs only)
 uv run ingest weather --cycle 20260930T06 --wait-minutes 90   # wait for the provider, then publish
@@ -60,7 +61,8 @@ run waits for its cycle. Each workflow also keeps a fallback `schedule`
 (`37 2,8,14,20 * * *`) for a missed dispatch; GitHub starts those hours late,
 and a cycle already published exits in about a minute. See
 `.github/workflows/ingest-*.yml`. `ingest weather-ecmwf` exits 0 with a log
-line when ECMWF hasn't published a full-horizon cycle yet, and `ingest
+line when ECMWF hasn't published a full-horizon cycle yet, `ingest
+weather-ecmwf-short` likewise for a 06Z/18Z cycle to 144 h, and `ingest
 currents` and `ingest currents-ibi` do the same until Copernicus has finished
 writing the bulletin (the public STAC item of the dataset says so; GLO12
 never falls back to RTOFS for that).
@@ -72,8 +74,8 @@ until the cycle is out, then continues as above; if N minutes pass first it
 exits 1 ("cycle not available after N min"), so a missed slot shows as a
 failed run. This is how the [dispatcher](#dispatcher) starts each layer.
 Readiness is the provider's own completion signal: the
-final-step `.idx` for GFS, GFS-Wave and GEFS; the latest full-horizon cycle
-for ECMWF; the STAC item's data end, finished update and no update in
+final-step `.idx` for GFS, GFS-Wave and GEFS; the latest cycle with step 240
+for ECMWF (step 144 and a 06Z/18Z cycle for `weather-ecmwf-short`); the STAC item's data end, finished update and no update in
 progress for GLO12 and IBI.
 
 The Phase 0 size-measurement prototype is still runnable:
@@ -105,6 +107,7 @@ exceed `MAX_BUCKET_BYTES` (default 8 GB).
 |---|---|---|---|
 | `weather` | NOAA GFS (wind u/v, gust hourly; vis/CAPE/temp/dew-point/precip 3-hourly) | 0.25° | every cycle (00/06/12/18Z) |
 | `weather-ecmwf` | ECMWF open data (wind u/v; gust = the maximum over the 1, 3 or 6 h before each step, published with its per-step window as the variable's `statistic`) | 0.25° | 00Z and 12Z (the full 240 h cycles) |
+| `weather-ecmwf-short` | the same ECMWF open data, 06Z and 18Z cycles, which stop at 144 h: 3-hourly to 144 h (49 steps, the first part of `weather-ecmwf`'s axis; gust windows 1 h to +90 h, 3 h to +144 h) | 0.25° | 06Z and 18Z (since Passage plan Phase 5C) |
 | `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | every cycle |
 | `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | every cycle |
 | `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; NOAA RTOFS fallback) | 1/12° | 1×/day, soon after Copernicus |
@@ -114,7 +117,7 @@ Every layer was ingested once a day until the [dispatcher](#dispatcher)
 switched on (Passage `docs/grib-export-plan.md`, Phase 5B). Each layer's
 `latest.json` entry carries `cadence_hours`, the hours between its scheduled
 publications (`CADENCE_HOURS` in `src/ingest/publish.py`): 6 for GFS,
-GFS-Wave and GEFS, 12 for ECMWF and 24 for both current layers. It was 24
+GFS-Wave and GEFS, 12 for each ECMWF layer and 24 for both current layers. It was 24
 for every layer before 2026-10-01; each entry changes at its layer's next
 publish.
 
@@ -153,11 +156,14 @@ in about a minute.
 | `25 4,10,16,22 * * *` | `weather` | fire time − 4 h 25 | cycle + 4 h 37–4 h 41 | 90 |
 | `0 5,11,17,23 * * *` | `waves` | fire time − 5 h | + 5 h 10–5 h 25 | 90 |
 | `15 0,6,12,18 * * *` | `ensemble` | fire time − 6 h 15 (00:15 → previous day 18Z) | + 6 h 29–6 h 31 | 90 |
+| the same, 00:15 and 12:15 only | `weather-ecmwf-short` | fire time − 6 h 15 (00:15 → previous day 18Z) | + 6 h 27 (the four 06Z/18Z cycles of 29–30 Sep; ECMWF releases a cycle's files at one minute) | 120 |
 | `20 7,19 * * *` | `weather-ecmwf` | fire time − 7 h 20 | + 7 h 34 | 120 |
 | `45 5,9 * * *` | 05:45 `currents`, 09:45 `currents-ibi` | that day's 00Z | GLO12 06:10–09:05 (29 Sep–1 Oct); IBI 09:54–11:36 | 240 (`currents`, whose workflow allows 300 min), 180 (`currents-ibi`) |
 
-That is 16 dispatches a day on 5 cron expressions, all of the Workers Free
-plan's 5 Cron Triggers per account. If the account needs a trigger for
+That is 18 dispatches from 16 fires a day on 5 cron expressions, all of the
+Workers Free plan's 5 Cron Triggers per account. Two layers share the 00:15
+and 12:15 fires; each is dispatched on its own, so one failing does not stop
+the other. If the account needs a trigger for
 another Worker, replace them with the single `*/5 * * * *`: the timetable
 stays in code, and a tick with no layer due contacts nothing.
 

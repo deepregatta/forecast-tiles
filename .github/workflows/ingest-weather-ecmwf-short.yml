@@ -1,0 +1,54 @@
+name: ingest-weather-ecmwf-short
+run-name: ingest-weather-ecmwf-short ${{ inputs.cycle || 'scheduled' }}
+
+on:
+  schedule:
+    # Fallback only: the dispatcher Worker (README.md -> Dispatcher) starts
+    # each provider cycle with workflow_dispatch. This catches a missed
+    # dispatch, hours late as GitHub's crons are; a cycle already published
+    # exits in about a minute. Away from the dispatch minutes, so it rarely
+    # queues behind a waiting run.
+    - cron: "37 2,8,14,20 * * *"
+  workflow_dispatch:
+    inputs:
+      cycle:
+        description: "06Z or 18Z cycle YYYYMMDDTHH (default: the latest one published to 144 h)"
+        required: false
+      wait_minutes:
+        description: "With a cycle: wait up to N minutes for the provider to publish it, then fail (the dispatcher sets this)"
+        required: false
+        default: "0"
+      force:
+        description: "Publish even if latest.json already has this cycle (repairs only: run ids are cached forever)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ingest-weather-ecmwf-short
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240 # a dispatcher wait (90-180 min) plus the job, under the 6 h job limit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+      - run: uv sync
+      # exits 0 with a log line when the cycle is not published yet (exit 1
+      # instead when a dispatched wait_minutes runs out)
+      - run: uv run ingest weather-ecmwf-short ${CYCLE:+--cycle "$CYCLE"} ${CYCLE:+--wait-minutes "${WAIT:-0}"} ${FORCE:+--force}
+        env:
+          CYCLE: ${{ inputs.cycle }}
+          WAIT: ${{ inputs.wait_minutes }}
+          PYTHONUNBUFFERED: "1" # log lines carry the time they happened
+          FORCE: ${{ inputs.force == true && '1' || '' }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}

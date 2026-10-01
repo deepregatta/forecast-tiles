@@ -9,7 +9,7 @@
     "updated_at": { "type": "string" },
     "layers": {
       "type": "object",
-      "propertyNames": { "enum": ["weather", "weather-ecmwf", "ensemble", "waves", "currents", "currents-ibi"] },
+      "propertyNames": { "enum": ["weather", "weather-ecmwf", "weather-ecmwf-short", "ensemble", "waves", "currents", "currents-ibi"] },
       "additionalProperties": {
         "type": "object",
         "required": ["run_id", "cycle", "published_at"],

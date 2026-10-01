@@ -40,10 +40,12 @@ DEFAULT_MAX_BUCKET_BYTES = 8_000_000_000  # 8 GB storage guard
 # `cadence_hours` so consumers can estimate the next run without copying this
 # repo's schedule. Since 2026-10-01 the dispatcher (README.md -> Dispatcher)
 # ingests every provider cycle: four a day for GFS, GFS-Wave and GEFS, the
-# two full-horizon ECMWF cycles, and one Copernicus bulletin a day.
+# two full-horizon ECMWF cycles and its two 144 h ones, and one Copernicus
+# bulletin a day.
 CADENCE_HOURS = {
     "weather": 6,
     "weather-ecmwf": 12,
+    "weather-ecmwf-short": 12,
     "ensemble": 6,
     "waves": 6,
     "currents": 24,
