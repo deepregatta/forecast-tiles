@@ -87,7 +87,7 @@ describe('a late fire', () => {
     const fired = Date.parse('2026-10-01T05:00:48.300Z');
     const { deps, calls, lines } = github(dispatched());
     await runScheduled(fired, live, { ...deps, now: () => fired }, '0 5,11,17,23 * * *');
-    expect(calls[0]!.body).toEqual({ ref: 'main', inputs: { cycle: '20261001T00', wait_minutes: '90' } });
+    expect(calls[0]!.body).toEqual({ ref: 'main', inputs: { cycle: '20261001T00', wait_minutes: '90' }, return_run_details: true });
     expect(lines[0]).toMatch(/^dispatched ingest-waves cycle=20261001T00 wait=90 scheduled=05:00:00Z fired=05:00:48Z /);
   });
 
@@ -113,7 +113,7 @@ describe('dispatch', () => {
     const [call] = calls;
     expect(call!.url).toBe(`${API}/ingest-weather.yml/dispatches`);
     expect(call!.method).toBe('POST');
-    expect(call!.body).toEqual({ ref: 'main', inputs: { cycle: '20260930T06', wait_minutes: '90' } });
+    expect(call!.body).toEqual({ ref: 'main', inputs: { cycle: '20260930T06', wait_minutes: '90' }, return_run_details: true });
     expect(call!.headers).toMatchObject({
       Authorization: 'Bearer test-token',
       Accept: 'application/vnd.github+json',
@@ -132,7 +132,7 @@ describe('dispatch', () => {
     const { deps, calls } = github(dispatched());
     await runScheduled(Date.parse('2026-10-01T00:15:00Z'), live, deps);
     expect(calls[0]!.url).toBe(`${API}/ingest-ensemble.yml/dispatches`);
-    expect(calls[0]!.body).toEqual({ ref: 'main', inputs: { cycle: '20260930T18', wait_minutes: '90' } });
+    expect(calls[0]!.body).toEqual({ ref: 'main', inputs: { cycle: '20260930T18', wait_minutes: '90' }, return_run_details: true });
   });
 
   it('accepts a 204 without run details', async () => {

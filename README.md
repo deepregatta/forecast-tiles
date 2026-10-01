@@ -170,9 +170,11 @@ fails the invocation.
 
 **On each fire** the Worker takes the cycle from the *scheduled* time, not
 the clock, and posts
-`{"ref":"main","inputs":{"cycle":"YYYYMMDDTHH","wait_minutes":"N"}}` to
+`{"ref":"main","inputs":{"cycle":"YYYYMMDDTHH","wait_minutes":"N"},"return_run_details":true}`
+to
 `/repos/deepregatta/forecast-tiles/actions/workflows/ingest-<layer>.yml/dispatches`.
-It logs the run URL from the 200 response. A 401 or 403 is logged as
+It logs the run URL from the 200 response (without `return_run_details`
+GitHub answers 204 and no run id). A 401 or 403 is logged as
 `GITHUB TOKEN REJECTED`. If GitHub refuses the dispatch and the workflow's
 `state` is `disabled_inactivity` (scheduled workflows in a public repo are
 disabled after 60 days without repository activity), it re-enables the

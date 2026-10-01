@@ -122,6 +122,9 @@ export async function dispatchWorkflow(dispatch: Dispatch, env: Env, deps: Deps)
     body: JSON.stringify({
       ref: REF,
       inputs: { cycle: dispatch.cycle, wait_minutes: String(dispatch.waitMinutes) },
+      // Without it GitHub answers 204 and no run id (the first live
+      // dispatch, 2026-10-01 07:20); with it, 200 and the run.
+      return_run_details: true,
     }),
   });
 
@@ -145,7 +148,7 @@ export async function dispatchWorkflow(dispatch: Dispatch, env: Env, deps: Deps)
     if (!res.ok) throw new DispatchError(`GitHub refused the dispatch after re-enabling: HTTP ${res.status} (${await detail(res)})`);
   }
 
-  // 200 carries the run; an older API answer is 204 with no body.
+  // 200 carries the run; a 204 with no body is still a dispatch.
   if (res.status === 200) {
     const run = (await res.json().catch(() => ({}))) as { workflow_run_id?: number; html_url?: string };
     if (run.html_url) return run.html_url;
