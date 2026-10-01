@@ -32,8 +32,9 @@ export const TIMETABLE: readonly TimetableEntry[] = [
   { layer: 'ensemble', hours: [0, 6, 12, 18], minute: 15, lagMinutes: h(6, 15), waitMinutes: 90 },
   // ECMWF's 240 h index at + 7 h 34; only 00Z and 12Z reach 240 h
   { layer: 'weather-ecmwf', hours: [7, 19], minute: 20, lagMinutes: h(7, 20), waitMinutes: 120 },
-  // Copernicus GLO12 finished at 06:25 (seen once): that day's 00Z
-  { layer: 'currents', hours: [5], minute: 45, lagMinutes: h(5, 45), waitMinutes: 180 },
+  // Copernicus GLO12 finished at 06:26, 06:10 and 09:05 (29 Sep-1 Oct; on
+  // 1 Oct a second update ran from 07:01): that day's 00Z, waiting to 09:45
+  { layer: 'currents', hours: [5], minute: 45, lagMinutes: h(5, 45), waitMinutes: 240 },
   // Copernicus IBI finished at 09:54 to 11:36 (24-29 Sep): that day's 00Z
   { layer: 'currents-ibi', hours: [9], minute: 45, lagMinutes: h(9, 45), waitMinutes: 180 },
 ];

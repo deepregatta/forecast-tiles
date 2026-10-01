@@ -154,7 +154,7 @@ in about a minute.
 | `0 5,11,17,23 * * *` | `waves` | fire time − 5 h | + 5 h 10–5 h 25 | 90 |
 | `15 0,6,12,18 * * *` | `ensemble` | fire time − 6 h 15 (00:15 → previous day 18Z) | + 6 h 29–6 h 31 | 90 |
 | `20 7,19 * * *` | `weather-ecmwf` | fire time − 7 h 20 | + 7 h 34 | 120 |
-| `45 5,9 * * *` | 05:45 `currents`, 09:45 `currents-ibi` | that day's 00Z | GLO12 06:25 (seen once); IBI 09:54–11:36 | 180 each |
+| `45 5,9 * * *` | 05:45 `currents`, 09:45 `currents-ibi` | that day's 00Z | GLO12 06:10–09:05 (29 Sep–1 Oct); IBI 09:54–11:36 | 240 (`currents`, whose workflow allows 300 min), 180 (`currents-ibi`) |
 
 That is 16 dispatches a day on 5 cron expressions, all of the Workers Free
 plan's 5 Cron Triggers per account. If the account needs a trigger for

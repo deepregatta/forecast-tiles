@@ -33,7 +33,7 @@ permissions:
 jobs:
   ingest:
     runs-on: ubuntu-latest
-    timeout-minutes: 240 # a dispatcher wait (90-180 min) plus the job, under the 6 h job limit
+    timeout-minutes: 300 # the dispatcher's 240 min wait plus the 35-46 min job, under the 6 h job limit
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6

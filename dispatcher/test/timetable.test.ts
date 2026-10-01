@@ -22,7 +22,7 @@ describe('dueAt', () => {
     ['2026-09-30T07:20:00Z', 'weather-ecmwf', '20260930T00', 120],
     ['2026-09-30T19:20:00Z', 'weather-ecmwf', '20260930T12', 120],
     // one expression, two layers: each at its own hour, both for that day's 00Z
-    ['2026-09-30T05:45:00Z', 'currents', '20260930T00', 180],
+    ['2026-09-30T05:45:00Z', 'currents', '20260930T00', 240],
     ['2026-09-30T09:45:00Z', 'currents-ibi', '20260930T00', 180],
   ] as const)('%s dispatches %s for %s, waiting %i min', (scheduled, layer, cycle, wait) => {
     expect(dueAt(at(scheduled))).toEqual([
