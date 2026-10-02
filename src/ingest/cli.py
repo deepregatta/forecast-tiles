@@ -10,7 +10,8 @@ object stores and the publish discipline, and nothing else.
 
 A run whose resolved cycle is already in the target's `latest.json` (or older
 than the one there) exits 0 before downloading anything, so a layer can be
-triggered as often as its provider might update. --force publishes anyway.
+triggered as often as its provider might update. --force re-publishes the
+cycle `latest.json` already has; it never moves a layer back to an older one.
 
 --wait-minutes N (with --cycle) lets a run start before its provider has
 finished the cycle: it re-checks readiness every minute or two until the
@@ -30,8 +31,11 @@ from ingest.cube import ForecastCube, cycle_iso
 from ingest.publish import (
     DirStore,
     PublishError,
+    StalePublishError,
+    check_not_older,
     make_r2_store_from_env,
     max_bucket_bytes_from_env,
+    parse_cycle_iso,
     publish_run,
     published_layer,
 )
@@ -225,8 +229,7 @@ def already_published(store, layer: str, cycle: datetime) -> dict | None:
     entry = published_layer(store, layer)
     if not entry:
         return None
-    published = datetime.strptime(entry["cycle"], "%Y-%m-%dT%H:%MZ").replace(tzinfo=timezone.utc)
-    return entry if published >= _utc(cycle) else None
+    return entry if parse_cycle_iso(entry["cycle"]) >= _utc(cycle) else None
 
 
 def main(
@@ -257,9 +260,9 @@ def main(
         "--force",
         action="store_true",
         help=(
-            "publish even when latest.json already has this cycle or a newer one; "
-            "re-publishing a live run id rewrites tiles clients cache forever, so "
-            "only repair a run that never served correct tiles"
+            "publish even when latest.json already has this cycle (an older cycle is "
+            "still refused); re-publishing a live run id rewrites tiles clients cache "
+            "forever, so only repair a run that never served correct tiles"
         ),
     )
     parser.add_argument(
@@ -314,14 +317,20 @@ def main(
             t0 = time.time()  # status duration_s covers the job, not the wait
         else:
             cycle = _resolve(args.layer, requested)
-        published = None if args.force else already_published(store, args.layer, cycle)
-        if published:
+        published = already_published(store, args.layer, cycle)
+        if published and not args.force:
             print(
                 f"ingest {args.layer}: cycle {cycle_iso(cycle)} already published "
                 f"(latest {published['run_id']}, published {published['published_at']}); "
-                "nothing to do (--force publishes anyway)"
+                "nothing to do (--force re-publishes the same cycle)"
             )
             return 0
+        if published:
+            try:
+                check_not_older(args.layer, published, cycle_iso(cycle))
+            except StalePublishError as exc:
+                print(f"ingest {args.layer}: --force refused: {exc}")
+                return 1
         cube = _build(args, cycle, requested)
     except CycleNotAvailableError as exc:
         if args.layer in SKIP_WHEN_NOT_AVAILABLE:
@@ -363,8 +372,11 @@ def main(
     print(
         f"ingest {args.layer}: published {result.run_id} to {dest} "
         f"({result.tile_count} tiles, {result.bytes / 1e6:.1f} MB, {result.duration_s}s; "
-        f"previous={result.previous_run_id}, deleted={result.deleted_runs})"
+        f"previous={result.previous_run_id}, deleted={result.deleted_runs}, "
+        f"commit attempts={result.commit_attempts})"
     )
+    if result.kept_runs:
+        print(f"ingest {args.layer}: retention left {result.kept_runs}")
     return 0
 
 

@@ -1,8 +1,10 @@
 # Open-Meteo bulk integration implementation plan
 
-Status: revised proposal; no runtime changes or model activation.
-Revised 2026-10-02 against forecast-tiles commit `f5e0414`, incorporating the
-implementation review and its reported 24 September–1 October measurements.
+Status: revised proposal. Phase 0 (the standalone publisher fix) is
+implemented in code and awaits its live R2 check; no Open-Meteo code or model
+activation yet. Revised 2026-10-02 against forecast-tiles commit `f5e0414`,
+incorporating the implementation review and its reported 24 September–1
+October measurements.
 
 Add new deterministic weather models from Open-Meteo's public AWS files while
 keeping every existing layer on its current provider, with its current fields,
@@ -167,6 +169,34 @@ document and orphaning its new run outside manifest-based storage accounting.
 No SDK upgrade is needed for the headers. A real R2 trial remains required;
 this document does not claim the fix has shipped. Audit referenced runs and
 abandoned objects afterward so existing damage, if any, is accounted for.
+
+**Implemented 2026-10-02** (`src/ingest/publish.py`, `tests/test_publish_concurrency.py`,
+`tests/test_s3_store.py`):
+
+- `commit_layer_entry` re-reads `latest.json` with its ETag on every attempt,
+  merges only the publishing layer, writes with `If-Match` (`If-None-Match: *`
+  on creation), and retries conflicts up to six times with jittered backoff.
+  An older cycle is refused before upload and again at each attempt. A write
+  whose outcome is unknown (transport error, 5xx, or boto3's own retry hitting
+  412 after the first attempt landed) is settled by the next read, which
+  recognizes the exact entry by run ID and `published_at`.
+- `apply_retention` runs only after a confirmed commit and deletes only
+  complete runs older than the retained previous, re-reading every pointer
+  before each deletion and removing tiles before the manifest so an
+  interrupted deletion finishes next time. Newer and incomplete runs are
+  reported, not deleted.
+- `S3Store`, `DirStore` (directory lock plus atomic rename) and the test fake
+  share the conditional semantics. `S3Store` takes a key prefix for isolated
+  live checks.
+- `--force` now re-publishes only the current cycle. Rolling a layer back
+  needs a separate operator tool, which does not exist yet.
+- Because retention no longer removes incomplete uploads, `scripts/audit_runs.py`
+  reports referenced, superseded and incomplete runs plus dangling references
+  and missing tiles, and with `--delete-unreferenced` removes runs nothing
+  names once their newest object is older than `--min-age-hours` (default 24, minimum 4).
+- Still open: run the manual `r2-conditional-check` workflow
+  (`tests/test_r2_conditional.py` under `r2-check/<run id>/`), then run the
+  audit once against the live bucket.
 
 ## Reader and model registry
 

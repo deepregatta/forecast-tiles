@@ -1,0 +1,31 @@
+name: r2-conditional-check
+run-name: r2-conditional-check ${{ github.run_id }}
+
+# Manual only. Proves on the real bucket that R2 honours If-Match /
+# If-None-Match on PutObject and that interleaved publishers both survive
+# (tests/test_r2_conditional.py). Every key lives under r2-check/<run id>/
+# and is deleted at the end; live forecast objects are never touched.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+      - run: uv sync
+      - run: uv run pytest -v -rs tests/test_r2_conditional.py
+        env:
+          R2_TEST_PREFIX: r2-check/${{ github.run_id }}/
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}

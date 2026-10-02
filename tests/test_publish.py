@@ -9,11 +9,13 @@ from conftest import make_weather_cube
 
 from ingest.publish import (
     CACHE_IMMUTABLE,
-    CADENCE_HOURS,
     CACHE_MUTABLE,
+    CADENCE_HOURS,
+    PreconditionFailed,
     PublishError,
     StorageGuardError,
     build_manifest,
+    content_etag,
     fnv64,
     publish_run,
     z_res,
@@ -26,21 +28,48 @@ SCHEMA_DIR = Path(__file__).resolve().parents[1] / "contracts"
 
 
 class FakeStore:
-    """Dict-backed in-memory object store recording operation order."""
+    """Dict-backed in-memory object store recording operation order, with the
+    conditional-write semantics of R2 (ETag = MD5 of the body).
+
+    `before_put` hooks run (once each, in order) just before the next
+    conditional write is applied, which is how tests interleave a competing
+    writer between a publisher's read and its compare-and-swap."""
 
     def __init__(self):
         self.objects: dict[str, bytes] = {}
         self.meta: dict[str, tuple[str, str]] = {}
         self.ops: list[tuple[str, str]] = []
+        self.before_put: list = []
+        self._in_hook = False
 
-    def put(self, key, data, *, content_type, cache_control):
+    def put(self, key, data, *, content_type, cache_control, if_match=None, if_none_match=False):
+        conditional = if_match is not None or if_none_match
+        if conditional and self.before_put and not self._in_hook:
+            hook = self.before_put.pop(0)
+            self._in_hook = True  # a competitor's own writes inside the hook run plainly
+            try:
+                hook(self, key)
+            finally:
+                self._in_hook = False
         self.ops.append(("put", key))
+        if if_none_match and key in self.objects:
+            raise PreconditionFailed(f"{key}: exists")
+        if if_match is not None and (
+            key not in self.objects or content_etag(self.objects[key]) != if_match
+        ):
+            raise PreconditionFailed(f"{key}: changed")
         self.objects[key] = data
         self.meta[key] = (content_type, cache_control)
+        return content_etag(data)
 
     def get(self, key):
         self.ops.append(("get", key))
         return self.objects.get(key)
+
+    def get_with_etag(self, key):
+        self.ops.append(("get", key))
+        data = self.objects.get(key)
+        return (data, content_etag(data)) if data is not None else (None, None)
 
     def list_keys(self, prefix):
         self.ops.append(("list", prefix))

@@ -14,8 +14,9 @@ changes needed to support them.
 sets out the implementation of new regional models through public AWS files,
 starting with AROME, ICON-EU and UKV while preserving every existing source.
 It covers whole-file ingestion, a separate regional catalogue, mask validation,
-browser and storage budgets, and staged rollout. The current publisher race is
-the first standalone fix in the revised plan.
+browser and storage budgets, and staged rollout. Its first, standalone step,
+the fix for concurrent publishers sharing `latest.json`, is in place (below);
+the live R2 check of conditional writes is still to run.
 
 ```
 NOAA GFS / GEFS / GFS-Wave · Copernicus GLO12 / IBI · ECMWF open data
@@ -51,7 +52,7 @@ uv run ingest weather --dry-run /tmp/tiles   # write the R2 layout locally inste
 uv run ingest ensemble|waves|currents|weather-ecmwf
 uv run ingest weather-ecmwf-short             # ECMWF's 06Z/18Z runs, to 144 h
 uv run ingest currents-ibi                   # hourly regional current field
-uv run ingest weather --force                # re-publish a cycle latest.json already has (repairs only)
+uv run ingest weather --force                # re-publish the cycle latest.json already has (repairs only)
 uv run ingest weather --cycle 20260930T06 --wait-minutes 90   # wait for the provider, then publish
 uv run ingest land --domain nweu             # rebuild the routing index (one-shot)
 ```
@@ -59,13 +60,31 @@ uv run ingest land --domain nweu             # rebuild the routing index (one-sh
 Each run: resolve the latest **complete** provider cycle (`.idx` presence,
 falling back one cycle rather than publishing a partial run) → exit 0 with
 "already published" when `latest.json` already has that cycle or a newer one
-(`--force` overrides; a live run id's tiles are cached forever, so only to
-repair a run) → download via
+(`--force` re-publishes the same cycle, never an older one; a live run id's
+tiles are cached forever, so only to repair a run) → download via
 byte-range subsetting → decode/orient/quantize into a `ForecastCube` →
 validate (step coverage, physical ranges, gust ≥ wind, missing fraction,
 a window for every step of a `statistic` variable; any failure aborts before upload) → 10°×10° gzipped PFT1 tiles → atomic publish
-(storage guard first, tiles, `manifest.json` last, post-publish re-download
-check, `latest.json`, retention delete, `status/{layer}.json`).
+(older-cycle refusal and storage guard first, tiles, `manifest.json` last,
+post-publish re-download check, compare-and-swap of this layer's `latest.json`
+entry, retention delete only after that commit, `status/{layer}.json`).
+
+Several layers publish at once (ensemble and `weather-ecmwf-short` are
+dispatched together at 00:15 and 12:15, and every fallback cron fires at :37),
+and they share `latest.json`. The commit therefore re-reads the pointer,
+changes only its own layer's entry and writes with `If-Match` on the ETag it
+read (`If-None-Match: *` when there is no pointer yet), retrying a conflict
+from a fresh read up to six times. It never moves a layer back to an older
+cycle, and settles a write whose outcome is unknown by reading the pointer
+again. A job that did not commit deletes nothing; retention deletes only a
+layer's complete runs older than its retained previous, and never one a
+pointer names. Abandoned uploads (a run with no manifest) and runs stranded
+by a stale job are left for the audit:
+
+```sh
+uv run scripts/audit_runs.py                  # referenced / superseded / incomplete runs, damage first
+uv run scripts/audit_runs.py --delete-unreferenced --min-age-hours 24
+```
 
 Since 2026-10-01 the [dispatcher](#dispatcher) starts each layer's workflow
 at its provider's usual publication time, for every provider cycle, and the
@@ -109,6 +128,11 @@ The Phase 0 size-measurement prototype is still runnable:
    `COPERNICUSMARINE_SERVICE_PASSWORD` (free Copernicus Marine account).
    Transient authentication-service connection failures are retried after 5
    and 15 minutes; invalid credentials still fail immediately.
+
+6. Run the `r2-conditional-check` workflow once (Actions → Run workflow). It
+   proves on the real bucket, under a throwaway `r2-check/<run id>/` prefix it
+   deletes afterwards, that R2 honours `If-Match` / `If-None-Match` on
+   `PutObject`, which the `latest.json` commit relies on.
 
 The storage guard refuses to publish when retained runs + the new run would
 exceed `MAX_BUCKET_BYTES` (default 8 GB).
