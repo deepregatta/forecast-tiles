@@ -38,6 +38,15 @@ interleaved/stale publisher behavior. Its temporary prefix was cleaned. The
 manual `r2-audit` workflow reads both catalogues and reports abandoned uploads
 and damaged references without deleting anything.
 
+Hosted producer CI and the [ICON-EU canary-profile scratch dry run](https://github.com/deepregatta/forecast-tiles/actions/runs/37038233836)
+passed. The [live read-only audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37038229448)
+found no damaged references or unreferenced forecast runs at that snapshot.
+The [GFS 12Z production run](https://github.com/deepregatta/forecast-tiles/actions/runs/37033855422)
+also succeeded under the CAS publisher. Passage's
+[coordinated CI](https://github.com/deepregatta/passage/actions/runs/37038497599)
+passed. These checks do not start regional production or establish a historical
+whole-bucket upload peak.
+
 Passage's real headless desktop Chrome loaded actual regional dry-run tiles
 through `HttpTileTransport` and the updated engine, for Brest–Cherbourg route
 points and 12–18 UTC. The root was a **small synthetic fixture**, not a full
@@ -79,6 +88,35 @@ repeat with a representative root workload and a physical phone before activatio
    until seven days meet the plan's 95% timeliness/no-invalid-run criteria and
    replacement, outage and rollback are exercised. The :47 catch-up and all
    dispatched jobs share `ingest-${layer}`, cancel false, max parallel one.
+
+### Guard increase preparation, owner direction on 2026-10-02
+
+The owner requested preparation of a guard increase after measuring the
+combined peak and cost. The default remains 8 GB; no GitHub variable, model
+allowlist or deployment has been changed. All forecast ingestion workflows now
+accept one GitHub `MAX_BUCKET_BYTES` variable, falling back to 8,000,000,000,
+so a reviewed future configuration is consistent across root and regional jobs.
+
+`uv run python scripts/capacity_profile.py` performs a read-only whole-bucket
+inventory, retaining only aggregate byte counts and public model IDs in its
+output. It measures the larger current/previous root run per layer, calculates
+three simultaneous runs for every existing layer, adds 10% size variation,
+three capped regional runs, all nonreferenced bytes and 500 MB headroom, and
+rounds a proposed guard up to a whole decimal GB. Unknown/damaged or missing
+root references fail closed. The output distinguishes measured sizes from a
+**calculated overlap envelope**; it is not an observed historical peak. Refresh
+this profile across representative cycles before enabling publication. UKV is
+excluded until its run cap is measured and registered.
+
+Use that report's `proposed_existing_peak_bytes`, `headroom_bytes` and
+`proposed_guard_bytes` as a reviewable configuration proposal. Raising a software
+guard does not itself add stored bytes or trigger a charge. Under current
+[R2 Standard pricing](https://developers.cloudflare.com/r2/pricing/), storage is
+$0.015 per billable GB-month, using average daily peaks and rounding up whole
+GB-months. The 10 GB-month storage, one million Class A and ten million Class B
+free allowances are shared across the account. Class A/B cost $4.50/$0.36 per
+billable million, rounded up; egress is free. Check account-wide use before
+claiming unused allowance. Keep account-specific figures outside public docs.
 
 ## Disable, rollback and partial uploads
 

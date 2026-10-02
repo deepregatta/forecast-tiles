@@ -2,7 +2,12 @@ from dataclasses import replace
 
 import pytest
 
-from ingest.capacity import RegionalAllocation, check_regional_capacity
+from ingest.capacity import (
+    ROOT_LAYERS,
+    RegionalAllocation,
+    capacity_profile,
+    check_regional_capacity,
+)
 from ingest.publish import DirStore, StorageGuardError
 from ingest.sources.openmeteo import registry
 
@@ -56,3 +61,42 @@ def test_live_admission_requires_explicit_capacity_and_layer_allowlist(monkeypat
     monkeypatch.setenv("REGIONAL_ENABLED_LAYERS", "weather-arome,unknown")
     with pytest.raises(StorageGuardError, match="unknown enabled"):
         RegionalAllocation.from_env("weather-arome")
+
+
+def test_profile_counts_every_bucket_object_and_calculates_all_layer_overlap(tmp_path):
+    import json
+
+    store = DirStore(tmp_path)
+    layers = {}
+    for i, layer in enumerate(ROOT_LAYERS):
+        current, previous = f"{layer}-20261002T12Z", f"{layer}-20261002T00Z"
+        layers[layer] = {"run_id": current, "previous_run_id": previous}
+        for run, size in [(current, (i + 1) * 100), (previous, (i + 1) * 110)]:
+            store.put(
+                f"forecast-runs/{run}/manifest.json",
+                b'{"tiles":{}}',
+                content_type="x",
+                cache_control="x",
+            )
+            store.put(f"forecast-runs/{run}/tile", b"x" * size, content_type="x", cache_control="x")
+    store.put(
+        "latest.json", json.dumps({"layers": layers}).encode(), content_type="x", cache_control="x"
+    )
+    store.put("land-index/private-key", b"x" * 123, content_type="x", cache_control="x")
+    p = capacity_profile(store, headroom_bytes=500_000_000)
+    assert p["root_three_run_bytes"] == 3 * sum(p["root_largest_run_bytes"].values())
+    assert p["proposed_existing_peak_bytes"] >= p["root_three_run_bytes"] * 1.1
+    assert p["other_bytes"] == 123 + len(json.dumps({"layers": layers}).encode())
+    assert p["reserved_peak_bytes"] == (
+        p["proposed_existing_peak_bytes"]
+        + 3 * sum(p["regional_run_caps"].values())
+        + p["other_bytes"]
+        + 500_000_000
+    )
+    assert p["proposed_guard_bytes"] >= p["reserved_peak_bytes"]
+    assert "private-key" not in json.dumps(p)
+
+
+def test_profile_refuses_unmeasured_root_layers(tmp_path):
+    with pytest.raises(StorageGuardError, match="all seven"):
+        capacity_profile(DirStore(tmp_path))
