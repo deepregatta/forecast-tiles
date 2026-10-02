@@ -215,16 +215,18 @@ Earlier wind-only dry runs of AROME 09Z and ICON-EU 06Z wrote 48.4 MB (28 tiles)
 and 105.6 MB (60 tiles). Fresh verified-gust AROME 09Z / ICON-EU 12Z runs wrote
 73.3 / 169.8 MB in 28 / 60 tiles. Coordinated Passage support, browser
 admission, immutable regional creation, capacity reservations, scheduling and
-regional-only disable/rollback are implemented. Production remains disabled:
+regional-only disable/rollback are implemented. Reduced-cadence production
+canaries are active for AROME, ICON-EU and UKV:
 see [regional delivery evidence and activation gates](docs/regional-delivery.md).
 
 The `ingest-openmeteo` workflow normalizes manual and scheduled catch-up jobs
 into per-layer concurrency groups; manual dry runs default on. The Worker has
-AROME/ICON-EU entries but `REGIONAL_MODELS` is empty, so current dispatches are
-unchanged. When individually activated, default canary profiles select AROME
-03/15Z and ICON-EU 00/12Z. Full cadence needs both the GitHub
+AROME/ICON-EU/UKV entries with all three in `REGIONAL_MODELS`. Canary profiles
+select AROME 03/15Z and ICON-EU/UKV 00/12Z. Existing-layer timetable entries
+remain unchanged. Full cadence needs both the GitHub
 `OPENMETEO_FULL_CADENCE` variable and Worker `REGIONAL_FULL_CADENCE` setting.
-Maintainer deployment and the plan's seven-day gates are still required.
+Production deployment is complete; both full-cadence settings remain false
+until the plan's seven-day gates pass.
 
 Regional jobs save a separate attempt JSON artifact for 30 days, including
 failure category, prior successful run, source identities/bytes and metadata
@@ -247,10 +249,10 @@ cycle. The Worker only calls GitHub's API. It never contacts a provider,
 `latest.json` or the runs list, and a cycle that is already published exits
 in about a minute.
 
-**Timetable** (UTC; `dispatcher/src/timetable.ts`, crons in
+**Existing-layer timetable** (UTC; `dispatcher/src/timetable.ts`, crons in
 `dispatcher/wrangler.toml`):
 
-| Cron | Layer | Cycle dispatched | Provider ready (measured) | `wait_minutes` |
+| Provider slots | Layer | Cycle dispatched | Provider ready (measured) | `wait_minutes` |
 |---|---|---|---|---|
 | `25 4,10,16,22 * * *` | `weather` | fire time − 4 h 25 | cycle + 4 h 37–4 h 41 | 90 |
 | `0 5,11,17,23 * * *` | `waves` | fire time − 5 h | + 5 h 10–5 h 25 | 90 |
@@ -259,12 +261,15 @@ in about a minute.
 | `20 7,19 * * *` | `weather-ecmwf` | fire time − 7 h 20 | + 7 h 34 | 120 |
 | `45 5,9 * * *` | 05:45 `currents`, 09:45 `currents-ibi` | that day's 00Z | GLO12 06:10–09:05 (29 Sep–1 Oct); IBI 09:54–11:36 | 240 (`currents`, whose workflow allows 300 min), 180 (`currents-ibi`) |
 
-That is 18 dispatches from 16 fires a day on 5 cron expressions, all of the
-Workers Free plan's 5 Cron Triggers per account. Two layers share the 00:15
-and 12:15 fires; each is dispatched on its own, so one failing does not stop
-the other. If the account needs a trigger for
-another Worker, replace them with the single `*/5 * * * *`: the timetable
-stays in code, and a tick with no layer due contacts nothing.
+The existing layers keep 18 dispatches from 16 provider slots per day. Two
+layers share the 00:15 and 12:15 fires; each is dispatched independently.
+The same five cron expressions now include regional hours, as shown in
+`dispatcher/wrangler.toml`; the table above describes the original provider
+slots rather than the extended expressions. Reduced-cadence regional canaries
+add AROME at 05:45/18:45, ICON-EU at 03:25/15:25 and UKV at 04:15/16:15 UTC.
+That totals 24 dispatched jobs per day, with six further regional-only fires
+filtered out while full cadence is off. No additional Cron Trigger was added.
+Changing to `*/5` requires redesigned missed-slot monitoring and tests first.
 
 Cloudflare starts a fire 27–48 s after its minute (the dry run of
 2026-09-29 to 10-01, 22 fires), and the `scheduledTime` it hands the Worker

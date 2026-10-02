@@ -32,7 +32,11 @@ def main():
     print(json.dumps(result, indent=2))
     if result["timeliness_passed"]:
         return 0
-    if not result["observation_complete"] or result["counts"]["unknown"]:
+    if (
+        not result["observation_complete"]
+        or result["counts"]["unknown"]
+        or result["unknown_publications"]
+    ):
         return 2
     return 1
 

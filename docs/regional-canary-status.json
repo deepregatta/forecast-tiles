@@ -1,0 +1,124 @@
+{
+  "status": "observing; Release 1 acceptance incomplete",
+  "started_on": "2026-10-02",
+  "observation_days": 7,
+  "minimum_on_time_fraction": 0.95,
+  "ingestion_allowance_minutes": 10,
+  "full_cadence_enabled": false,
+  "models": {
+    "weather-arome": {
+      "observation_started_at": "2026-10-02T20:49:47.207117+00:00",
+      "bootstrap_cycle": "2026-10-02T15:00Z",
+      "bootstrap_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37062808393",
+      "profile_hours_utc": [
+        3,
+        15
+      ],
+      "consumer_export": {
+        "bytes": 14488,
+        "messages": 75,
+        "gust_step_type": "max",
+        "gust_template": 8,
+        "first_gust_step_range": "5-6",
+        "grid_points": [
+          12
+        ],
+        "filename": "passage_wind-arome_20261002T15Z_N48W005_N49W004.grb2",
+        "regional_tile_http_statuses": [
+          200
+        ],
+        "regional_transfer_bytes": 3852701,
+        "attribution": "verified in live Passage"
+      }
+    },
+    "weather-icon-eu": {
+      "observation_started_at": "2026-10-02T21:09:26.449084+00:00",
+      "bootstrap_cycle": "2026-10-02T12:00Z",
+      "bootstrap_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37064779481",
+      "profile_hours_utc": [
+        0,
+        12
+      ],
+      "consumer_export": {
+        "bytes": 14241,
+        "messages": 75,
+        "gust_step_type": "max",
+        "gust_template": 8,
+        "first_gust_step_range": "8-9",
+        "grid_points": [
+          6
+        ],
+        "filename": "passage_wind-icon-eu_20261002T12Z_N48W005_N49W004.grb2",
+        "regional_tile_http_statuses": [
+          200
+        ],
+        "regional_transfer_bytes": 4888594,
+        "attribution": "verified in live Passage"
+      }
+    },
+    "weather-ukv": {
+      "observation_started_at": "2026-10-02T21:22:06.887353+00:00",
+      "bootstrap_cycle": "2026-10-02T12:00Z",
+      "bootstrap_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37066152404",
+      "profile_hours_utc": [
+        0,
+        12
+      ],
+      "consumer_export": {
+        "bytes": 13864,
+        "messages": 75,
+        "gust_step_type": "instant",
+        "gust_template": 0,
+        "first_gust_step_range": "9",
+        "grid_points": [
+          12
+        ],
+        "filename": "passage_wind-ukv_20261002T12Z_N48W005_N49W004.grb2",
+        "regional_tile_http_statuses": [
+          200
+        ],
+        "regional_transfer_bytes": 2835417,
+        "attribution": "verified in live Passage"
+      }
+    }
+  },
+  "consumer": {
+    "production_url": "https://passage.deepregatta.com",
+    "commit": "b8108c17edba18850c73c99c96c22da30ec096c7",
+    "ci_url": "https://github.com/deepregatta/passage/actions/runs/37064077941",
+    "pages_deployment_id": "8bfc2445-9c67-4f19-b727-ad5b423c598d"
+  },
+  "dispatcher_version_id": "d1c8d08a-ad6f-4705-b141-21307134b868",
+  "operator_drill": {
+    "scope": "isolated real R2 prefix; not a production pointer rollback",
+    "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37063250426",
+    "result": "four checks passed; prefix cleaned"
+  },
+  "remaining_acceptance": [
+    "Observe seven elapsed days per model, explain every miss, and establish at least 95% of selected cycles on time from original confirmed publication artifacts.",
+    "No invalid publication; unknown evidence cannot pass.",
+    "Verify actual scheduled replacement/retry, current/previous pointer integrity and unchanged existing-layer delivery.",
+    "Refresh capacity across representative cycles; both catalogues and whole-bucket overlap must still fit the approved guard.",
+    "Repeat current production consumer/attribution checks before full-cadence promotion."
+  ],
+  "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37066523436",
+  "root_readback": {
+    "verified_at": "2026-10-02T21:28:02.618139+00:00",
+    "catalogue_updated_at": "2026-10-02T19:38:17Z",
+    "layers": [
+      "weather",
+      "ensemble",
+      "waves",
+      "weather-ecmwf",
+      "currents",
+      "currents-ibi",
+      "weather-ecmwf-short"
+    ],
+    "result": "all seven existing layers retained; regional entries confined to latest-regional.json"
+  },
+  "follow_up": {
+    "cadence": "hourly Codex heartbeat",
+    "status": "active",
+    "policy": "quiet while healthy or unchanged; report failures, required action and acceptance completion"
+  }
+}

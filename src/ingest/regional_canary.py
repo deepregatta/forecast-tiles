@@ -18,12 +18,42 @@ def utc(value):
     return result.astimezone(timezone.utc)
 
 
+def invalid_publication(attempt):
+    return (
+        attempt.get("validation", {}).get("ok") is not True
+        or attempt.get("validation", {}).get("failure_count") != 0
+        or attempt.get("source", {}).get("downloads_complete") is not True
+        or attempt.get("exit_code") != 0
+    )
+
+
 def score_canary(attempts, layer, started_at, now, *, ingestion_minutes=10):
     if ingestion_minutes <= 0:
         raise ValueError("ingestion allowance must be positive")
     p = product(layer)
     start, clock = utc(started_at), utc(now)
     end = start + timedelta(days=7)
+    unknown_publications = [
+        {"cycle": a.get("cycle") or a.get("requested_cycle")}
+        for a in attempts
+        if a.get("layer") == layer
+        and a.get("destination") == "r2"
+        and a.get("outcome") == "published"
+        and a.get("pointer_commit_confirmed") is True
+        and not a.get("finished_at")
+    ]
+    invalid_publications = [
+        {"cycle": a.get("cycle") or a.get("requested_cycle"), "finished_at": a["finished_at"]}
+        for a in attempts
+        if a.get("layer") == layer
+        and a.get("destination") == "r2"
+        and a.get("outcome") == "published"
+        and a.get("pointer_commit_confirmed") is True
+        and a.get("finished_at")
+        and start <= utc(a["finished_at"]) < end
+        and utc(a["finished_at"]) <= clock
+        and invalid_publication(a)
+    ]
     hours = (3, 15) if layer == "weather-arome" else (0, 12)
     day = start.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
     rows = []
@@ -47,13 +77,7 @@ def score_canary(attempts, layer, started_at, now, *, ingestion_minutes=10):
                 for a in matching
                 if a.get("outcome") == "published" and a.get("pointer_commit_confirmed") is True
             ]
-            invalid = any(
-                a.get("validation", {}).get("ok") is not True
-                or a.get("validation", {}).get("failure_count") != 0
-                or a.get("source", {}).get("downloads_complete") is not True
-                or a.get("exit_code") != 0
-                for a in confirmed
-            )
+            invalid = any(invalid_publication(a) for a in confirmed)
             finishes = sorted(
                 utc(a["finished_at"])
                 for a in confirmed
@@ -93,6 +117,8 @@ def score_canary(attempts, layer, started_at, now, *, ingestion_minutes=10):
         and fraction is not None
         and fraction >= 0.95
         and not counts["invalid_published"]
+        and not invalid_publications
+        and not unknown_publications
     )
     return {
         "layer": layer,
@@ -103,6 +129,8 @@ def score_canary(attempts, layer, started_at, now, *, ingestion_minutes=10):
         "ingestion_minutes": ingestion_minutes,
         "expected_cycles": len(rows),
         "counts": counts,
+        "invalid_publications": invalid_publications,
+        "unknown_publications": unknown_publications,
         "on_time_fraction": fraction,
         "observation_complete": elapsed,
         "timeliness_passed": passed,

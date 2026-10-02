@@ -13,7 +13,7 @@ preview_urls = false
 # test/wrangler.test.ts keeps the two in step. If the account needs a
 # trigger elsewhere, redesign missed-slot monitoring before changing to */5.
 crons = [
-  "25 3,4,9,10,15,16,21,22 * * *", # weather (GFS); ICON-EU (disabled by default)
+  "25 3,4,9,10,15,16,21,22 * * *", # weather (GFS); ICON-EU
   "0 5,11,17,23 * * *",  # waves (GFS-Wave)
   "15 0,1,4,6,10,12,13,16,18,22 * * *",  # GEFS, ECMWF-short; AROME 09/21Z; UKV
   "20 7,19 * * *",       # weather-ecmwf (00Z and 12Z)

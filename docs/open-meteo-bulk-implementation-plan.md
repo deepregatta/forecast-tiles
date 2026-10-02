@@ -4,14 +4,14 @@ Status, 2026-10-02: Phase 0's isolated live R2 conditional-write check passed
 (three tests, [run 37032148191](https://github.com/deepregatta/forecast-tiles/actions/runs/37032148191)).
 Phases 1–2 now include verified one-hour gust windows. Phase 3's producer,
 Passage consumer, schemas, scheduling, capacity admission and regional rollback
-are implemented, with production disabled. Desktop scratch-data browser checks
-passed with representative production root bytes. Phase 4 UKV now passes
+are implemented and deployed for reduced-cadence production canaries. Desktop
+scratch-data browser checks passed with representative production root bytes. Phase 4 UKV now passes
 primary identity, corrected geometry, instantaneous-gust, tile-size and desktop
 checks. Final individual, combined and boundary physical-phone checks passed,
 including automatic warm transfer/decode reuse after the cache refinement.
 The owner-approved capacity settings are now applied and verified;
-representative-cycle capacity refreshes,
-maintainer deployment and seven-day canaries remain gates.
+a fresh capacity profile fits the approved guard. Individual production and
+consumer checks are recorded below; seven-day canary acceptance remains open.
 Release 1 is not complete. See the evidence and operations
 in [regional-delivery.md](regional-delivery.md). Historical review measurements
 below remain attributed to the earlier review.
@@ -289,7 +289,7 @@ test every new entry through every accessor and the CLI dry-run path.
 | `tests/fixtures/openmeteo/`, `tests/test_openmeteo_*.py` | Small attributed samples and meaningful behavior tests |
 | `.github/workflows/ingest-openmeteo.yml` | Single-model dispatch and scheduled matrix catch-up |
 
-Implemented command (regional publication remains disabled):
+Implemented command (scratch output; production also requires model allowlists):
 
 ```sh
 uv run --extra openmeteo ingest weather-arome --cycle YYYYMMDDTHH --dry-run /tmp/arome-tiles
@@ -523,8 +523,10 @@ The three capacity variables are applied and verified by GitHub read-back after
 a [fresh read-only audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37055878696)
 confirmed that the calculated reservation fits the approved guard. Private
 configuration and account figures remain outside this public repository.
-No model enablement or deployment was performed. Refresh the read-only profile
-across representative cycles before activation and preserve existing products.
+That capacity approval was followed by owner-authorized model activation.
+Capacity was refreshed before activation; keep refreshing across representative
+cycles and preserve existing products. See the dated activation record in
+[regional-delivery.md](regional-delivery.md).
 The code fallback remains 8 GB; Release 1 is not assumed to fit that fallback.
 
 **Release 2 decision:** do not enable ICON-D2, HRRR or HRDPS using the remaining
@@ -595,7 +597,8 @@ release preserves the current alarm without adding a Cron Trigger.
 Add explicit workflow/layer routing, allowlist inputs in dispatcher and CLI,
 and run catch-up as the same per-layer matrix. Start canaries with AROME 03/15Z
 and ICON/UKV 00/12Z. Bound timeouts/parallelism so new jobs do not starve existing
-jobs. Worker deployment remains a maintainer operation under current repo rules.
+jobs. The owner authorized deployment, which is recorded in
+[regional-delivery.md](regional-delivery.md).
 
 Track attempts separately from last success: failure category, source lag,
 ETags/bytes, output/large-tile sizes, decode/encode time and chosen pointer.
@@ -713,7 +716,7 @@ storage/writes before regional activation.
 browser gates pass, conflicts cannot overwrite immutable data and rollback is
 regional-only. Activate AROME and ICON-EU individually through seven-day canaries.
 
-**Engineering implemented 2026-10-02; activation gates remain open.**
+**Engineering and reduced-cadence deployment implemented 2026-10-02; seven-day acceptance remains open.**
 Both repositories support 3°/5°/10° geometry, opt-in catalogues and attribution.
 Regional comparison shares a 20 MiB preflight allowance; explicit exports cap
 transfer at 50 MiB. Decompression/decoded allocations are bounded, regional
@@ -722,12 +725,13 @@ Root defaults and ECMWF run selection pass existing regressions. Immutable
 creation rejects complete/partial conflicts; same-cycle retry never overwrites.
 Fixed reservations count existing upload peaks, three capped regional runs,
 nonreferenced objects and headroom. Unknown capacity refuses before upload.
-The workflow/Worker are disabled by registry and allowlist gates and default to
-the reduced canary cadence. Desktop measurements are recorded in
+The registry, GitHub, Passage and Worker allowlists enable all three Release 1
+models at the reduced canary cadence. Both full-cadence settings remain false. Desktop measurements are recorded in
 [regional-delivery.md](regional-delivery.md); representative desktop root
 workload and final individual, combined and boundary physical-phone checks
 passed. The larger explicit ICON-EU boundary mosaic still evicts tiles; a
-smaller retained request reuses them. Seven-day live canaries have not started.
+smaller retained request reuses them. Seven-day live canaries started on 2 October;
+manual bootstrap cycles are excluded from their delivery ratio.
 
 ### Phase 4 — UKV
 
@@ -739,16 +743,16 @@ reference points independently of production transformation code.
 **Exit:** numeric/footprint/browser gates pass, current capacity fits and UKV
 passes its seven-day canary. Release 1 is complete only after all three models.
 
-**Implemented 2026-10-02, production disabled.** Full native/bulk comparisons
+**Implemented and deployed as a reduced-cadence canary, 2026-10-02.** Full native/bulk comparisons
 resolve cell identity and wind/gust semantics. The adapter corrects the bulk
 sphere to the primary ellipsoid, remaps geographic u/v and instantaneous gust
 onto a pinned 0.025° footprint and preserves +0 h. A 3° layout passes tile
 limits after 5° failed. Producer/Passage contracts, lookup, export, selection
-and disabled scheduling support it. Source precision, licence and post-remap
+and canary scheduling support it. Source precision, licence and post-remap
 measurements are in [ukv-discovery.md](ukv-discovery.md); representative desktop
 checks and final individual, combined and boundary phone selections pass.
-Representative-cycle capacity checks, deployment and seven-day canary
-criteria remain open; the approved capacity configuration is applied.
+Capacity was refreshed and deployment completed with the approved configuration.
+Seven-day canary criteria remain open.
 
 ### Phase 5 — Expansion after a capacity decision
 
@@ -808,8 +812,9 @@ implementation additionally reproduced bulk dry runs, primary gust probes,
 isolated R2 writes and a desktop browser benchmark; these are separately
 recorded in [regional-delivery.md](regional-delivery.md), including final
 individual, combined and boundary physical-phone checks and synchronous
-decoder timing. Representative-cycle capacity refreshes, deployment and
-seven-day canaries remain open.
+decoder timing. Capacity was refreshed and production deployment completed.
+Seven-day canary acceptance remains open; continue monitoring capacity and
+existing-layer delivery during that window.
 
 Release 1 is complete only when all three models meet their numerical,
 browser, capacity and canary gates; existing seven-layer sources and behavior

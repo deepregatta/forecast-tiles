@@ -77,3 +77,23 @@ def test_bootstrap_and_scratch_receipts_do_not_fill_scheduled_cycles():
     scratch = [{**r, "destination": "scratch"} for r in records]
     result = score_canary([bootstrap, *scratch], "weather-arome", START, END)
     assert result["counts"]["unknown"] == 14 and result["on_time_fraction"] is None
+
+
+def test_invalid_extra_cycle_published_in_window_blocks_promotion():
+    records = receipts()
+    extra = deepcopy(records[0])
+    extra["cycle"] = "2026-10-03T09:00Z"
+    extra["finished_at"] = "2026-10-03T15:00Z"
+    extra["validation"]["ok"] = False
+    result = score_canary([*records, extra], "weather-arome", START, END)
+    assert result["counts"]["on_time"] == 14
+    assert not result["timeliness_passed"]
+    assert len(result["invalid_publications"]) == 1
+
+
+def test_extra_confirmed_publication_without_finish_remains_unknown():
+    records = receipts()
+    extra = {**records[0], "cycle": "2026-10-03T09:00Z", "finished_at": None}
+    result = score_canary([*records, extra], "weather-arome", START, END)
+    assert result["counts"]["on_time"] == 14
+    assert result["unknown_publications"] and not result["timeliness_passed"]

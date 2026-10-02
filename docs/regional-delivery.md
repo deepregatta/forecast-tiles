@@ -1,7 +1,9 @@
 # Regional delivery: evidence and activation gates
 
-AROME, ICON-EU and UKV implementation is available for dry runs. R2 production
-is disabled in the registry; workflow and Worker allowlists default empty. Do not activate a model until its outstanding gates are closed.
+AROME, ICON-EU and UKV are deployed as reduced-cadence production canaries.
+Registry, GitHub, Passage and Worker allowlists enable all three; full cadence
+remains off until seven-day acceptance passes. The dated activation record
+below separates confirmed delivery from the remaining observation gate.
 
 ## Reproduced evidence, 2026-10-02
 
@@ -173,8 +175,8 @@ needed no further decode for either named read.
 4. Deploy Passage with `VITE_REGIONAL_MODELS` naming only the tested model,
    open that model's registry production gate, and set the same model in GitHub
    `OPENMETEO_ENABLED_LAYERS` and Worker `REGIONAL_MODELS`. Direct CLI publication
-   also needs `REGIONAL_ENABLED_LAYERS`. Worker deployment is a maintainer task.
-   No flags have been enabled by this implementation.
+   also needs `REGIONAL_ENABLED_LAYERS`. The owner authorized proceeding with
+   production deployment; the dated record below captures the applied flags.
 5. Start with AROME 03/15Z or ICON-EU/UKV 00/12Z. Workflow `canary` defaults true;
    `OPENMETEO_CANARY=true` restricts CLI automatic selection and cadence too.
    Leave GitHub `OPENMETEO_FULL_CADENCE` and Worker `REGIONAL_FULL_CADENCE` false
@@ -190,9 +192,9 @@ passed and confirmed that the calculated reservation, including nonreferenced
 objects, still fits the approved guard. `MAX_BUCKET_BYTES`,
 `REGIONAL_EXISTING_PEAK_BYTES` and `REGIONAL_HEADROOM_BYTES` are applied in
 GitHub and their exact values were verified by read-back. The private proposal
-and application record remain outside this public repository. Regional model
-allowlists remain absent/empty, all three registry production gates remain
-false, and no consumer or Worker deployment was performed.
+and application record remain outside this public repository. At this capacity
+checkpoint model allowlists were empty and production remained disabled. The
+subsequent owner-authorized activation is recorded below.
 
 All forecast ingestion workflows accept one GitHub `MAX_BUCKET_BYTES` variable,
 so the approved override is consistent across root and regional jobs. The code
@@ -234,7 +236,7 @@ claiming unused allowance. Keep account-specific figures outside public docs.
 - The [fresh read-only audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37047445147)
   passed with all three measured caps included and supported the prepared
   configuration/cost proposal. The later approval and verified application are
-  recorded above; model enablement remains off.
+  recorded above. This checkpoint predates model activation.
 - Passage: 450 engine and 534 viewer tests, lint, build and 72 desktop/mobile
   browser regressions passed locally. [Passage CI](https://github.com/deepregatta/passage/actions/runs/37047493679)
   passed for `e9531a8`, including its Python and hosted browser jobs. Contracts
@@ -315,8 +317,8 @@ RSS. The downloaded JSON was checked against the job log. Those original
 artifacts called metadata creation time/lag `source_completed_at` /
 `completion_lag_s`; the fields are now named `metadata_created_at` /
 `metadata_lag_s` to avoid claiming measured upload availability.
-Production activation and seven-day canaries remain pending; final phone
-verification is recorded above.
+This scratch checkpoint predates production activation. Final phone
+verification and subsequent production activation are recorded separately.
 
 ## Disable, rollback and partial uploads
 
@@ -350,10 +352,68 @@ measured newer current/previous root runs and still fits the approved guard.
 The existing-layer reservation was refreshed from that profile without raising
 the guard. Account figures remain outside this public repository.
 
-AROME is the first registry-eligible canary; GitHub, consumer and Worker
-allowlists still control actual activation. Keep two cycles/day until the
-seven-day criteria pass. Subsequent models activate individually after the
-first live publication/consumer checks; later expansion is a separate decision.
+AROME, ICON-EU and UKV were enabled individually, with the first production
+publication and Passage export checked before proceeding to the next model.
+GitHub `OPENMETEO_ENABLED_LAYERS`, Passage `VITE_REGIONAL_MODELS` and Worker
+`REGIONAL_MODELS` contain all three. GitHub `OPENMETEO_FULL_CADENCE` and Worker
+`REGIONAL_FULL_CADENCE` remain false. Keep two cycles/day until seven-day
+acceptance passes; later expansion requires a separate decision.
+
+### Production publication and consumer proof
+
+| Model / bootstrap cycle | Confirmed publication | Tiles / gzip bytes | Observation start (UTC) |
+|---|---|---:|---|
+| AROME 15Z | [37062808393](https://github.com/deepregatta/forecast-tiles/actions/runs/37062808393) | 28 / 73,435,104 | 2026-10-02 20:49:47 |
+| ICON-EU 12Z | [37064779481](https://github.com/deepregatta/forecast-tiles/actions/runs/37064779481) | 60 / 169,837,222 | 2026-10-02 21:09:26 |
+| UKV 12Z | [37066152404](https://github.com/deepregatta/forecast-tiles/actions/runs/37066152404) | 80 / 164,039,908 | 2026-10-02 21:22:06 |
+
+Each downloaded attempt reports `published`, confirmed pointer commit, complete
+source downloads and successful validation. These late manual bootstrap cycles
+establish production delivery but do **not** count toward scheduled timeliness.
+Exact observation timestamps and the remaining gates are recorded in
+[regional-canary-status.json](regional-canary-status.json).
+
+Passage production runs commit `b8108c1`, with all three model flags; its
+[CI](https://github.com/deepregatta/passage/actions/runs/37064077941) passed
+450 engine, 535 viewer, 72 browser and 512 Python tests, plus lint/build checks.
+The production Pages deployment is `8bfc2445-9c67-4f19-b727-ad5b423c598d`.
+The Worker version is `d1c8d08a-ad6f-4705-b141-21307134b868`; its existing GitHub
+secret was preserved and all five cron expressions were verified.
+
+A live export exposed a shorter-horizon UI gap: AROME/UKV can have less than
+48 hours remaining when published, while the minimum selectable period was
+two days. Passage now offers an explicit **Next 1 day** period with English and
+French labels and a regional horizon hint. Whole-window coverage checks remain
+in force. The new regression failed before the fix; 29 focused unit tests and
+six desktop/mobile GRIB map tests then passed locally.
+
+The live production browser downloaded all three one-day wind exports for
+48.39–48.44°N, 4.50–4.45°W. Independent ecCodes parsing verified 75 GRIB2 messages
+per file, the pinned 15Z/12Z source times and u/v/gust parameter identities.
+AROME and ICON-EU gusts use template 8 with one-hour maxima; UKV uses template 0
+with instantaneous gusts. Actual regional transfers were 3,852,701 / 4,888,594 /
+2,835,417 bytes, each with HTTP 200. Originating service, distributor and
+CC BY / CC BY-SA attribution were visible in Passage.
+
+The [same-cycle AROME retry](https://github.com/deepregatta/forecast-tiles/actions/runs/37064565029)
+reported `already_published` without new tile output. The expanded
+[isolated live R2 drill](https://github.com/deepregatta/forecast-tiles/actions/runs/37063250426)
+passed four checks in 57.58 s, including injected partial-upload failure,
+refused same-cycle overwrite, fresh-cycle replacement, previous-run restoration
+and regional-only disable. Root bytes remained unchanged and the throwaway
+prefix was cleaned. This exercises real R2 under an isolated prefix, rather
+than rolling back a production pointer.
+
+The [post-activation read-only audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37066523436)
+passed after all three publications; its calculated overlap envelope fits the
+approved guard. Public read-back retained all seven root layers and confined
+all three new entries to `latest-regional.json`. Continue checking scheduled
+replacement, capacity and existing-layer delivery throughout observation.
+Seven-day acceptance cannot finish before 9 October at each model's start time;
+full cadence remains off. An hourly Codex follow-up collects original attempt
+artifacts and reviews the recorded gates. It stays quiet while evidence is
+healthy or unchanged and reports failures, required action or completed
+acceptance. It cannot waive the observation period or promote unknown evidence.
 
 ### Read-only seven-day canary scoring
 
@@ -373,7 +433,15 @@ requires all fourteen on time in this initial window. The first confirmed
 publisher finish establishes delivery timing. `already_published` without the
 original delivery artifact cannot prove timeliness; missing artifacts remain
 unknown. An upstream-unavailable exit-zero attempt is a miss, and invalid
-publication or an incomplete observation cannot pass. Exit 0 confirms timing
+publication (including an extra, unscheduled cycle within observation) or an
+incomplete observation cannot pass. Exit 0 confirms timing
 criteria only; consumer/root-delivery and operator-drill evidence are separate.
 Exit 1 denotes a completed failed window, and 2 an incomplete/unknown window.
 The scorer makes no writes and never promotes cadence.
+
+Latest activation verification: `uv run pytest -q` passed **321 tests**, with
+four separately gated live-R2 tests skipped locally; Ruff lint/format passed.
+Dispatcher typecheck and all **60 tests** passed. The real R2 workflow separately
+passed those four tests. The canary scorer's regression rejects an invalid
+extra-cycle publication even when all fourteen scheduled receipts are on time,
+and refuses confirmed publications whose finish timing is missing.
