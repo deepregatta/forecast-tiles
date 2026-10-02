@@ -19,10 +19,12 @@ from conftest import make_weather_cube
 
 from ingest.publish import (
     PreconditionFailed,
+    PublishError,
     StalePublishError,
     make_r2_store_from_env,
     publish_run,
 )
+from ingest.regional_control import change_regional_entry
 from ingest.tile import build_tiles
 from ingest.validate import validate_cube
 
@@ -112,3 +114,49 @@ def test_interleaved_layers_and_a_stale_job_on_r2(store):
 
     with pytest.raises(StalePublishError):
         publish(store, "weather", 0)
+
+
+def test_regional_outage_retry_replacement_and_rollback_on_r2(store, monkeypatch):
+    """Use real CAS/storage under the owned prefix; preserve the root pointer."""
+    monkeypatch.setenv("REGIONAL_ENABLED_LAYERS", "weather-arome")
+    monkeypatch.setenv("REGIONAL_EXISTING_PEAK_BYTES", "1000000")
+    monkeypatch.setenv("REGIONAL_HEADROOM_BYTES", "1000000")
+    root_before = store.get("latest.json")
+    publish(store, "weather-arome", 3)
+    previous = store.get("latest-regional.json")
+    original = store.put
+    uploads = []
+
+    def interrupted_upload(key, data, **kwargs):
+        if "weather-arome-20260713T09Z/" in key and key.endswith(".bin.gz"):
+            uploads.append(key)
+            if len(uploads) == 2:
+                raise PublishError("injected regional upload outage")
+        return original(key, data, **kwargs)
+
+    monkeypatch.setattr(store, "put", interrupted_upload)
+    with pytest.raises(PublishError, match="injected"):
+        publish(store, "weather-arome", 9)
+    monkeypatch.setattr(store, "put", original)
+    assert len(uploads) == 2 and store.get(uploads[0]) is not None
+    assert store.get("latest-regional.json") == previous
+    with pytest.raises(PreconditionFailed):
+        publish(store, "weather-arome", 9)  # partial retry cannot overwrite
+    assert store.get("latest-regional.json") == previous
+
+    publish(store, "weather-arome", 15)
+    current = json.loads(store.get("latest-regional.json"))["layers"]["weather-arome"]
+    assert current["run_id"] == "weather-arome-20260713T15Z"
+    assert current["previous_run_id"] == "weather-arome-20260713T03Z"
+    retained = set(store.list_keys("forecast-runs/weather-arome-"))
+    restored = change_regional_entry(
+        store, "weather-arome", current["run_id"], restore_previous=True
+    )
+    assert restored["run_id"] == current["previous_run_id"]
+    assert restored["previous_run_id"] is None
+    assert store.get("latest.json") == root_before
+    assert set(store.list_keys("forecast-runs/weather-arome-")) == retained
+    change_regional_entry(store, "weather-arome", restored["run_id"])
+    assert "weather-arome" not in json.loads(store.get("latest-regional.json"))["layers"]
+    assert store.get("latest.json") == root_before
+    assert set(store.list_keys("forecast-runs/weather-arome-")) == retained
