@@ -1,0 +1,410 @@
+{
+ "cycle": "2026-10-02T12Z",
+ "attribution": "British Crown copyright, Met Office UKV via Open-Meteo",
+ "data_licence": "https://creativecommons.org/licenses/by-sa/4.0/",
+ "modifications": "Whole-field comparison and cropped/recompressed offline fixture",
+ "parameters_source": "https://www.metoffice.gov.uk/binaries/content/assets/metofficegovuk/pdf/data/ukv-parameters-may-2019.pdf",
+ "direction_frame_source": "https://cfconventions.org/mailing-list-archive/Data/1497.html",
+ "gust_kind": "instantaneous diagnostic, not max-PT01H",
+ "objects": [
+  {
+   "url": "https://openmeteo.s3.amazonaws.com/data_run/ukmo_uk_deterministic_2km/2026/10/02/1200Z/wind_speed_10m.om",
+   "etag": "\"adcecfea53e7d90bdf6f87eed0e0a78a-4\"",
+   "bytes": 25379008,
+   "sha256": "94ebe80167fd4d54ef5f6e5bbbff4ae3d7d316c8d4e573d4ab278ecf2eaae2b2"
+  },
+  {
+   "url": "https://met-office-atmospheric-model-data.s3.eu-west-2.amazonaws.com/uk-deterministic-2km/20261002T1200Z/20261002T1200Z-PT0000H00M-wind_speed_on_height_levels.nc",
+   "etag": "\"204379b4c091a84f9ae24c84ee4b0044\"",
+   "bytes": 61568324,
+   "sha256": "ba49989a55fae8ea5111e9c138c5137610aed3d6acee762a22465ee5a4dc5f05"
+  },
+  {
+   "url": "https://met-office-atmospheric-model-data.s3.eu-west-2.amazonaws.com/uk-deterministic-2km/20261002T1200Z/20261004T1800Z-PT0054H00M-wind_speed_on_height_levels.nc",
+   "etag": "\"a4c6815f0a3b42ee78c84d71d9c9d93b\"",
+   "bytes": 58355742,
+   "sha256": "f09f28435df99ecf7b736aba4efa1d97411b331a0df5b79daafdfd6e9f7b5233"
+  },
+  {
+   "url": "https://openmeteo.s3.amazonaws.com/data_run/ukmo_uk_deterministic_2km/2026/10/02/1200Z/wind_direction_10m.om",
+   "etag": "\"f00d4e9fb255f331264463166912b8c7-4\"",
+   "bytes": 30574752,
+   "sha256": "1997933d9ce548d7c06991180190981cf8d1a629c5a0d64b754e4f1bd5dcc504"
+  },
+  {
+   "url": "https://met-office-atmospheric-model-data.s3.eu-west-2.amazonaws.com/uk-deterministic-2km/20261002T1200Z/20261002T1200Z-PT0000H00M-wind_direction_on_height_levels.nc",
+   "etag": "\"16c0e7faea8e7da42d740ef6459728b5\"",
+   "bytes": 42999348,
+   "sha256": "7d0e02f504964404f64b62507115e8b7cd2e41b8b15e101f9c0253d90fdb44d1"
+  },
+  {
+   "url": "https://met-office-atmospheric-model-data.s3.eu-west-2.amazonaws.com/uk-deterministic-2km/20261002T1200Z/20261004T1800Z-PT0054H00M-wind_direction_on_height_levels.nc",
+   "etag": "\"002d59727d3be44a63fc86de94c7028e\"",
+   "bytes": 40633862,
+   "sha256": "2805f5036cc7829d6df9b04ae1172e54084228d66594d5c8d9f19908bcab6612"
+  },
+  {
+   "url": "https://openmeteo.s3.amazonaws.com/data_run/ukmo_uk_deterministic_2km/2026/10/02/1200Z/wind_gusts_10m.om",
+   "etag": "\"743d7265ad3c347ebc938991f6a1dc37-4\"",
+   "bytes": 28437576,
+   "sha256": "957aea1b8dfbbf04cabcdf9c4e7782d6850acf61e127821e8837fc3989d51e0e"
+  },
+  {
+   "url": "https://met-office-atmospheric-model-data.s3.eu-west-2.amazonaws.com/uk-deterministic-2km/20261002T1200Z/20261002T1200Z-PT0000H00M-wind_gust_at_10m.nc",
+   "etag": "\"a7a57e7e04dfe8188efff85489be2b9a\"",
+   "bytes": 1188949,
+   "sha256": "f6797d7095a7ab5daad5d3a4ba029d896142be991bb25b0bc8bd3a68fc9a7042"
+  },
+  {
+   "url": "https://met-office-atmospheric-model-data.s3.eu-west-2.amazonaws.com/uk-deterministic-2km/20261002T1200Z/20261002T1300Z-PT0001H00M-wind_gust_at_10m.nc",
+   "etag": "\"54a44b3a5ffd780729af86643f8541d0\"",
+   "bytes": 1183985,
+   "sha256": "a0300f20a01f0e3eae041812cd0f649b20877c2fca440e1f1a589ba639b08a6d"
+  },
+  {
+   "url": "https://met-office-atmospheric-model-data.s3.eu-west-2.amazonaws.com/uk-deterministic-2km/20261002T1200Z/20261004T1800Z-PT0054H00M-wind_gust_at_10m.nc",
+   "etag": "\"da73e55a999d2a7c485909d6354b2aa7\"",
+   "bytes": 1139448,
+   "sha256": "5f878d78af3e313400189803bc284d42268890c221ed00cb4406bdf1b18d8c79"
+  }
+ ],
+ "comparisons": [
+  {
+   "bulk_variable": "wind_speed_10m",
+   "native_parameter": "wind_speed_on_height_levels",
+   "standard_name": "wind_speed",
+   "lead_h": 0,
+   "cells": 1010740,
+   "missing_cells": 0,
+   "max_abs_error": 0.05000019073486328,
+   "tolerance": 0.051,
+   "passed": true,
+   "points": [
+    {
+     "row": 0,
+     "column": 0,
+     "native": 4.4375,
+     "bulk": 4.400000095367432
+    },
+    {
+     "row": 0,
+     "column": 1041,
+     "native": 3.375,
+     "bulk": 3.4000000953674316
+    },
+    {
+     "row": 969,
+     "column": 0,
+     "native": 6.5,
+     "bulk": 6.5
+    },
+    {
+     "row": 969,
+     "column": 1041,
+     "native": 2.4375,
+     "bulk": 2.4000000953674316
+    },
+    {
+     "row": 485,
+     "column": 521,
+     "native": 11.0625,
+     "bulk": 11.100000381469727
+    }
+   ]
+  },
+  {
+   "bulk_variable": "wind_speed_10m",
+   "native_parameter": "wind_speed_on_height_levels",
+   "standard_name": "wind_speed",
+   "lead_h": 54,
+   "cells": 1010740,
+   "missing_cells": 0,
+   "max_abs_error": 0.05000019073486328,
+   "tolerance": 0.051,
+   "passed": true,
+   "points": [
+    {
+     "row": 0,
+     "column": 0,
+     "native": 4.8125,
+     "bulk": 4.800000190734863
+    },
+    {
+     "row": 0,
+     "column": 1041,
+     "native": 2.0625,
+     "bulk": 2.0999999046325684
+    },
+    {
+     "row": 969,
+     "column": 0,
+     "native": 6.5,
+     "bulk": 6.5
+    },
+    {
+     "row": 969,
+     "column": 1041,
+     "native": 3.25,
+     "bulk": 3.299999952316284
+    },
+    {
+     "row": 485,
+     "column": 521,
+     "native": 9.1875,
+     "bulk": 9.199999809265137
+    }
+   ]
+  },
+  {
+   "bulk_variable": "wind_direction_10m",
+   "native_parameter": "wind_direction_on_height_levels",
+   "standard_name": "wind_from_direction",
+   "lead_h": 0,
+   "cells": 1010740,
+   "missing_cells": 0,
+   "max_abs_error": 1.0,
+   "tolerance": 1.001,
+   "passed": true,
+   "points": [
+    {
+     "row": 0,
+     "column": 0,
+     "native": 227.0,
+     "bulk": 228.0
+    },
+    {
+     "row": 0,
+     "column": 1041,
+     "native": 53.0,
+     "bulk": 54.0
+    },
+    {
+     "row": 969,
+     "column": 0,
+     "native": 273.0,
+     "bulk": 274.0
+    },
+    {
+     "row": 969,
+     "column": 1041,
+     "native": 183.0,
+     "bulk": 184.0
+    },
+    {
+     "row": 485,
+     "column": 521,
+     "native": 185.0,
+     "bulk": 186.0
+    }
+   ]
+  },
+  {
+   "bulk_variable": "wind_direction_10m",
+   "native_parameter": "wind_direction_on_height_levels",
+   "standard_name": "wind_from_direction",
+   "lead_h": 54,
+   "cells": 1010740,
+   "missing_cells": 0,
+   "max_abs_error": 1.0,
+   "tolerance": 1.001,
+   "passed": true,
+   "points": [
+    {
+     "row": 0,
+     "column": 0,
+     "native": 64.0,
+     "bulk": 64.0
+    },
+    {
+     "row": 0,
+     "column": 1041,
+     "native": 135.0,
+     "bulk": 136.0
+    },
+    {
+     "row": 969,
+     "column": 0,
+     "native": 85.0,
+     "bulk": 86.0
+    },
+    {
+     "row": 969,
+     "column": 1041,
+     "native": 216.0,
+     "bulk": 216.0
+    },
+    {
+     "row": 485,
+     "column": 521,
+     "native": 194.0,
+     "bulk": 194.0
+    }
+   ]
+  },
+  {
+   "bulk_variable": "wind_gusts_10m",
+   "native_parameter": "wind_gust_at_10m",
+   "standard_name": "wind_speed_of_gust",
+   "lead_h": 0,
+   "cells": 1010740,
+   "missing_cells": 0,
+   "max_abs_error": 0.05000019073486328,
+   "tolerance": 0.051,
+   "passed": true,
+   "points": [
+    {
+     "row": 0,
+     "column": 0,
+     "native": 5.625,
+     "bulk": 5.599999904632568
+    },
+    {
+     "row": 0,
+     "column": 1041,
+     "native": 7.75,
+     "bulk": 7.800000190734863
+    },
+    {
+     "row": 969,
+     "column": 0,
+     "native": 8.5,
+     "bulk": 8.5
+    },
+    {
+     "row": 969,
+     "column": 1041,
+     "native": 5.5,
+     "bulk": 5.5
+    },
+    {
+     "row": 485,
+     "column": 521,
+     "native": 14.9375,
+     "bulk": 14.899999618530273
+    }
+   ]
+  },
+  {
+   "bulk_variable": "wind_gusts_10m",
+   "native_parameter": "wind_gust_at_10m",
+   "standard_name": "wind_speed_of_gust",
+   "lead_h": 1,
+   "cells": 1010740,
+   "missing_cells": 0,
+   "max_abs_error": 0.05000019073486328,
+   "tolerance": 0.051,
+   "passed": true,
+   "points": [
+    {
+     "row": 0,
+     "column": 0,
+     "native": 5.5625,
+     "bulk": 5.599999904632568
+    },
+    {
+     "row": 0,
+     "column": 1041,
+     "native": 8.375,
+     "bulk": 8.399999618530273
+    },
+    {
+     "row": 969,
+     "column": 0,
+     "native": 8.375,
+     "bulk": 8.399999618530273
+    },
+    {
+     "row": 969,
+     "column": 1041,
+     "native": 5.75,
+     "bulk": 5.800000190734863
+    },
+    {
+     "row": 485,
+     "column": 521,
+     "native": 17.4375,
+     "bulk": 17.399999618530273
+    }
+   ]
+  },
+  {
+   "bulk_variable": "wind_gusts_10m",
+   "native_parameter": "wind_gust_at_10m",
+   "standard_name": "wind_speed_of_gust",
+   "lead_h": 54,
+   "cells": 1010740,
+   "missing_cells": 0,
+   "max_abs_error": 0.05000019073486328,
+   "tolerance": 0.051,
+   "passed": true,
+   "points": [
+    {
+     "row": 0,
+     "column": 0,
+     "native": 6.1875,
+     "bulk": 6.199999809265137
+    },
+    {
+     "row": 0,
+     "column": 1041,
+     "native": 4.8125,
+     "bulk": 4.800000190734863
+    },
+    {
+     "row": 969,
+     "column": 0,
+     "native": 8.8125,
+     "bulk": 8.800000190734863
+    },
+    {
+     "row": 969,
+     "column": 1041,
+     "native": 7.125,
+     "bulk": 7.099999904632568
+    },
+    {
+     "row": 485,
+     "column": 521,
+     "native": 12.125,
+     "bulk": 12.100000381469727
+    }
+   ]
+  }
+ ],
+ "crops": [
+  {
+   "variable": "wind_speed_10m",
+   "rows": [
+    481,
+    490
+   ],
+   "columns": [
+    517,
+    526
+   ]
+  },
+  {
+   "variable": "wind_direction_10m",
+   "rows": [
+    481,
+    490
+   ],
+   "columns": [
+    517,
+    526
+   ]
+  },
+  {
+   "variable": "wind_gusts_10m",
+   "rows": [
+    481,
+    490
+   ],
+   "columns": [
+    517,
+    526
+   ]
+  }
+ ],
+ "production_enabled": false
+}

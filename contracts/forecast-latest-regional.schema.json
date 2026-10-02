@@ -20,7 +20,8 @@
       "propertyNames": {
         "enum": [
           "weather-arome",
-          "weather-icon-eu"
+          "weather-icon-eu",
+          "weather-ukv"
         ]
       },
       "additionalProperties": {

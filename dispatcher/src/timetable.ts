@@ -17,9 +17,10 @@ export type Layer =
   | 'currents'
   | 'currents-ibi'
   | 'weather-arome'
-  | 'weather-icon-eu';
+  | 'weather-icon-eu'
+  | 'weather-ukv';
 
-export const REGIONAL_LAYERS = ['weather-arome', 'weather-icon-eu'] as const;
+export const REGIONAL_LAYERS = ['weather-arome', 'weather-icon-eu', 'weather-ukv'] as const;
 
 export interface TimetableEntry {
   layer: Layer;
@@ -58,6 +59,7 @@ export const TIMETABLE: readonly TimetableEntry[] = [
   { layer: 'weather-arome', hours: [18], minute: 45, lagMinutes: h(3, 45), waitMinutes: 90 },
   { layer: 'weather-arome', hours: [1], minute: 15, lagMinutes: h(4, 15), waitMinutes: 90 },
   { layer: 'weather-icon-eu', hours: [3, 9, 15, 21], minute: 25, lagMinutes: h(3, 25), waitMinutes: 45 },
+  { layer: 'weather-ukv', hours: [4, 10, 16, 22], minute: 15, lagMinutes: h(4, 15), waitMinutes: 120 },
 ];
 
 export interface Dispatch {

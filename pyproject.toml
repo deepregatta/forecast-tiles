@@ -28,6 +28,7 @@ currents = [
 # lockfile every workflow shares).
 openmeteo = [
     "omfiles==1.2.0",
+    "pyproj==3.7.2",
 ]
 
 [dependency-groups]

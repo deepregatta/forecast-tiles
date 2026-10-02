@@ -18,6 +18,7 @@ the output array plus one band.
 from __future__ import annotations
 
 import re
+import hashlib
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -29,7 +30,7 @@ import requests
 
 from ingest.sources.base import SESSION
 from ingest.sources.openmeteo.grids import bbox
-from ingest.sources.openmeteo.registry import BUCKET_URL, Grid
+from ingest.sources.openmeteo.registry import BUCKET_URL, Grid, ProjectedGrid
 
 TIMEOUT = (10, 300)  # connect, read (s)
 ATTEMPTS = 4
@@ -146,10 +147,25 @@ class Decoded:
     unit: str
 
 
+def validate_wkt(wkt: str, grid: Grid | ProjectedGrid, name: str) -> None:
+    if isinstance(grid, ProjectedGrid):
+        if not wkt.startswith("PROJCRS") or (
+            hashlib.sha256(wkt.encode()).hexdigest() != grid.bulk_wkt_sha256
+        ):
+            raise SourceError(f"{name}: projected CRS differs from registered bulk WKT")
+        return
+    m = _BBOX_RE.search(wkt.replace(" ", ""))
+    if not wkt.startswith("GEOGCRS") or not m:
+        raise SourceError(f"{name}: not a geographic grid with a BBOX: {wkt[:60]}…")
+    got = tuple(float(x) for x in m.groups())
+    if any(abs(a - b) > 1e-6 for a, b in zip(got, bbox(grid))):
+        raise SourceError(f"{name}: BBOX {got} != registered grid {bbox(grid)}")
+
+
 def decode(
     path: Path,
     *,
-    grid: Grid,
+    grid: Grid | ProjectedGrid,
     unit: str,
     reference: datetime,
     band_rows: int = BAND_ROWS,
@@ -179,12 +195,7 @@ def decode(
         if coordinates != ["lat", "lon", "time"]:
             raise SourceError(f"{name}: coordinates {coordinates}, expected lat lon time")
         wkt = str(scalar("crs_wkt"))
-        m = _BBOX_RE.search(wkt.replace(" ", ""))
-        if not wkt.startswith("GEOGCRS") or not m:
-            raise SourceError(f"{name}: not a geographic grid with a BBOX: {wkt[:60]}…")
-        got = tuple(float(x) for x in m.groups())
-        if any(abs(a - b) > 1e-6 for a, b in zip(got, bbox(grid))):
-            raise SourceError(f"{name}: BBOX {got} != registered grid {bbox(grid)}")
+        validate_wkt(wkt, grid, name)
         file_unit = str(scalar("unit"))
         if file_unit != unit:
             raise SourceError(f"{name}: unit {file_unit!r}, expected {unit!r}")

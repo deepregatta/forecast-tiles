@@ -5,9 +5,12 @@ Status, 2026-10-02: Phase 0's isolated live R2 conditional-write check passed
 Phases 1–2 now include verified one-hour gust windows. Phase 3's producer,
 Passage consumer, schemas, scheduling, capacity admission and regional rollback
 are implemented, with production disabled. Desktop scratch-data browser checks
-passed; representative root-workload/physical-phone memory checks, a measured
-capacity reservation, maintainer deployment and seven-day canaries remain gates.
-UKV remains Phase 4; Release 1 is not complete. See the evidence and operations
+passed with representative production root bytes. Phase 4 UKV now passes
+primary identity, corrected geometry, instantaneous-gust, tile-size and desktop
+checks. Individual physical-phone selections also passed; the final combined
+cache refinement still needs a phone retest. A refreshed capacity proposal and approved
+configuration, maintainer deployment and seven-day canaries remain gates.
+Release 1 is not complete. See the evidence and operations
 in [regional-delivery.md](regional-delivery.md). Historical review measurements
 below remain attributed to the earlier review.
 
@@ -101,18 +104,20 @@ reportedly decodes in about one second. These sizes do not justify a range-read
 stack. Re-measure totals and tile counts after any tile-size change; this table
 does not establish the size of the proposed new delivery layout.
 
-### Remaining discovery
+### Verification status
 
-- UKV wind-direction reference frame and gust interval, including step 0.
+- UKV primary identity and semantics are verified: geographic from-direction
+  at 2° precision, instantaneous gust including +0 h, corrected native
+  ellipsoid and a pinned remapping footprint. See [ukv-discovery.md](ukv-discovery.md).
 - AROME and ICON-EU gust windows are now verified from primary upstream GRIBs,
   including ICON-EU after +78 h: every sampled maximum covers one hour.
   Output spacing of three hours does not imply a three-hour maximum. Recorded
   source URLs, ETags and intervals are in `tests/fixtures/openmeteo/gust-windows/`.
   The former AROME object.data.gouv.fr URL returned 404; the current official
   listing points to the OVH host used by `scripts/probe_openmeteo.py`.
-- UKV gzip size and footprint after geographic remapping.
-- UKV redistribution terms. The repository licence is now **MIT**, chosen by
-  the owner on 2026-10-02, and `omfiles` stays an optional extra.
+- UKV 12Z now measures 164.04 MB gzip in 80 tiles at 3° after remapping.
+- UKV data/fixtures retain upstream CC BY-SA terms in [DATA-LICENSES.md](../DATA-LICENSES.md).
+  Code is **MIT**, chosen by the owner on 2026-10-02; `omfiles` stays optional.
 - Live R2 conditional writes passed the isolated-prefix workflow on 2 October.
   The installed boto3 supports both headers; no dependency upgrade was needed.
 - Browser budgets with the actual consumer and current combined storage
@@ -129,7 +134,7 @@ definitions in the registry before production.
 |---|---|---|---|
 | Pilot | AROME / `weather-arome` | `meteofrance_arome_france0025` | Preserve 0.025° grid/mask, 0–51 h; prefer 03/09/15/21Z; proposed 5° tiles |
 | Release 1 | ICON-EU / `weather-icon-eu` | `dwd_icon_eu` | Preserve 0.0625° grid, 93 steps through 120 h; 00/06/12/18Z; 10° tiles if browser gates pass |
-| Release 1 | UKV / `weather-ukv` | `ukmo_uk_deterministic_2km` | Remap projected 2 km grid to proposed 0.025°; 0–54 h; 00/06/12/18Z; proposed 5° tiles |
+| Release 1 | UKV / `weather-ukv` | `ukmo_uk_deterministic_2km` | Remap verified ellipsoidal 2 km grid to 0.025°; 0–54 h; 00/06/12/18Z; measured 3° tiles |
 | Release 2 | ICON-D2 / `weather-icon-d2` | `dwd_icon_d2` | Preserve 0.02° grid; expected 0–48 h; initially four cycles/day |
 | Release 2 | HRRR CONUS / `weather-hrrr` | `ncep_hrrr_conus` | Remap Lambert grid to proposed 0.025°; extended 00/06/12/18Z cycles, expected 0–48 h |
 | Release 2 | HRDPS / `weather-hrdps` | `cmc_gem_hrdps` | Remap rotated grid to proposed 0.025°; expected 0–48 h; four cycles/day |
@@ -242,7 +247,7 @@ records failure and preserves the prior good forecast.
 ### Dependencies and licensing
 
 Add plain `omfiles` to an `openmeteo` optional dependency group, using existing
-NumPy/requests. Add `pyproj` when UKV work starts. The review confirms 1.2.0
+NumPy/requests. The UKV extra now also pins `pyproj==3.7.2`. The review confirms 1.2.0
 wheels work on Python 3.13. Do not add `omfiles[fsspec]`, s3fs or aiobotocore:
 their botocore constraints affect the single lockfile even when other workflows
 do not install the extra. Preserve existing boto3/botocore pins.
@@ -252,8 +257,8 @@ GPL-2.0-only `omfiles` remains an optional ingestion dependency. The repository
 licence does not relicense that dependency; preserve its own licence obligations
 when redistributing software containing it.
 Data licensing is separate: the bulk catalogue declares CC BY 4.0, while the
-UKV upstream listing specifies CC BY-SA. Resolve its redistribution notice
-before activation. Do not copy AGPL server code; consuming files does not
+UKV upstream listing specifies CC BY-SA. [DATA-LICENSES.md](../DATA-LICENSES.md)
+records its attribution, licence link and modifications before redistribution. Do not copy AGPL server code; consuming files does not
 require running that server.
 
 ### Registry and files
@@ -321,8 +326,8 @@ scope because the current check compares arrays directly.
 
 Output existing `wind_u_kt`, `wind_v_kt`, `gust_kt` at int16 scales 0.01, 0.01,
 0.1 kt. Upstream u/v, speed and gust are reported at 0.1 m/s precision; UKV
-direction uses whole degrees. Half-degree rounding at 30 kt can contribute
-about 0.26 kt crosswind error. Record source precision separately from output
+direction is quantized to 2°. One-degree rounding at 30 kt can contribute
+about 0.52 kt crosswind error. Record source precision separately from output
 encoding: finer scales cannot recover lost information.
 
 UKV stores speed/direction. After verifying a meteorological direction measured
@@ -347,10 +352,12 @@ spacing from two noisy coordinates.
 
 Register exact UKV geometry: `nx=1042`, `ny=970`, `x0=-1158000 m`,
 `y0=-1036000 m`, `dx=dy=2000 m`; Lambert azimuthal equal area centred on
-longitude −2.5°, latitude 54.9°, spherical radius 6371229 m. Bulk metadata
-provides projection and a six-decimal geographic bounding box, not these exact
-origins. The review reports a derived origin within 0.8 m. Use the derivation
-as a cross-check with documented rounding tolerance, not as authoritative.
+longitude −2.5°, latitude 54.9°, native ellipsoid semi-major 6378137 m and
+semi-minor 6356752.314140356 m. Bulk WKT incorrectly substitutes a 6371229 m
+sphere, shifting sampled cells by up to 4.681 km. Complete native/bulk value
+identity establishes shared indices; the adapter explicitly records the primary
+CRS correction. Native axes and independent reference coordinates, rather than
+a rounded BBOX, fix the origin.
 
 Approve a fixed served geographic grid for projected models, initially
 proposing 0.025°, and record both native and served geometry. Bilinearly
@@ -392,14 +399,14 @@ an LRU retention limit alone does not cap transient memory.
 **Preferred AROME remedy: 5° tiles at the same 0.025° forecast resolution.**
 A full 200 × 200 tile with 52 times and three Float32 fields is about 25 MB
 decoded versus about 100 MB at 10°. Compression and route totals still need
-measurement. Provisionally use 5° for UKV too; ICON-EU can stay at 10° if it
-passes the gates. Never change layout under a published immutable run ID.
+measurement. UKV 5° failed the gzip cap: use measured 3° instead, at unchanged
+forecast resolution. ICON-EU stays at 10° after passing its gates. Never change layout under a published immutable run ID.
 
-This requires coordinated work: the manifest schema fixes `tile_deg` at 10,
-and producer/Passage tile math hardcodes 10°. Permit supported 5°/10° layouts
+This requires coordinated work: the manifest schema formerly fixed `tile_deg` at 10,
+and producer/Passage tile math formerly hardcoded 10°. Permit 3°/5°/10° layouts
 and pass manifest tile size through enumeration, point lookup, edge-neighbor
 probes, mosaics and export. Existing products default to 10°, preserving their
-bytes and URLs. Test both sizes together. PFT1 encoding and coordinate-bearing
+bytes and URLs. Test all supported sizes together. PFT1 encoding and coordinate-bearing
 headers remain compatible, but smaller tiles cannot ship before consumer support.
 
 ## Regional catalogue and consumers
@@ -486,32 +493,33 @@ immutable run as part of normal migration.
 
 ## Storage decision and costs
 
-The current 8,000,000,000-byte guard counts retained manifest tile totals after
-replacement, not the physical/account peak. It excludes third-run overlap,
-metadata, routing-index data and orphans. Include both catalogues in accounting
-before any regional R2 publication; root-only accounting would undercount.
+The root publisher retains its historical 8,000,000,000-byte guard, now
+configurable consistently across workflows. Regional admission additionally
+reserves calculated root upload overlap, three capped runs per enabled model,
+all nonreferenced objects and explicit headroom. Both catalogues and the whole
+bucket inventory are required; unknown or damaged capacity fails closed.
 
 Use compressed measurements instead of the earlier raw estimates:
 
-| Release 1 component | Two retained runs | Three runs during upload |
-|---|---:|---:|
-| AROME, measured with 10° tiles | 0.152 GB | about 0.228 GB |
-| ICON-EU, rounded measurements | 0.341 GB | about 0.512 GB |
-| UKV, **unmeasured estimate**, 90–110 MB/run | 0.180–0.220 GB | 0.270–0.330 GB |
-| Combined regional addition | **0.673–0.713 GB** | **about 1.010–1.070 GB** |
+| Release 1 component | Measured gzip/run | Two runs | Three runs during upload | Fixed run cap |
+|---|---:|---:|---:|---:|
+| AROME 09Z, 5° | 0.0733 GB | 0.1466 GB | 0.2198 GB | 0.110 GB |
+| ICON-EU 12Z, 10° | 0.1698 GB | 0.3397 GB | 0.5095 GB | 0.200 GB |
+| UKV 12Z, 3° | 0.1640 GB | 0.3281 GB | 0.4921 GB | 0.200 GB |
+| Combined regional addition | **0.4072 GB** | **0.8143 GB** | **1.2215 GB** | **0.510 GB** |
 
-Passage's published 1 October **6.66 GB projection** gives about 7.33–7.37 GB
-retained or 7.67–7.73 GB with regional third-run overlap. This is a **conditional
-fit**, not a live inventory or a whole-bucket worst-case peak: existing-model
-uploads, non-tile objects, abandoned uploads, daily variation and 5°-tile
-overhead remain to be counted. Even a rough 7.7–7.9 GB projection has little
-headroom. Reconcile current manifest totals and physical objects; do not mix
-a historical projection with a current dashboard counter.
+These tile measurements exclude small manifests; caps include them. Do not
+combine historical root projections with a current dashboard counter.
+`scripts/capacity_profile.py` measures larger current/previous root runs,
+calculates simultaneous third-run overlap with 10% variation, adds three
+regional caps, nonreferenced objects and headroom, and prepares a rounded guard.
+It establishes a calculated envelope, not an observed historical peak.
 
-**Release 1 decision:** keep the 8 GB guard initially and enable only models
-whose measured combined retained/peak allocations fit with headroom. Otherwise
-leave that new model disabled or explicitly raise the budget. All three are
-not guaranteed to fit on the current live bucket.
+**Owner direction, 2026-10-02:** prepare a guard increase after measuring the
+combined peak and cost. No budget or enablement has been applied. Refresh the
+read-only profile across representative cycles, preserve existing products,
+and present the private configuration and cost proposal before activation.
+The default remains 8 GB; Release 1 is not assumed to fit that guard.
 
 **Release 2 decision:** do not enable ICON-D2, HRRR or HRDPS using the remaining
 Release 1 allocation. Re-budget first. The review expects the full set to exceed
@@ -690,7 +698,7 @@ browser gates pass, conflicts cannot overwrite immutable data and rollback is
 regional-only. Activate AROME and ICON-EU individually through seven-day canaries.
 
 **Engineering implemented 2026-10-02; activation gates remain open.**
-Both repositories support 5°/10° geometry, opt-in catalogues and attribution.
+Both repositories support 3°/5°/10° geometry, opt-in catalogues and attribution.
 Regional comparison shares a 20 MiB preflight allowance; explicit exports cap
 transfer at 50 MiB. Decompression/decoded allocations are bounded, regional
 decode is serialized, and transient admission supplements the shared 64 MiB LRU.
@@ -700,8 +708,10 @@ Fixed reservations count existing upload peaks, three capped regional runs,
 nonreferenced objects and headroom. Unknown capacity refuses before upload.
 The workflow/Worker are disabled by registry and allowlist gates and default to
 the reduced canary cadence. Desktop measurements are recorded in
-[regional-delivery.md](regional-delivery.md); phone and representative combined
-workload checks remain unverified. Seven-day live canaries have not started.
+[regional-delivery.md](regional-delivery.md); representative desktop root
+workload and individual physical-phone selections passed. A combined phone
+retest after the cache refinement remains open. Seven-day live canaries have
+not started.
 
 ### Phase 4 — UKV
 
@@ -713,12 +723,16 @@ reference points independently of production transformation code.
 **Exit:** numeric/footprint/browser gates pass, current capacity fits and UKV
 passes its seven-day canary. Release 1 is complete only after all three models.
 
-**Discovery started 2026-10-02, no registered product.** A live primary probe
-confirmed exact projected axes and +0 h gust, but found a bulk/native CRS
-discrepancy of up to 4.681 km at sampled corners and no gust interval in the
-sampled NetCDF attributes. Evidence and reproducible commands are in
-[ukv-discovery.md](ukv-discovery.md). Do not freeze a grid or infer maximum
-windows from the hourly output axis before those questions are resolved.
+**Implemented 2026-10-02, production disabled.** Full native/bulk comparisons
+resolve cell identity and wind/gust semantics. The adapter corrects the bulk
+sphere to the primary ellipsoid, remaps geographic u/v and instantaneous gust
+onto a pinned 0.025° footprint and preserves +0 h. A 3° layout passes tile
+limits after 5° failed. Producer/Passage contracts, lookup, export, selection
+and disabled scheduling support it. Source precision, licence and post-remap
+measurements are in [ukv-discovery.md](ukv-discovery.md); representative desktop
+checks and individual phone selections pass. Final combined-phone retest,
+capacity configuration, deployment and seven-day canary
+criteria remain open.
 
 ### Phase 5 — Expansion after a capacity decision
 
@@ -776,8 +790,9 @@ not delivery commitments.
 The original revision used supplied review measurements. The 2 October
 implementation additionally reproduced bulk dry runs, primary gust probes,
 isolated R2 writes and a desktop browser benchmark; these are separately
-recorded in [regional-delivery.md](regional-delivery.md). No physical-phone or
-seven-day canary success is claimed.
+recorded in [regional-delivery.md](regional-delivery.md), including individual
+physical-phone selections. The final combined-phone retest and seven-day
+canaries remain open.
 
 Release 1 is complete only when all three models meet their numerical,
 browser, capacity and canary gates; existing seven-layer sources and behavior

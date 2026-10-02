@@ -7,7 +7,7 @@
   "properties": {
     "schema_version": { "type": "integer" },
     "run_id": { "type": "string", "pattern": "^[a-z0-9-]+-[0-9]{8}T[0-9]{2}Z$" },
-    "layer": { "enum": ["weather", "weather-ecmwf", "weather-ecmwf-short", "ensemble", "waves", "currents", "currents-ibi", "weather-arome", "weather-icon-eu"] },
+    "layer": { "enum": ["weather", "weather-ecmwf", "weather-ecmwf-short", "ensemble", "waves", "currents", "currents-ibi", "weather-arome", "weather-icon-eu", "weather-ukv"] },
     "model": { "type": "string" },
     "cycle": { "type": "string" },
     "member_count": { "type": "integer", "minimum": 1 },
@@ -57,7 +57,7 @@
       "type": "object",
       "required": ["tile_deg", "path_template"],
       "properties": {
-        "tile_deg": { "enum": [5, 10] },
+        "tile_deg": { "enum": [3, 5, 10] },
         "path_template": { "type": "string", "description": "e.g. weather/z025/{tile_id}.bin.gz, relative to forecast-runs/{run_id}/" }
       }
     },
@@ -99,5 +99,5 @@
     "provenance": { "type": "object", "description": "source dataset ids/urls digest; records RTOFS fallback when CMEMS is unavailable" },
     "published_at": { "type": "string" }
   },
-  "allOf": [{"if": {"properties": {"layer": {"enum": ["weather-arome", "weather-icon-eu"]}}}, "then": {"required": ["coverage", "served_grid", "capabilities", "attribution"], "properties": {"tiles": {"additionalProperties": {"required": ["decoded_bytes", "uncompressed_bytes"], "properties": {"bytes": {"maximum": 8388608}}}}}}}]
+  "allOf": [{"if": {"properties": {"layer": {"enum": ["weather-arome", "weather-icon-eu", "weather-ukv"]}}}, "then": {"required": ["coverage", "served_grid", "capabilities", "attribution"], "properties": {"tiles": {"additionalProperties": {"required": ["decoded_bytes", "uncompressed_bytes"], "properties": {"bytes": {"maximum": 8388608}}}}}}}]
 }

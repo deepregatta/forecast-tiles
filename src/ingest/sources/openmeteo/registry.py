@@ -70,6 +70,24 @@ class GustWindows:
 
 
 @dataclass(frozen=True)
+class ProjectedGrid:
+    """Verified native cell centres. Bulk WKT is pinned separately because
+    UKV's file metadata names a sphere while its source cells use an ellipsoid.
+    The correction is based on primary NetCDF geometry and full-field identity,
+    never on a fitted geographic BBOX."""
+
+    x0: float
+    y0: float
+    dx: float
+    dy: float
+    nlat: int
+    nlon: int
+    crs: str
+    bulk_wkt_sha256: str
+    version: str
+
+
+@dataclass(frozen=True)
 class Product:
     layer: str
     model: str  # manifest/tile `model`
@@ -106,6 +124,10 @@ class Product:
     max_run_bytes: int  # compressed run cap b_i, refused before upload
     production_enabled: bool
     evidence: tuple[str, ...] = field(default_factory=tuple)
+    source_grid: ProjectedGrid | None = None
+    wind_encoding: str = "uv"
+    direction_unit: str = "°"
+    gust_kind: str = "max"
 
     @property
     def cycles(self) -> tuple[int, ...]:
@@ -210,7 +232,71 @@ ICON_EU = Product(
     ),
 )
 
-PRODUCTS: dict[str, Product] = {p.layer: p for p in (AROME, ICON_EU)}
+UKV_NATIVE = ProjectedGrid(
+    x0=-1_158_000,
+    y0=-1_036_000,
+    dx=2000,
+    dy=2000,
+    nlat=970,
+    nlon=1042,
+    crs=("+proj=laea +lat_0=54.9 +lon_0=-2.5 +a=6378137 +b=6356752.314140356 +units=m +no_defs"),
+    bulk_wkt_sha256="24200bd838bdab0ec29286e6b96dc616b64f322ee47147b1a0fb920c561001e4",
+    version="ukv-native-ellipsoid.v1",
+)
+
+UKV = Product(
+    layer="weather-ukv",
+    model="ukmo_uk_deterministic_2km_0p025",
+    domain="ukmo_uk_deterministic_2km",
+    originator="Met Office UKV 2 km",
+    attribution=(
+        "British Crown copyright, Met Office UKV via Open-Meteo; CC BY-SA 4.0. "
+        "Modified: native CRS correction, geographic remapping and quantization. "
+        "https://creativecommons.org/licenses/by-sa/4.0/"
+    ),
+    data_licence="CC BY-SA 4.0 (upstream Met Office data; transformed tiles retain ShareAlike)",
+    # Full native boundary, snapped outwards to 0.025°. Curved corners remain
+    # masked; this enclosing rectangle is not an assertion of valid coverage.
+    grid=Grid(lat0=44.5, lon0=-24.525, cells_per_degree=40, nlat=742, nlon=1594),
+    source_grid=UKV_NATIVE,
+    wind_encoding="speed_direction",
+    axis_name="hourly",
+    axes={h: tuple(range(55)) for h in (0, 6, 12, 18)},
+    files={"speed": "wind_speed_10m", "direction": "wind_direction_10m", "gust": "wind_gusts_10m"},
+    source_unit="m/s",
+    source_precision="0.1 m/s speed/gust; 2° direction (bulk height-level fields)",
+    gust_first_lead_h=0,
+    gust_kind="instant",
+    gust_windows=GustWindows(
+        segments=(),
+        verified=True,
+        evidence=(
+            "Met Office UKV parameter table: wind_gust_at_10m is an instantaneous "
+            "diagnostic, distinct from wind_gust_at_10m_max-PT01H. Full native/bulk "
+            "gust identity at +0/+1/+54 h, 2026-10-02T12Z; see ukv-discovery.md"
+        ),
+    ),
+    footprint="ukv-0p025.v1",
+    footprint_sha256="365f1231b0ba218c7a9caf3ecdcf8119be7b2061c715a4cc0370768524475104",
+    max_interior_missing=0.005,
+    max_exterior_valid_fraction=0.0,
+    lag_minutes={h: 255 for h in (0, 6, 12, 18)},
+    wait_minutes=120,
+    cadence_hours=6,
+    poll_seconds=120,
+    lookback_cycles=4,
+    tile_deg=3,  # 5° measured over 8 MiB gz; 3° keeps integer-degree tile IDs
+    max_run_bytes=200_000_000,  # dry-run measurement cap, activation stays disabled
+    production_enabled=False,
+    evidence=(
+        "Primary NetCDF exact axes/ellipsoid and independent coordinates in ukv/discovery.json",
+        "Native height-level 10 m speed/direction match bulk, unlike surface-adjusted fields; "
+        "earth-relative CF wind_from_direction, no second vector rotation",
+        "Complete 12Z bulk run: 55 hourly steps, full native rectangle, +0 h gust preserved",
+    ),
+)
+
+PRODUCTS: dict[str, Product] = {p.layer: p for p in (AROME, ICON_EU, UKV)}
 LAYERS: tuple[str, ...] = tuple(PRODUCTS)
 
 

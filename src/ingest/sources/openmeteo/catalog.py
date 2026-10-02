@@ -65,6 +65,8 @@ def fetch_meta(product: Product, cycle: datetime, *, session=None, sleep=time.sl
         raise CycleNotAvailableError(
             f"{product.domain} {cycle:%Y-%m-%dT%HZ} not complete (no meta.json)"
         ) from exc
+    if product.source_grid is not None:
+        reader.validate_wkt(doc.get("crs_wkt", ""), product.source_grid, key)
     return RunMeta(
         cycle=cycle,
         record=record,

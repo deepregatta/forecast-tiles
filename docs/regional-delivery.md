@@ -1,8 +1,7 @@
 # Regional delivery: evidence and activation gates
 
-AROME and ICON-EU implementation is available for dry runs. R2 production is
-disabled in the registry; workflow and Worker allowlists default empty. UKV is
-not registered. Do not activate a model until its outstanding gates are closed.
+AROME, ICON-EU and UKV implementation is available for dry runs. R2 production
+is disabled in the registry; workflow and Worker allowlists default empty. Do not activate a model until its outstanding gates are closed.
 
 ## Reproduced evidence, 2026-10-02
 
@@ -24,13 +23,19 @@ uv run ingest weather-icon-eu --cycle 20261002T12 --dry-run /tmp/openmeteo-phase
 |---|---|---:|---:|---:|
 | AROME 09Z | 5° / 28 | 73,281,185 | 5,219,065 / 24,960,000 | 39.9 s |
 | ICON-EU 12Z | 10° / 60 | 169,837,222 | 6,542,524 / 28,569,600 | 83.8 s |
+| UKV 12Z | 3° / 80 | 164,039,908 | 3,166,351 / 9,504,000 | 48.2 s |
 
-Both pass 8 MiB gzip / 32 MiB decoded tile limits. Manifests now declare gzip,
+All three pass 8 MiB gzip / 32 MiB decoded tile limits. Manifests now declare gzip,
 inflated and decoded sizes for preflight admission, served geometry, coverage,
 capabilities, attribution and cycle-specific scheduling. Large source-object
 inventories remain once per manifest; deterministic regional tile headers use
 the cycle timestamp and source digest. Existing root tile generation retains
 its previous behavior.
+
+UKV uses instantaneous gust at +0–54 h and the corrected native ellipsoid,
+with CC BY-SA notices. The 5° trial exceeded the gzip gate; 3° passes at
+unchanged resolution. Primary evidence and independent GRIB proof are in
+[ukv-discovery.md](ukv-discovery.md).
 
 The isolated live [R2 conditional check](https://github.com/deepregatta/forecast-tiles/actions/runs/37032148191)
 passed three tests in 37.06 s: immutable creation, conditional replacement and
@@ -48,24 +53,72 @@ passed. These checks do not start regional production or establish a historical
 whole-bucket upload peak.
 
 Passage's real headless desktop Chrome loaded actual regional dry-run tiles
-through `HttpTileTransport` and the updated engine, for Brest–Cherbourg route
-points and 12–18 UTC. The root was a **small synthetic fixture**, not a full
-production GFS workload. These are sampled JS heap plus backing-storage
-measurements, not process RSS or proof of the absolute peak.
+through `HttpTileTransport`, for Brest–Cherbourg points and 12–18 UTC. Root
+bytes were copied read-only from `forecast.deepregatta.com`
+(`latest.updated_at=2026-10-02T17:27:15Z`). Each run fetched production GFS,
+GEFS, GFS-Wave, global-current and short ECMWF tiles, exercising ensemble,
+wave, wind/current grid and hazard comparison calls before adding the regional.
+Seven root manifests loaded; this route did not fetch full ECMWF or IBI tiles.
+This supersedes the earlier synthetic-root result for the desktop gate.
 
-| Model | Cold regional transfer / elapsed | Warm transfer / elapsed | Sampled added heap + backing storage |
+| Workload | Cold regional transfer / total elapsed | Warm regional transfer / total elapsed | Sampled heap + backing-storage increase from fresh page |
 |---|---:|---:|---:|
-| AROME | 3,845,933 B / 194 ms | 0 B / 0 ms | 54,931,889 B (52.4 MiB) |
-| ICON-EU | 4,888,594 B / 228 ms | 0 B / 1 ms | 63,754,930 B (60.8 MiB) |
+| Root only | 0 B / 326 ms | 0 B / 7 ms | 44,410,068 B (42.35 MiB) |
+| Root + AROME | 3,845,933 B / 484 ms | 0 B / 15 ms | 100,149,996 B (95.51 MiB) |
+| Root + ICON-EU | 4,888,594 B / 517 ms | 0 B / 15 ms | 111,394,470 B (106.23 MiB) |
+| Root + UKV | 5,682,390 B / 506 ms | 0 B / 15 ms | 94,981,105 B (90.58 MiB) |
 
-Each route used one regional tile. Browser regressions cover desktop and mobile
-viewports; viewport emulation does not establish physical-phone memory usage.
-Passage's `scripts/serve-regional-bench.mjs` reproduces the scratch server;
-repeat with a representative root workload and a physical phone before activation.
+AROME/ICON-EU used one regional tile; UKV used two. Time includes root
+fetch/decode/sampling. CDP `Runtime.getHeapUsage` was sampled every 25 ms with
+a fresh page/GC between models. Increases include the root workload; they are
+not process RSS or proof of the absolute peak. Each stayed below 128 MiB and
+the transfer gates. Passage's scratch benchmark accepts `--root-kind live`,
+`--ukv` and `?workload=full`. Mobile viewport regressions are separate
+from physical-phone evidence.
+
+### Physical phone, before combined-admission refinement
+
+Samsung Galaxy A53 (SM-A536B), Android 16, Chrome 154.0.8037.92 ran the same
+root workload through USB loopback. This measures real phone decoding and
+sampling, not mobile-network latency. Each cold comparison used a fresh page;
+CDP heap plus backing storage was sampled every 25 ms.
+
+| Workload | Cold regional bytes / total call time | Warm regional bytes / total call time | Sampled increase |
+|---|---:|---:|---:|
+| Root only | 0 / 2,394 ms | 0 / 71 ms | 38,448,152 B (36.67 MiB) |
+| Root + AROME | 3,845,933 / 3,269 ms | 0 / 65 ms | 89,224,220 B (85.09 MiB) |
+| Root + ICON-EU | 4,888,594 / 3,481 ms | 0 / 62 ms | 97,507,961 B (92.99 MiB) |
+| Root + UKV | 5,682,390 / 3,604 ms | 0 / 66 ms | 74,657,461 B (71.20 MiB) |
+
+All three individual selections passed sampled memory and transfer limits.
+Selecting all three together exposed warm cache churn: 14,416,917 regional
+bytes downloaded again. Automatic comparison now preflights declared retained
+bytes against the 64 MiB cache remaining after root loading, and each model's
+transient peak against the shared 128 MiB regional ceiling. It admits models
+in allowlist order and omits those that cannot coexist; named requests/export
+remain explicit. No cache or forecast resolution is increased to fix this.
+
+The final desktop all-model selection admitted AROME alongside the root,
+transferred 3,845,933 B cold / zero warm, took 462 / 17 ms, and increased sampled
+heap plus backing storage by 100,139,367 B. Root-only increase was 47,859,812 B.
+Regression tests cover both retained and transient refusal before a second
+model downloads. The phone became unavailable before this combined fix could
+be retested; **that final combined-phone gate remains open**. Boundary/mask
+regressions are separate from these three-point route measurements.
+
+A desktop boundary route at 49.9–50.1°N crossed AROME's 5° and ICON-EU's
+10° tile lines. Named grids returned finite vectors for all three models.
+AROME transferred 8,508,522 B and reused both tiles warm; UKV reused its one
+already-admitted tile. The larger explicit ICON-EU mosaic transferred
+10,381,719 B again warm because serialized transient admission evicted a
+previous tile. Automatic comparison omitted that request before transfer,
+preserving the root workload. Explicit mosaics remain subject to their request
+budgets and may require a smaller region for warm reuse. Boundary-phone
+measurement remains outstanding.
 
 ## Activation sequence
 
-1. Complete representative desktop/phone cold/warm, boundary-route and memory
+1. Complete the final combined-phone retest and representative boundary-route
    measurements against the root-only baseline. Audit Tactician separately;
    tile decoding does not prove that consumer's model/export support.
 2. Run the live read-only audit. Reconcile damaged references and abandoned
@@ -76,13 +129,14 @@ repeat with a representative root workload and a physical phone before activatio
    `REGIONAL_HEADROOM_BYTES`. Admission adds all nonreferenced bucket bytes
    (routing data, pointers, metadata and orphans), three capped runs per enabled
    regional, and headroom. Both reserved and physical upload peaks must fit the
-   unchanged 8,000,000,000-byte guard. Run caps include tiles plus manifest.
+   reviewed guard. Its default is still 8,000,000,000 bytes; an increase needs
+   the prepared capacity/cost proposal below. Run caps include manifests.
 4. Deploy Passage with `VITE_REGIONAL_MODELS` naming only the tested model,
    open that model's registry production gate, and set the same model in GitHub
    `OPENMETEO_ENABLED_LAYERS` and Worker `REGIONAL_MODELS`. Direct CLI publication
    also needs `REGIONAL_ENABLED_LAYERS`. Worker deployment is a maintainer task.
    No flags have been enabled by this implementation.
-5. Start with AROME 03/15Z or ICON-EU 00/12Z. Workflow `canary` defaults true;
+5. Start with AROME 03/15Z or ICON-EU/UKV 00/12Z. Workflow `canary` defaults true;
    `OPENMETEO_CANARY=true` restricts CLI automatic selection and cadence too.
    Leave GitHub `OPENMETEO_FULL_CADENCE` and Worker `REGIONAL_FULL_CADENCE` false
    until seven days meet the plan's 95% timeliness/no-invalid-run criteria and
@@ -105,8 +159,9 @@ three capped regional runs, all nonreferenced bytes and 500 MB headroom, and
 rounds a proposed guard up to a whole decimal GB. Unknown/damaged or missing
 root references fail closed. The output distinguishes measured sizes from a
 **calculated overlap envelope**; it is not an observed historical peak. Refresh
-this profile across representative cycles before enabling publication. UKV is
-excluded until its run cap is measured and registered.
+this profile across representative cycles before enabling publication. It now
+includes all three registered caps: AROME 110 MB, ICON-EU 200 MB and UKV
+200 MB. Use `--layers` for a narrower explicitly proposed activation.
 
 Use that report's `proposed_existing_peak_bytes`, `headroom_bytes` and
 `proposed_guard_bytes` as a reviewable configuration proposal. Raising a software

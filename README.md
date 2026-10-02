@@ -58,6 +58,7 @@ uv run ingest land --domain nweu             # rebuild the routing index (one-sh
 uv sync --extra openmeteo                    # regional models (dry runs only so far)
 uv run ingest weather-arome --cycle 20261002T09 --dry-run /tmp/arome
 uv run ingest weather-icon-eu --dry-run /tmp/icon-eu
+uv run ingest weather-ukv --dry-run /tmp/ukv
 ```
 
 Each run: resolve the latest **complete** provider cycle (`.idx` presence,
@@ -177,7 +178,7 @@ column at the end of the western tile. IBI keeps the provider's own regular
 
 ### Regional layers (dry runs only)
 
-Phases 1–3 of the [Open-Meteo bulk plan](docs/open-meteo-bulk-implementation-plan.md)
+Phases 1–4 of the [Open-Meteo bulk plan](docs/open-meteo-bulk-implementation-plan.md)
 add regional deterministic models from Open-Meteo's public AWS files
 (`src/ingest/sources/openmeteo/`). Each run is three whole `.om` files from a
 complete `data_run/` cycle, decoded locally with `omfiles` (the optional
@@ -189,14 +190,17 @@ yet, so the CLI accepts them only with `--dry-run`. They publish to their own
 |---|---|---|---|
 | `weather-arome` | Météo-France AROME France 0.025° | 717×1121 from 37.5N 12W, `grid-0p025`, 5° tiles, versioned footprint mask | 03/09/15/21Z, hourly 0–51 h |
 | `weather-icon-eu` | DWD ICON-EU 0.0625° | 657×1377 from 29.5N 23.5W, `grid-0p0625`, 10° tiles | 00/06/12/18Z, hourly to 78 h then 3-hourly to 120 h |
+| `weather-ukv` | Met Office UKV 2 km | Corrected native ellipsoid → fixed 0.025° grid, 3° tiles, curved footprint | 00/06/12/18Z, hourly 0–54 h; instantaneous gust includes +0 h |
 
-Both publish `wind_u_kt` / `wind_v_kt` with the global layers' int16
-encoding. Gust (`gust_kt`, a maximum with a per-step `statistic` window,
-missing at +0 h) now has verified **one-hour windows for both models**, including
+All three publish `wind_u_kt` / `wind_v_kt` with the global layers' int16
+encoding. AROME/ICON-EU gust (`gust_kt`, missing at +0 h) has verified
+**one-hour maximum windows**, including
 ICON-EU's three-hourly output after +78 h. Primary GRIB records are saved in
 `tests/fixtures/openmeteo/gust-windows/`. AROME covers only part of its
 rectangle (17.18 % of cells are always missing), so it is validated per step
-inside a registered footprint, not by the global 5 % rule.
+inside a registered footprint, not by the global 5 % rule. UKV preserves
+instantaneous gust at +0 h; its corrected projection, 3° layout and measured
+164 MB run are described in [UKV evidence](docs/ukv-discovery.md).
 
 Measured 2026-10-02 with `uv run scripts/probe_openmeteo.py benchmark LAYER
 --assume-gust-windows`, which includes gust under the unverified windows
@@ -401,8 +405,10 @@ dependency, not vendored or redistributed here.
 - ECMWF open data: CC BY 4.0.
 - Regional models via Open-Meteo's bulk files: CC BY 4.0 as the catalogue
   declares, attributed to the originating service (Météo-France AROME, DWD
-  ICON-EU) and to Open-Meteo in every regional run's provenance. UKV's
-  upstream CC BY-SA terms are unresolved, so it is not registered.
+  ICON-EU) and to Open-Meteo in every regional run's provenance.
+- Met Office UKV via Open-Meteo: CC BY-SA 4.0 for transformed tiles and
+  cropped fixtures. Attribution, licence link and modifications are recorded;
+  see [DATA-LICENSES.md](DATA-LICENSES.md). Production remains gated.
 - GSHHG shoreline: LGPL-3.0-or-later, with permission to use, copy, modify and
   distribute given attribution — Wessel, P., and W. H. F. Smith (1996), *A
   global, self-consistent, hierarchical, high-resolution shoreline database*,

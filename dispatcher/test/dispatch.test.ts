@@ -46,6 +46,23 @@ const dispatched = (id = 18_000_000_001) =>
 const live: Env = { DRY_RUN: 'false', GITHUB_TOKEN: 'test-token' };
 
 describe('regional activation', () => {
+  it('keeps UKV disabled by default and dispatches its 00Z canary only when named', async () => {
+    const disabled = github();
+    await runScheduled(Date.parse('2026-10-02T04:15:00Z'), live, disabled.deps);
+    expect(disabled.calls).toHaveLength(0);
+    const enabled = github(dispatched());
+    await runScheduled(Date.parse('2026-10-02T04:15:00Z'), {
+      ...live, REGIONAL_MODELS: 'weather-ukv',
+    }, enabled.deps);
+    expect(enabled.calls[0]!.body).toMatchObject({inputs: {
+      layer: 'weather-ukv', cycle: '20261002T00', wait_minutes: '120', canary: 'true',
+    }});
+    const short = github();
+    await runScheduled(Date.parse('2026-10-02T10:15:00Z'), {
+      ...live, REGIONAL_MODELS: 'weather-ukv',
+    }, short.deps);
+    expect(short.calls).toHaveLength(0);
+  });
   it('restricts enabled models to canary cycles until full cadence is explicit', async () => {
     const { deps, calls } = github();
     await runScheduled(Date.parse('2026-10-02T13:15:00Z'), { ...live, REGIONAL_MODELS: 'weather-arome' }, deps);

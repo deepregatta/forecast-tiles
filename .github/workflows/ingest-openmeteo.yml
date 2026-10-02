@@ -9,7 +9,7 @@ on:
       layer:
         description: Regional model
         type: choice
-        options: [weather-arome, weather-icon-eu]
+        options: [weather-arome, weather-icon-eu, weather-ukv]
         default: weather-arome
       cycle:
         description: Exact cycle YYYYMMDDTHH (empty chooses latest complete)
@@ -22,7 +22,7 @@ on:
         type: boolean
         default: true
       canary:
-        description: Restrict AROME to 03/15Z and ICON-EU to 00/12Z
+        description: Restrict AROME to 03/15Z and ICON-EU/UKV to 00/12Z
         type: boolean
         default: true
 

@@ -3,8 +3,9 @@
 [-180, 180). The single lat=90 grid row falls outside every band and is
 dropped (no sailing at the exact pole).
 
-A regional product may use a smaller `tile_deg` that divides 10 (5°: N45W005
-= lat [45,50), lon [-5,0)), named the same way. Every existing layer keeps
+A regional product may use 3° or 5° tiles (5°: N45W005 = lat [45,50),
+lon [-5,0)), named the same way. Both divide the 180°/360° geographic axes.
+Every existing layer keeps
 10°, and with it its bytes and URLs (docs/open-meteo-bulk-implementation-plan.md
 → Browser budgets and tile layout)."""
 
@@ -13,7 +14,7 @@ from __future__ import annotations
 import math
 
 TILE_DEG = 10
-SUPPORTED_TILE_DEG = (5, 10)
+SUPPORTED_TILE_DEG = (3, 5, 10)
 
 
 def tile_id(lat0: float, lon0: float) -> str:

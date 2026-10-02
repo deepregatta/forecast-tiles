@@ -1,19 +1,11 @@
-"""Open-Meteo run -> ForecastCube for a registered regional product.
+"""Whole-file regional data -> a validated ForecastCube.
 
-1. read meta.json and require the registered files and full axis
-2. download u, v (and gust when its window is verified) whole
-3. decode each, checking grid, CRS box, unit, run time and timestamps
-4. align every field to the wind axis by timestamp, never by position: gust
-   has no +0 h maximum, so its +0 h slice is all-missing
-5. refuse a changed footprint (valid cells outside the registered one beyond a
-   handful), then mask the outside to missing
-6. m/s -> kt, and the same `wind_u_kt` / `wind_v_kt` / `gust_kt` variables
-   and int16 scales as the global weather layers
-
-Gust is published only with a verified window per step
-(registry.GustWindows); otherwise the run is wind-only and says so in its
-provenance, as an ECMWF run without gust messages does. Nothing here
-synthesizes gust or clamps values to pass validation.
+Require registered files, timestamps, units and source geometry. Align fields
+by timestamp; convert UKV from-direction to geographic vectors before bounded
+remapping. AROME/ICON-EU initial gust is missing, while UKV preserves its
+instantaneous +0 h diagnostic. Verified maxima retain their source windows.
+Check the pinned footprint and record transformations; never synthesize gust
+or clamp data to pass validation.
 """
 
 from __future__ import annotations
@@ -110,19 +102,66 @@ def to_cube(
     source: SourceRun,
     meta_created_at: str = "",
 ) -> ForecastCube:
-    """Build the cube from decoded fields keyed by role ("u", "v", "gust")."""
+    """Build from u/v or speed/direction, and optional verified gust."""
     axis = list(product.axes[cycle.hour])
     targets = catalog.lead_times(product, cycle)
     gust_absent = {t for t, lead in zip(targets, axis) if lead < product.gust_first_lead_h}
     with_gust = "gust" in fields
-    arrays = {
-        WIND_U: align(fields["u"], targets, allowed_absent=set(), name=product.files["u"]),
-        WIND_V: align(fields["v"], targets, allowed_absent=set(), name=product.files["v"]),
-    }
+    if product.wind_encoding == "speed_direction":
+        from ingest.sources.openmeteo.projected import wind_vectors
+
+        speed, direction = (
+            align(fields[role], targets, allowed_absent=set(), name=product.files[role])
+            for role in ("speed", "direction")
+        )
+        u, v = wind_vectors(speed, direction)
+        arrays = {WIND_U: u, WIND_V: v}
+        del speed, direction
+        # These originals are no longer needed. Keeping them alive alongside
+        # native vectors and all served fields would double the working set.
+        del fields["speed"], fields["direction"]
+    elif product.wind_encoding == "uv":
+        arrays = {
+            WIND_U: align(fields["u"], targets, allowed_absent=set(), name=product.files["u"]),
+            WIND_V: align(fields["v"], targets, allowed_absent=set(), name=product.files["v"]),
+        }
+    else:
+        raise SourceError(f"{product.layer}: unsupported wind encoding")
     if with_gust:
         arrays[GUST] = align(
             fields["gust"], targets, allowed_absent=gust_absent, name=product.files["gust"]
         )
+    remap_note = None
+    if product.source_grid is not None:
+        from dataclasses import asdict
+
+        from ingest.sources.openmeteo.projected import weights
+
+        mapping = weights(product.source_grid, product.grid)
+        footprint = load_footprint(product)
+        if footprint is None or not np.array_equal(
+            mapping.valid.reshape(mapping.served_shape), footprint
+        ):
+            raise SourceError(f"{product.layer}: remapping footprint differs from registered mask")
+        for name in list(arrays):
+            values = arrays[name]
+            for t, data in enumerate(values):
+                if np.isinf(data).any() or (
+                    np.isnan(data).mean() > product.max_interior_missing
+                    and axis[t] >= (product.gust_first_lead_h if name == GUST else 0)
+                ):
+                    raise SourceError(
+                        f"{name}: unexpected native hole/nonfinite value at +{axis[t]} h"
+                    )
+            arrays[name] = mapping.remap(values)
+        del values
+        remap_note = {
+            "fingerprint": mapping.fingerprint,
+            "method": "bilinear earth-relative u/v and instantaneous gust; four finite neighbours",
+            "extrapolation": False,
+            "crs_correction": "native Met Office ellipsoid replaces bulk-declared sphere",
+            "native": asdict(product.source_grid),
+        }
     mask_note = apply_footprint(
         arrays, load_footprint(product), product.max_exterior_valid_fraction
     )
@@ -134,7 +173,12 @@ def to_cube(
         VariableSpec(WIND_V, product.axis_name, "i16", 0.01),
     ]
     gw = product.gust_windows
-    if with_gust:
+    if with_gust and product.gust_kind == "instant":
+        if not gw.verified:
+            raise SourceError(f"{product.layer}: instantaneous gust semantics are unverified")
+        variables.append(VariableSpec(GUST, product.axis_name, "i16", 0.1))
+        gust_note = f"instantaneous diagnostic at validity time, no maximum window; {gw.evidence}"
+    elif with_gust:
         windows = gust_windows(product, axis)
         if any(w is None for w, lead in zip(windows, axis) if lead >= product.gust_first_lead_h):
             raise SourceError(f"{product.layer}: no registered gust window for every step")
@@ -153,6 +197,9 @@ def to_cube(
 
     g = product.grid
     geometry = f"regular {g.step:g}° lat/lon, {g.nlat}x{g.nlon} from {g.lat0}N {g.lon0}E"
+    conversion = "m/s x 1.943844 -> kt; [lat, lon, time] -> [time, lat, lon]"
+    if remap_note:
+        conversion += "; speed/from-direction -> earth-relative u/v before bilinear remapping"
     return ForecastCube(
         layer=product.layer,
         model=product.model,
@@ -173,8 +220,12 @@ def to_cube(
             "source_digest": catalog.source_digest([source.meta, *source.files]),
             "adapter_version": ADAPTER_VERSION,
             "precision": product.source_precision,
-            "conversions": "m/s x 1.943844 -> kt; [lat, lon, time] -> [time, lat, lon]",
-            "grid": {"native": geometry, "served": geometry},
+            "conversions": conversion,
+            "grid": {
+                "native": remap_note["native"] if remap_note else geometry,
+                "served": geometry,
+            },
+            **({"remapping": remap_note} if remap_note else {}),
             "mask": mask_note,
             "capabilities": ["wind", "gust"] if with_gust else ["wind"],
             "gust": gust_note,
@@ -196,7 +247,8 @@ def build_cube(
 ) -> tuple[ForecastCube, SourceRun]:
     """Download, decode and convert one complete run."""
     kwargs = {"sleep": sleep} | ({"session": session} if session is not None else {})
-    roles = ["u", "v"] + (["gust"] if include_gust(product, assume_gust_windows) else [])
+    roles = ["speed", "direction"] if product.wind_encoding == "speed_direction" else ["u", "v"]
+    roles += ["gust"] if include_gust(product, assume_gust_windows) else []
     meta = catalog.fetch_meta(product, cycle, **kwargs)
     catalog.require_complete(product, meta, roles)
 
@@ -210,7 +262,10 @@ def build_cube(
             records.append(record)
             print(f"ingest {product.layer}: {key} {record.bytes / 1e6:.1f} MB", flush=True)
             fields[role] = reader.decode(
-                path, grid=product.grid, unit=product.source_unit, reference=cycle
+                path,
+                grid=product.source_grid or product.grid,
+                unit=product.direction_unit if role == "direction" else product.source_unit,
+                reference=cycle,
             )
             path.unlink()
         source = SourceRun(meta=meta.record, files=records)

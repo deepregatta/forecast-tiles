@@ -54,7 +54,18 @@ def test_5_degree_tile_ids_name_the_south_west_corner():
     assert tile_id(*tile_origin(47.3, -2.1, 5)) == "N45W005"
     assert tile_origin(47.3, -2.1) == (40, -10)
     with pytest.raises(ValueError):
-        tiles_for_grid(0, 1, 0, 1, tile_deg=3)
+        tiles_for_grid(0, 1, 0, 1, tile_deg=4)
+
+
+def test_every_ukv_served_cell_lands_in_one_3_degree_tile():
+    grid = grids.grid_meta(registry.UKV.grid)
+    ranges = tile_index_ranges(grid, 3)
+    hits = np.zeros((grid.nlat, grid.nlon), dtype=np.int8)
+    for _, _, rows, columns in ranges:
+        hits[rows, columns] += 1
+    assert (hits == 1).all()
+    assert tile_id(*tile_origin(50.0, -4.0, 3)) == "N48W006"
+    assert tile_id(*tile_origin(-0.1, -0.1, 3)) == "S03W003"
 
 
 def test_a_5_degree_cube_splits_into_quarter_tiles():
