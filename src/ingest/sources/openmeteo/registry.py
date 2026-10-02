@@ -286,8 +286,8 @@ UKV = Product(
     poll_seconds=120,
     lookback_cycles=4,
     tile_deg=3,  # 5° measured over 8 MiB gz; 3° keeps integer-degree tile IDs
-    max_run_bytes=200_000_000,  # dry-run measurement cap, activation stays disabled
-    production_enabled=False,
+    max_run_bytes=200_000_000,  # measured post-remap cap, including manifest bytes
+    production_enabled=True,  # Individually activated UKV canary after ICON-EU live verification.
     evidence=(
         "Primary NetCDF exact axes/ellipsoid and independent coordinates in ukv/discovery.json",
         "Native height-level 10 m speed/direction match bulk, unlike surface-adjusted fields; "

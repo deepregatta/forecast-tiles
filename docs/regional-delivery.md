@@ -354,3 +354,26 @@ AROME is the first registry-eligible canary; GitHub, consumer and Worker
 allowlists still control actual activation. Keep two cycles/day until the
 seven-day criteria pass. Subsequent models activate individually after the
 first live publication/consumer checks; later expansion is a separate decision.
+
+### Read-only seven-day canary scoring
+
+`scripts/regional_canary.py` scores downloaded R2 attempt artifacts for each
+model's two-cycle profile. Its configured deadline is the registry's readiness
+lag plus bounded source wait plus a ten-minute ingestion allowance. This is
+an explicit service window, not a claim that metadata creation proves file
+availability. Manual bootstrap/backfill cycles whose scheduled time predates
+observation are excluded.
+
+```sh
+uv run python scripts/regional_canary.py weather-arome --started-at 2026-10-02T20:49:47.207117Z --attempts /tmp/regional-canary-attempts/weather-arome
+```
+
+Seven days contain fourteen scheduled cycles per model, so the 95% criterion
+requires all fourteen on time in this initial window. The first confirmed
+publisher finish establishes delivery timing. `already_published` without the
+original delivery artifact cannot prove timeliness; missing artifacts remain
+unknown. An upstream-unavailable exit-zero attempt is a miss, and invalid
+publication or an incomplete observation cannot pass. Exit 0 confirms timing
+criteria only; consumer/root-delivery and operator-drill evidence are separate.
+Exit 1 denotes a completed failed window, and 2 an incomplete/unknown window.
+The scorer makes no writes and never promotes cadence.

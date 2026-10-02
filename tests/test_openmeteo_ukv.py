@@ -166,8 +166,7 @@ def test_native_missing_patch_is_refused_before_remap(tmp_path, monkeypatch):
         adapter.to_cube(p, CYCLE, fields, source=source)
 
 
-def test_ukv_is_dry_run_only_with_reduced_canary_cadence(monkeypatch):
+def test_ukv_reduced_canary_cadence(monkeypatch):
     assert registry.product("weather-ukv").cycles == (0, 6, 12, 18)
-    assert not registry.product("weather-ukv").production_enabled
     monkeypatch.setenv("OPENMETEO_CANARY", "true")
     assert registry.product("weather-ukv").cycles == (0, 12)
