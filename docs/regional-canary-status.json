@@ -117,7 +117,7 @@
     "result": "all seven existing layers retained; regional entries confined to latest-regional.json"
   },
   "follow_up": {
-    "cadence": "hourly Codex heartbeat",
+    "cadence": "twice daily Codex heartbeat at 09:45 and 22:45 Europe/Paris",
     "status": "active",
     "policy": "quiet while healthy or unchanged; report failures, required action and acceptance completion"
   }

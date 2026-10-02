@@ -410,8 +410,10 @@ approved guard. Public read-back retained all seven root layers and confined
 all three new entries to `latest-regional.json`. Continue checking scheduled
 replacement, capacity and existing-layer delivery throughout observation.
 Seven-day acceptance cannot finish before 9 October at each model's start time;
-full cadence remains off. An hourly Codex follow-up collects original attempt
-artifacts and reviews the recorded gates. It stays quiet while evidence is
+full cadence remains off. A twice-daily Codex follow-up at 09:45 and 22:45
+Europe/Paris collects original attempt artifacts and reviews the recorded gates.
+These checks follow the morning/evening delivery deadlines; timeliness uses
+publication receipts rather than the review time. It stays quiet while evidence is
 healthy or unchanged and reports failures, required action or completed
 acceptance. It cannot waive the observation period or promote unknown evidence.
 
