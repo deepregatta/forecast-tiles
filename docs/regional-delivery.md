@@ -173,6 +173,23 @@ free allowances are shared across the account. Class A/B cost $4.50/$0.36 per
 billable million, rounded up; egress is free. Check account-wide use before
 claiming unused allowance. Keep account-specific figures outside public docs.
 
+## Verification checkpoint, 2026-10-02
+
+- Producer: `uv run pytest -q` passed 287 tests (three separately gated live
+  R2 tests skipped); Ruff lint/format passed. Dispatcher passed 60 tests and
+  TypeScript checks. [Producer CI](https://github.com/deepregatta/forecast-tiles/actions/runs/37047416532)
+  passed for `ca5d8ec`.
+- The [hosted UKV scratch-only run](https://github.com/deepregatta/forecast-tiles/actions/runs/37047448665)
+  passed for 12Z: 80 tiles / 164.0 MB, 44.0 s. This is a dry run, not a
+  regional R2 publication or seven-day canary.
+- The [fresh read-only audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37047445147)
+  passed with all three measured caps included. The owner’s configuration/cost
+  proposal is prepared outside this public repository; no live settings changed.
+- Passage: 450 engine and 534 viewer tests, lint, build and 72 desktop/mobile
+  browser regressions passed locally. [Passage CI](https://github.com/deepregatta/passage/actions/runs/37047493679)
+  passed for `e9531a8`, including its Python and hosted browser jobs. Contracts
+  are byte-identical between repositories.
+
 ## Disable, rollback and partial uploads
 
 Stop dispatch, catch-up and in-flight writers for the named model; disable its

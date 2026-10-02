@@ -91,7 +91,7 @@ no AGPL server source is copied.
 
 Representative desktop measurements are in [regional-delivery.md](regional-delivery.md).
 Individual phone selections passed; the combined cache refinement still
-requires a physical-phone retest. A refreshed capacity proposal and approved
-configuration, maintainer deployment, rollback/outage drills and seven-day
+requires a physical-phone retest. The three-model capacity proposal is prepared; reviewed configuration and
+representative-cycle capacity refreshes, maintainer deployment, rollback/outage drills and seven-day
 canaries remain activation gates. Numerical and desktop success do not
 establish those live gates.

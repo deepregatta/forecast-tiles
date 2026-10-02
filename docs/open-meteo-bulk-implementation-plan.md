@@ -8,8 +8,8 @@ are implemented, with production disabled. Desktop scratch-data browser checks
 passed with representative production root bytes. Phase 4 UKV now passes
 primary identity, corrected geometry, instantaneous-gust, tile-size and desktop
 checks. Individual physical-phone selections also passed; the final combined
-cache refinement still needs a phone retest. A refreshed capacity proposal and approved
-configuration, maintainer deployment and seven-day canaries remain gates.
+cache refinement still needs a phone retest. The three-model capacity proposal is prepared; reviewed configuration and
+representative-cycle capacity refreshes, maintainer deployment and seven-day canaries remain gates.
 Release 1 is not complete. See the evidence and operations
 in [regional-delivery.md](regional-delivery.md). Historical review measurements
 below remain attributed to the earlier review.
