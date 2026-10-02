@@ -129,8 +129,8 @@ measurement remains outstanding.
    `REGIONAL_HEADROOM_BYTES`. Admission adds all nonreferenced bucket bytes
    (routing data, pointers, metadata and orphans), three capped runs per enabled
    regional, and headroom. Both reserved and physical upload peaks must fit the
-   reviewed guard. Its default is still 8,000,000,000 bytes; an increase needs
-   the prepared capacity/cost proposal below. Run caps include manifests.
+   reviewed guard. Its code fallback is still 8,000,000,000 bytes; the approved
+   repository capacity override is applied as recorded below. Run caps include manifests.
 4. Deploy Passage with `VITE_REGIONAL_MODELS` naming only the tested model,
    open that model's registry production gate, and set the same model in GitHub
    `OPENMETEO_ENABLED_LAYERS` and Worker `REGIONAL_MODELS`. Direct CLI publication
@@ -143,13 +143,23 @@ measurement remains outstanding.
    replacement, outage and rollback are exercised. The :47 catch-up and all
    dispatched jobs share `ingest-${layer}`, cancel false, max parallel one.
 
-### Guard increase preparation, owner direction on 2026-10-02
+### Guard increase approval and application, 2026-10-02
 
-The owner requested preparation of a guard increase after measuring the
-combined peak and cost. The default remains 8 GB; no GitHub variable, model
-allowlist or deployment has been changed. All forecast ingestion workflows now
-accept one GitHub `MAX_BUCKET_BYTES` variable, falling back to 8,000,000,000,
-so a reviewed future configuration is consistent across root and regional jobs.
+The owner approved the prepared capacity/cost proposal. A
+[fresh read-only audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37055878696)
+passed and confirmed that the calculated reservation, including nonreferenced
+objects, still fits the approved guard. `MAX_BUCKET_BYTES`,
+`REGIONAL_EXISTING_PEAK_BYTES` and `REGIONAL_HEADROOM_BYTES` are applied in
+GitHub and their exact values were verified by read-back. The private proposal
+and application record remain outside this public repository. Regional model
+allowlists remain absent/empty, all three registry production gates remain
+false, and no consumer or Worker deployment was performed.
+
+All forecast ingestion workflows accept one GitHub `MAX_BUCKET_BYTES` variable,
+so the approved override is consistent across root and regional jobs. The code
+fallback remains 8,000,000,000 bytes. This configuration decision closes the
+approval gate; representative-cycle capacity refreshes and the other activation
+gates still apply.
 
 `uv run python scripts/capacity_profile.py` performs a read-only whole-bucket
 inventory, retaining only aggregate byte counts and public model IDs in its
@@ -183,8 +193,9 @@ claiming unused allowance. Keep account-specific figures outside public docs.
   passed for 12Z: 80 tiles / 164.0 MB, 44.0 s. This is a dry run, not a
   regional R2 publication or seven-day canary.
 - The [fresh read-only audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37047445147)
-  passed with all three measured caps included. The owner’s configuration/cost
-  proposal is prepared outside this public repository; no live settings changed.
+  passed with all three measured caps included and supported the prepared
+  configuration/cost proposal. The later approval and verified application are
+  recorded above; model enablement remains off.
 - Passage: 450 engine and 534 viewer tests, lint, build and 72 desktop/mobile
   browser regressions passed locally. [Passage CI](https://github.com/deepregatta/passage/actions/runs/37047493679)
   passed for `e9531a8`, including its Python and hosted browser jobs. Contracts

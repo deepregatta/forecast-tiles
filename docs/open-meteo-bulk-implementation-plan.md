@@ -8,8 +8,9 @@ are implemented, with production disabled. Desktop scratch-data browser checks
 passed with representative production root bytes. Phase 4 UKV now passes
 primary identity, corrected geometry, instantaneous-gust, tile-size and desktop
 checks. Individual physical-phone selections also passed; the final combined
-cache refinement still needs a phone retest. The three-model capacity proposal is prepared; reviewed configuration and
-representative-cycle capacity refreshes, maintainer deployment and seven-day canaries remain gates.
+cache refinement still needs a phone retest. The owner-approved capacity
+settings are now applied and verified; representative-cycle capacity refreshes,
+maintainer deployment and seven-day canaries remain gates.
 Release 1 is not complete. See the evidence and operations
 in [regional-delivery.md](regional-delivery.md). Historical review measurements
 below remain attributed to the earlier review.
@@ -493,8 +494,9 @@ immutable run as part of normal migration.
 
 ## Storage decision and costs
 
-The root publisher retains its historical 8,000,000,000-byte guard, now
-configurable consistently across workflows. Regional admission additionally
+The root publisher retains its historical 8,000,000,000-byte fallback guard,
+with an owner-approved GitHub variable override applied consistently across
+workflows. Regional admission additionally
 reserves calculated root upload overlap, three capped runs per enabled model,
 all nonreferenced objects and explicit headroom. Both catalogues and the whole
 bucket inventory are required; unknown or damaged capacity fails closed.
@@ -515,11 +517,14 @@ calculates simultaneous third-run overlap with 10% variation, adds three
 regional caps, nonreferenced objects and headroom, and prepares a rounded guard.
 It establishes a calculated envelope, not an observed historical peak.
 
-**Owner direction, 2026-10-02:** prepare a guard increase after measuring the
-combined peak and cost. No budget or enablement has been applied. Refresh the
-read-only profile across representative cycles, preserve existing products,
-and present the private configuration and cost proposal before activation.
-The default remains 8 GB; Release 1 is not assumed to fit that guard.
+**Owner decision, 2026-10-02:** the prepared capacity/cost proposal was approved.
+The three capacity variables are applied and verified by GitHub read-back after
+a [fresh read-only audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37055878696)
+confirmed that the calculated reservation fits the approved guard. Private
+configuration and account figures remain outside this public repository.
+No model enablement or deployment was performed. Refresh the read-only profile
+across representative cycles before activation and preserve existing products.
+The code fallback remains 8 GB; Release 1 is not assumed to fit that fallback.
 
 **Release 2 decision:** do not enable ICON-D2, HRRR or HRDPS using the remaining
 Release 1 allocation. Re-budget first. The review expects the full set to exceed
@@ -741,8 +746,8 @@ limits after 5° failed. Producer/Passage contracts, lookup, export, selection
 and disabled scheduling support it. Source precision, licence and post-remap
 measurements are in [ukv-discovery.md](ukv-discovery.md); representative desktop
 checks and individual phone selections pass. Final combined-phone retest,
-capacity configuration, deployment and seven-day canary
-criteria remain open.
+representative-cycle capacity checks, deployment and seven-day canary
+criteria remain open; the approved capacity configuration is applied.
 
 ### Phase 5 — Expansion after a capacity decision
 
