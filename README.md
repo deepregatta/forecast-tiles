@@ -5,6 +5,11 @@ data into compact, immutable, provider-independent **PFT1** tiles served from
 Cloudflare R2 and consumed by [Passage](https://github.com/deepregatta/passage)
 entirely in the browser.
 
+[Regional model access and integration assessment](docs/regional-model-access.md)
+covers AROME, ARPEGE, ICON, UKV, HRRR/RRFS, HRDPS, NAM, ACCESS, NEMS and national
+ALADIN products, including delivery routes, reuse constraints and the pipeline
+changes needed to support them.
+
 ```
 NOAA GFS / GEFS / GFS-Wave · Copernicus GLO12 / IBI · ECMWF open data
         │  scheduled GitHub Actions (this repo)
