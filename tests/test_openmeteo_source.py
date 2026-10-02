@@ -261,8 +261,22 @@ def test_registered_axes_grids_and_labels():
     assert registry.ICON_EU.grid.label == "grid-0p0625"
     assert registry.AROME.gust_windows.window(51) == 1
     assert registry.ICON_EU.gust_windows.window(78) == 1
-    assert registry.ICON_EU.gust_windows.window(81) == 3
+    assert registry.ICON_EU.gust_windows.window(81) == 1
     assert registry.ICON_EU.gust_windows.window(0) is None
+
+
+def test_registered_gust_windows_match_recorded_upstream_grib_intervals():
+    from pathlib import Path
+
+    fixtures = Path(__file__).parent / "fixtures/openmeteo/gust-windows"
+    for path in fixtures.glob("*.json"):
+        record = json.loads(path.read_text())
+        p = registry.product(record["layer"])
+        assert p.gust_windows.verified and record["messages"]
+        for message in record["messages"]:
+            start, end = int(message["startStep"]), int(message["endStep"])
+            assert end - start == p.gust_windows.window(end)
+            assert message["stepType"] == "max" and message["url"].startswith("https://")
 
 
 def test_the_registered_footprint_loads_and_tampering_is_refused(tmp_path):

@@ -1,12 +1,15 @@
 # Open-Meteo bulk integration implementation plan
 
-Status, 2026-10-02: Phase 0 (the standalone publisher fix) is on main and
-awaits its live R2 check. Phases 1 and 2 (AROME and ICON-EU dry runs) are
-implemented; both models run end to end into a local `--dry-run` layout and
-publish nothing to R2. Gust windows remain unverified, so dry runs are
-wind-only. No model is activated. Revised the same day against forecast-tiles
-commit `f5e0414`, incorporating the implementation review and its reported
-24 September–1 October measurements.
+Status, 2026-10-02: Phase 0's isolated live R2 conditional-write check passed
+(three tests, [run 37032148191](https://github.com/deepregatta/forecast-tiles/actions/runs/37032148191)).
+Phases 1–2 now include verified one-hour gust windows. Phase 3's producer,
+Passage consumer, schemas, scheduling, capacity admission and regional rollback
+are implemented, with production disabled. Desktop scratch-data browser checks
+passed; representative root-workload/physical-phone memory checks, a measured
+capacity reservation, maintainer deployment and seven-day canaries remain gates.
+UKV remains Phase 4; Release 1 is not complete. See the evidence and operations
+in [regional-delivery.md](regional-delivery.md). Historical review measurements
+below remain attributed to the earlier review.
 
 Add new deterministic weather models from Open-Meteo's public AWS files while
 keeping every existing layer on its current provider, with its current fields,
@@ -101,17 +104,17 @@ does not establish the size of the proposed new delivery layout.
 ### Remaining discovery
 
 - UKV wind-direction reference frame and gust interval, including step 0.
-- AROME gust windows and ICON-EU windows after +78 h; output step spacing is
-  not evidence of the maximum's accumulation interval. **Still open:** the
-  upstream GRIBs (object.data.gouv.fr, opendata.dwd.de) were unreachable from
-  the 2026-10-02 implementation environment. `scripts/probe_openmeteo.py
-  gust-window LAYER` reads their `stepRange` wherever those hosts are reachable.
+- AROME and ICON-EU gust windows are now verified from primary upstream GRIBs,
+  including ICON-EU after +78 h: every sampled maximum covers one hour.
+  Output spacing of three hours does not imply a three-hour maximum. Recorded
+  source URLs, ETags and intervals are in `tests/fixtures/openmeteo/gust-windows/`.
+  The former AROME object.data.gouv.fr URL returned 404; the current official
+  listing points to the OVH host used by `scripts/probe_openmeteo.py`.
 - UKV gzip size and footprint after geographic remapping.
 - UKV redistribution terms. The repository licence is now **MIT**, chosen by
   the owner on 2026-10-02, and `omfiles` stays an optional extra.
-- Live R2 conditional-write behavior. The installed boto3 1.43.46 was checked
-  during this revision: `PutObject` accepts `IfMatch` and `IfNoneMatch` already.
-  The `r2-conditional-check` workflow runs that check under an isolated prefix.
+- Live R2 conditional writes passed the isolated-prefix workflow on 2 October.
+  The installed boto3 supports both headers; no dependency upgrade was needed.
 - Browser budgets with the actual consumer and current combined storage
   headroom. Source completeness alone does not establish these. Known-point
   and mask fixtures now exist for AROME and ICON-EU (`tests/fixtures/openmeteo/`).
@@ -174,9 +177,9 @@ document and orphaning its new run outside manifest-based storage accounting.
    both updates survive and all referenced manifests remain. Provide equivalent
    dry-run store behavior and test R2 using an isolated object prefix.
 
-No SDK upgrade is needed for the headers. A real R2 trial remains required;
-this document does not claim the fix has shipped. Audit referenced runs and
-abandoned objects afterward so existing damage, if any, is accounted for.
+No SDK upgrade is needed for the headers. The isolated R2 trial passed; audit
+referenced runs and abandoned objects afterward so existing damage, if any,
+is accounted for. The manual `r2-audit` workflow performs this read-only check.
 
 **Implemented 2026-10-02** (`src/ingest/publish.py`, `tests/test_publish_concurrency.py`,
 `tests/test_s3_store.py`):
@@ -196,15 +199,16 @@ abandoned objects afterward so existing damage, if any, is accounted for.
 - `S3Store`, `DirStore` (directory lock plus atomic rename) and the test fake
   share the conditional semantics. `S3Store` takes a key prefix for isolated
   live checks.
-- `--force` now re-publishes only the current cycle. Rolling a layer back
-  needs a separate operator tool, which does not exist yet.
+- `--force` now re-publishes only the current cycle for existing root layers.
+  Regional `--force` is refused. The regional-only operator tool is
+  `scripts/regional_control.py`; it conditionally disables one entry or restores
+  its validated previous run after dispatch and in-flight writers stop.
 - Because retention no longer removes incomplete uploads, `scripts/audit_runs.py`
   reports referenced, superseded and incomplete runs plus dangling references
   and missing tiles, and with `--delete-unreferenced` removes runs nothing
   names once their newest object is older than `--min-age-hours` (default 24, minimum 4).
-- Still open: run the manual `r2-conditional-check` workflow
-  (`tests/test_r2_conditional.py` under `r2-check/<run id>/`), then run the
-  audit once against the live bucket.
+- Isolated R2 verification: three tests passed in 37.06 s under
+  `r2-check/37032148191/`, with temporary objects cleaned afterward.
 
 ## Reader and model registry
 
@@ -243,9 +247,10 @@ wheels work on Python 3.13. Do not add `omfiles[fsspec]`, s3fs or aiobotocore:
 their botocore constraints affect the single lockfile even when other workflows
 do not install the extra. Preserve existing boto3/botocore pins.
 
-The repo currently has **no LICENSE file**. Before adding or distributing
-GPL-2.0-only `omfiles`, the owner must choose an appropriate repository licence
-and resolve dependency obligations; this plan does not choose on their behalf.
+The repo now has an **MIT LICENSE**, chosen by the owner on 2 October.
+GPL-2.0-only `omfiles` remains an optional ingestion dependency. The repository
+licence does not relicense that dependency; preserve its own licence obligations
+when redistributing software containing it.
 Data licensing is separate: the bulk catalogue declares CC BY 4.0, while the
 UKV upstream listing specifies CC BY-SA. Resolve its redistribution notice
 before activation. Do not copy AGPL server code; consuming files does not
@@ -277,7 +282,7 @@ test every new entry through every accessor and the CLI dry-run path.
 | `tests/fixtures/openmeteo/`, `tests/test_openmeteo_*.py` | Small attributed samples and meaningful behavior tests |
 | `.github/workflows/ingest-openmeteo.yml` | Single-model dispatch and scheduled matrix catch-up |
 
-Planned command, not implemented by this documentation change:
+Implemented command (regional publication remains disabled):
 
 ```sh
 uv run --extra openmeteo ingest weather-arome --cycle YYYYMMDDTHH --dry-run /tmp/arome-tiles
@@ -606,7 +611,7 @@ transpose and all CLI settings. Produce local PFT1 tiles and a benchmark.
 missing wind steps and changed geometry fail clearly; no new-layer `KeyError`;
 numerics and reported resources are reproducible. No production writes yet.
 
-**Done 2026-10-02**, apart from gust semantics:
+**Done 2026-10-02**, including primary-source gust semantics:
 
 - MIT `LICENSE`; `omfiles==1.2.0` in the `openmeteo` extra only, with no
   fsspec/s3fs. Production workflows still run plain `uv sync`, and every
@@ -636,9 +641,9 @@ numerics and reported resources are reproducible. No production writes yet.
   25.0 MB decoded)**, inside the 8 MiB / 32 MiB gates. Peak RSS was 1.3 GB and
   encoding took 30 s. A live wind-only `ingest weather-arome --dry-run` of 09Z
   wrote 48.4 MB in 32 s.
-- Gust is published only when `GustWindows.verified` is set. Until then runs
-  are wind-only and say so in `provenance.capabilities` and `provenance.gust`.
-  The benchmark's `--assume-gust-windows` labels its gust as assumed.
+- Gust remains fail-closed unless `GustWindows.verified` is set. It is now set
+  from sampled +1..6, +13..18 and +49..51 h GRIB messages, all one-hour maxima.
+  A fresh 09Z dry run with verified gust made 28 tiles / 73,281,185 bytes.
 
 ### Phase 2 — ICON-EU dry run
 
@@ -649,16 +654,18 @@ abstraction without a demonstrated incompatibility.
 **Exit:** timestamp-aligned wind/gust through 120 h; unexpected missing data
 rejected without weakening current model thresholds.
 
-**Done 2026-10-02**, apart from the post-+78 h gust window. The same adapter
+**Done 2026-10-02**, including the post-+78 h gust window. The same adapter
 needed no new reader code. ICON-EU 2026-10-02T06Z has 93 wind steps (hourly
 0–78 h, 3-hourly 81–120 h) and 92 gust steps from +1 h, with no missing cell
 at any step. Its 03/09/15/21Z runs stop at +30 h, so only 00/06/12/18Z are
 registered. Terrain confirms the orientation (Etna 2,228 m, Elbrus 3,717 m).
-With gust under its expected 1 h/3 h windows, 10° tiles give **60 tiles and
+The earlier assumed-window benchmark at 10° gave **60 tiles and
 170.3 MB (largest 6.6 MB gz, 28.6 MB decoded)**, inside the gates without
 smaller tiles. Peak RSS was 2.7 GB. A live wind-only dry run wrote 105.6 MB
 in 70 s. Missing data is validated per step over the whole grid at 0.5 %,
-stricter than the 5 % global rule, which is unchanged.
+stricter than the 5 % global rule, which is unchanged. Primary DWD messages at
++1, +2, +78, +81, +84 and +120 h all declare one-hour windows. A fresh 12Z
+dry run with those verified windows made 60 tiles / 169,837,222 bytes.
 
 **Started ahead of Phase 3** (producer side only, dry runs only): a
 per-product `tile_deg` (5 or 10; existing layers keep 10° and
@@ -666,10 +673,8 @@ byte-identical tiles) with explicit `grid-0p025` / `grid-0p0625` path labels;
 `latest-regional.json` with the same compare-and-swap commit; refusal to
 commit a layer to the other pointer; both pointers counted by the storage
 guard, retention's reference recheck and the audit; and a per-model run cap
-(`max_run_bytes`) enforced before upload. Still to do: Passage schemas and
-consumer work, `If-None-Match` creation of regional run objects, the
-`ingest-openmeteo.yml` matrix workflow and dispatcher entries, gust
-verification, browser measurements and production enablement.
+(`max_run_bytes`) enforced before upload. Phase 3 now supplies the coordinated
+consumer/schema and immutable-publication work described below.
 
 ### Phase 3 — Regional pointer, browser delivery and Passage
 
@@ -683,6 +688,20 @@ storage/writes before regional activation.
 **Exit:** root-only briefing behavior is unchanged, regional absence is harmless,
 browser gates pass, conflicts cannot overwrite immutable data and rollback is
 regional-only. Activate AROME and ICON-EU individually through seven-day canaries.
+
+**Engineering implemented 2026-10-02; activation gates remain open.**
+Both repositories support 5°/10° geometry, opt-in catalogues and attribution.
+Regional comparison shares a 20 MiB preflight allowance; explicit exports cap
+transfer at 50 MiB. Decompression/decoded allocations are bounded, regional
+decode is serialized, and transient admission supplements the shared 64 MiB LRU.
+Root defaults and ECMWF run selection pass existing regressions. Immutable
+creation rejects complete/partial conflicts; same-cycle retry never overwrites.
+Fixed reservations count existing upload peaks, three capped regional runs,
+nonreferenced objects and headroom. Unknown capacity refuses before upload.
+The workflow/Worker are disabled by registry and allowlist gates and default to
+the reduced canary cadence. Desktop measurements are recorded in
+[regional-delivery.md](regional-delivery.md); phone and representative combined
+workload checks remain unverified. Seven-day live canaries have not started.
 
 ### Phase 4 — UKV
 
@@ -747,12 +766,11 @@ range/lease work saves effort, but browser work cannot be omitted. Licence
 decisions and access to an R2 trial can add calendar delay. These are estimates,
 not delivery commitments.
 
-This revision checked code for the race, settings, consumer discovery/cache,
-fixed tile geometry, SDK header support and absence of a repository licence.
-Run counts, masks, sizes and timings come from the supplied review; no live
-bulk or R2 trial was rerun here. Preserve that evidence and close the named
-gaps in their implementation phases, without claiming the measurements were
-newly reproduced.
+The original revision used supplied review measurements. The 2 October
+implementation additionally reproduced bulk dry runs, primary gust probes,
+isolated R2 writes and a desktop browser benchmark; these are separately
+recorded in [regional-delivery.md](regional-delivery.md). No physical-phone or
+seven-day canary success is claimed.
 
 Release 1 is complete only when all three models meet their numerical,
 browser, capacity and canary gates; existing seven-layer sources and behavior

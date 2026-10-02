@@ -1,0 +1,91 @@
+name: ingest-openmeteo
+run-name: ingest-openmeteo ${{ inputs.layer || 'catch-up' }} ${{ inputs.cycle || 'latest' }}
+
+on:
+  schedule:
+    - cron: "47 2,8,14,20 * * *"
+  workflow_dispatch:
+    inputs:
+      layer:
+        description: Regional model
+        type: choice
+        options: [weather-arome, weather-icon-eu]
+        default: weather-arome
+      cycle:
+        description: Exact cycle YYYYMMDDTHH (empty chooses latest complete)
+        required: false
+      wait_minutes:
+        description: With an exact cycle, wait within the model's registered window
+        default: "0"
+      dry_run:
+        description: Write scratch tiles only; production requires all activation gates
+        type: boolean
+        default: true
+      canary:
+        description: Restrict AROME to 03/15Z and ICON-EU to 00/12Z
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+      - run: uv sync
+      - id: matrix
+        run: uv run python scripts/openmeteo_matrix.py
+        env:
+          EVENT: ${{ github.event_name }}
+          LAYER: ${{ inputs.layer }}
+          CYCLE: ${{ inputs.cycle }}
+          WAIT: ${{ inputs.wait_minutes }}
+          DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+          OPENMETEO_CANARY: ${{ (github.event_name != 'workflow_dispatch' && vars.OPENMETEO_FULL_CADENCE != 'true' || inputs.canary) && 'true' || 'false' }}
+          OPENMETEO_ENABLED_LAYERS: ${{ vars.OPENMETEO_ENABLED_LAYERS }}
+  ingest:
+    needs: plan
+    if: needs.plan.outputs.matrix != '[]'
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    concurrency:
+      group: ingest-${{ matrix.layer }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: '3.13'
+      - run: uv sync --extra openmeteo
+      - run: |
+          args=("$LAYER")
+          if [[ -n "$CYCLE" ]]; then args+=(--cycle "$CYCLE" --wait-minutes "$WAIT"); fi
+          if [[ "$DRY_RUN" == true ]]; then args+=(--dry-run "$RUNNER_TEMP/regional"); fi
+          uv run ingest "${args[@]}"
+        env:
+          LAYER: ${{ matrix.layer }}
+          CYCLE: ${{ matrix.cycle }}
+          WAIT: ${{ matrix.wait_minutes }}
+          DRY_RUN: ${{ matrix.dry_run }}
+          OPENMETEO_CANARY: ${{ matrix.canary && 'true' || 'false' }}
+          PYTHONUNBUFFERED: "1"
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          REGIONAL_ENABLED_LAYERS: ${{ vars.OPENMETEO_ENABLED_LAYERS }}
+          REGIONAL_EXISTING_PEAK_BYTES: ${{ vars.REGIONAL_EXISTING_PEAK_BYTES }}
+          REGIONAL_HEADROOM_BYTES: ${{ vars.REGIONAL_HEADROOM_BYTES }}

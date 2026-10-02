@@ -177,7 +177,7 @@ column at the end of the western tile. IBI keeps the provider's own regular
 
 ### Regional layers (dry runs only)
 
-Phases 1 and 2 of the [Open-Meteo bulk plan](docs/open-meteo-bulk-implementation-plan.md)
+Phases 1–3 of the [Open-Meteo bulk plan](docs/open-meteo-bulk-implementation-plan.md)
 add regional deterministic models from Open-Meteo's public AWS files
 (`src/ingest/sources/openmeteo/`). Each run is three whole `.om` files from a
 complete `data_run/` cycle, decoded locally with `omfiles` (the optional
@@ -192,9 +192,9 @@ yet, so the CLI accepts them only with `--dry-run`. They publish to their own
 
 Both publish `wind_u_kt` / `wind_v_kt` with the global layers' int16
 encoding. Gust (`gust_kt`, a maximum with a per-step `statistic` window,
-missing at +0 h) is added only once the registry marks its window verified
-from the upstream GRIB (`scripts/probe_openmeteo.py gust-window`); until then
-runs are wind-only, as their provenance says. AROME covers only part of its
+missing at +0 h) now has verified **one-hour windows for both models**, including
+ICON-EU's three-hourly output after +78 h. Primary GRIB records are saved in
+`tests/fixtures/openmeteo/gust-windows/`. AROME covers only part of its
 rectangle (17.18 % of cells are always missing), so it is validated per step
 inside a registered footprint, not by the global 5 % rule.
 
@@ -207,8 +207,20 @@ Measured 2026-10-02 with `uv run scripts/probe_openmeteo.py benchmark LAYER
 | AROME 2026-10-02T03Z | 55.7 MB | 11 tiles, 74.2 / 19.6 / 99.8 MB | 28 tiles, 73.9 / 5.2 / 25.0 MB | 1.3 GB |
 | ICON-EU 2026-10-02T06Z | 121.7 MB | 60 tiles, 170.3 / 6.6 / 28.6 MB | 180 tiles, 162.1 / 1.8 / 7.1 MB | 2.7 GB |
 
-Wind-only dry runs of AROME 09Z and ICON-EU 06Z wrote 48.4 MB (28 tiles) and
-105.6 MB (60 tiles).
+Earlier wind-only dry runs of AROME 09Z and ICON-EU 06Z wrote 48.4 MB (28 tiles)
+and 105.6 MB (60 tiles). Fresh verified-gust AROME 09Z / ICON-EU 12Z runs wrote
+73.3 / 169.8 MB in 28 / 60 tiles. Coordinated Passage support, browser
+admission, immutable regional creation, capacity reservations, scheduling and
+regional-only disable/rollback are implemented. Production remains disabled:
+see [regional delivery evidence and activation gates](docs/regional-delivery.md).
+
+The `ingest-openmeteo` workflow normalizes manual and scheduled catch-up jobs
+into per-layer concurrency groups; manual dry runs default on. The Worker has
+AROME/ICON-EU entries but `REGIONAL_MODELS` is empty, so current dispatches are
+unchanged. When individually activated, default canary profiles select AROME
+03/15Z and ICON-EU 00/12Z. Full cadence needs both the GitHub
+`OPENMETEO_FULL_CADENCE` variable and Worker `REGIONAL_FULL_CADENCE` setting.
+Maintainer deployment and the plan's seven-day gates are still required.
 
 ## Dispatcher
 

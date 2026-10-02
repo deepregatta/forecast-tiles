@@ -275,9 +275,9 @@ def cmd_gust_window(args) -> int:
     found = []
     if p.domain == "meteofrance_arome_france0025":
         run = f"{cycle:%Y-%m-%dT%H:%M}:00Z"
-        for group in ("00H06H", "49H51H"):
+        for group in args.arome_groups:
             url = (
-                f"https://object.data.gouv.fr/meteofrance-pnt/pnt/{run}/arome/0025/SP1/"
+                f"https://meteofrance-pnt.s3.rbx.io.cloud.ovh.net/pnt/{run}/arome/0025/SP1/"
                 f"arome__0025__SP1__{group}__{run}.grib2"
             )
             print(f"GET {url}")
@@ -286,7 +286,7 @@ def cmd_gust_window(args) -> int:
                 for msg in _grib_messages(r, limit_bytes=400 << 20):
                     d = _describe(msg)
                     if "fg" in d.get("shortName", "") or "gust" in d.get("name", "").lower():
-                        found.append(d)
+                        found.append(d | {"url": url, "etag": r.headers.get("ETag")})
                         print(json.dumps(d))
     elif p.domain == "dwd_icon_eu":
         for step in (1, 2, 78, 81, 84, 120):
@@ -299,12 +299,25 @@ def cmd_gust_window(args) -> int:
             r = SESSION.get(url, timeout=(10, 300))
             r.raise_for_status()
             d = _describe(bz2.decompress(r.content)) | {"lead_h": step}
-            found.append(d)
+            found.append(d | {"url": url, "etag": r.headers.get("ETag")})
             print(json.dumps(d))
     else:
         print(f"no upstream gust check for {p.domain}")
         return 2
     print(f"registered: {p.gust_windows}")
+    if args.output:
+        Path(args.output).write_text(
+            json.dumps(
+                {
+                    "layer": p.layer,
+                    "cycle": f"{cycle:%Y-%m-%dT%HZ}",
+                    "attribution": p.attribution,
+                    "messages": found,
+                },
+                indent=1,
+            )
+            + "\n"
+        )
     return 0 if found else 1
 
 
@@ -412,6 +425,13 @@ def main(argv: list[str] | None = None) -> int:
     s = sub.add_parser("gust-window")
     s.add_argument("layer")
     s.add_argument("--cycle")
+    s.add_argument(
+        "--arome-groups",
+        nargs="+",
+        default=["00H06H", "49H51H"],
+        help="SP1 groups still retained for the exact upstream AROME cycle",
+    )
+    s.add_argument("--output", help="save attributed GRIB interval metadata as JSON")
     s = sub.add_parser("fixture")
     s.add_argument("layer")
     s.add_argument("--cycle", required=True)

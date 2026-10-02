@@ -175,7 +175,9 @@ def test_gust_is_aligned_by_timestamp_with_a_missing_zero_hour():
 
 
 def test_an_unverified_gust_window_gives_a_wind_only_run():
-    p = crop_product("arome-alps")
+    p = crop_product(
+        "arome-alps", gust_windows=replace(registry.AROME.gust_windows, verified=False)
+    )
     assert not p.gust_windows.verified
     cube = cube_from_fixture("arome-alps", p)
     assert [v.name for v in cube.variables] == ["wind_u_kt", "wind_v_kt"]
@@ -305,7 +307,7 @@ def test_icon_eu_steps_switch_to_three_hourly_after_78_h():
     source = raw("icon-eu-norway", "gust", p)
     np.testing.assert_allclose(gust[79], source[..., 78] * MS_TO_KT, rtol=1e-6)  # +81 h
     windows = cube.var("gust_kt").statistic.window_h
-    assert windows[0] is None and windows[78] == 1 and windows[79] == 3
+    assert windows[0] is None and windows[78] == 1 and windows[79] == 1
     report = adapter.validate(p, cube)
     assert report.ok, report.summary()
     assert "interior_missing[gust_kt]" in report.checks_passed
@@ -368,7 +370,14 @@ def install(monkeypatch, tmp_path, name, product):
 
 def test_cli_dry_run_writes_a_regional_run_beside_the_root_catalogue(tmp_path, monkeypatch, capsys):
     out = tmp_path / "out"
-    p, _ = with_footprint("arome-edge", crop_product("arome-edge"), tmp_path / "fp", monkeypatch)
+    p, _ = with_footprint(
+        "arome-edge",
+        crop_product(
+            "arome-edge", gust_windows=replace(registry.AROME.gust_windows, verified=False)
+        ),
+        tmp_path / "fp",
+        monkeypatch,
+    )
     bucket = install(monkeypatch, tmp_path, "arome-edge", p)
 
     rc = cli.main(["weather-arome", "--cycle", "20261002T03", "--dry-run", str(out)])

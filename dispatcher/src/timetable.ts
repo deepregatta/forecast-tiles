@@ -15,7 +15,11 @@ export type Layer =
   | 'weather-ecmwf'
   | 'weather-ecmwf-short'
   | 'currents'
-  | 'currents-ibi';
+  | 'currents-ibi'
+  | 'weather-arome'
+  | 'weather-icon-eu';
+
+export const REGIONAL_LAYERS = ['weather-arome', 'weather-icon-eu'] as const;
 
 export interface TimetableEntry {
   layer: Layer;
@@ -47,6 +51,13 @@ export const TIMETABLE: readonly TimetableEntry[] = [
   { layer: 'currents', hours: [5], minute: 45, lagMinutes: h(5, 45), waitMinutes: 240 },
   // Copernicus IBI finished at 09:54 to 11:36 (24-29 Sep): that day's 00Z
   { layer: 'currents-ibi', hours: [9], minute: 45, lagMinutes: h(9, 45), waitMinutes: 180 },
+  // Open-Meteo bulk completion samples, 24 Sep–2 Oct. Disabled unless
+  // REGIONAL_MODELS names the model; each AROME cycle has its own delay.
+  { layer: 'weather-arome', hours: [5], minute: 45, lagMinutes: h(2, 45), waitMinutes: 90 },
+  { layer: 'weather-arome', hours: [13], minute: 15, lagMinutes: h(4, 15), waitMinutes: 90 },
+  { layer: 'weather-arome', hours: [18], minute: 45, lagMinutes: h(3, 45), waitMinutes: 90 },
+  { layer: 'weather-arome', hours: [1], minute: 15, lagMinutes: h(4, 15), waitMinutes: 90 },
+  { layer: 'weather-icon-eu', hours: [3, 9, 15, 21], minute: 25, lagMinutes: h(3, 25), waitMinutes: 45 },
 ];
 
 export interface Dispatch {
@@ -106,7 +117,8 @@ export function dueAt(scheduledTime: number): Dispatch[] {
   if (slot === null) return [];
   return entriesAt(slot).map((entry) => ({
     layer: entry.layer,
-    workflow: `ingest-${entry.layer}.yml`,
+    workflow: (REGIONAL_LAYERS as readonly string[]).includes(entry.layer)
+      ? 'ingest-openmeteo.yml' : `ingest-${entry.layer}.yml`,
     cycle: cycleId(slot - entry.lagMinutes * MINUTE_MS),
     waitMinutes: entry.waitMinutes,
   }));

@@ -11,6 +11,7 @@ import gzip
 import numpy as np
 
 from ingest.cube import ForecastCube, GridMeta, utcnow_iso
+from ingest.sources.openmeteo.registry import is_regional
 from tilekit.codec import DTYPES, encode_tile
 from tilekit.tiles import TILE_DEG, tile_id, tiles_for_grid
 
@@ -41,7 +42,21 @@ def _has_data(arr: np.ndarray, dtype: str) -> bool:
 
 def build_tiles(cube: ForecastCube, *, generated_at: str | None = None) -> list[tuple[str, bytes]]:
     """Encode every non-empty tile of the cube; returns (tile_id, gzipped PFT1)."""
-    generated_at = generated_at or utcnow_iso()
+    regional = is_regional(cube.layer)
+    generated_at = generated_at or (
+        cube.cycle.strftime("%Y-%m-%dT%H:%M:%SZ") if regional else utcnow_iso()
+    )
+    # Source inventories live once in the manifest. Stable tile provenance
+    # also keeps diagnostic hashes identical across retries of the same run.
+    provenance = (
+        {
+            k: v
+            for k, v in cube.provenance.items()
+            if k not in ("meta", "source_objects", "fetched_at")
+        }
+        if regional
+        else cube.provenance
+    )
     base_header = {
         "spec": "PFT1",
         "schema_version": 1,
@@ -54,7 +69,7 @@ def build_tiles(cube: ForecastCube, *, generated_at: str | None = None) -> list[
         "dlon": cube.grid.dlon,
         "member_count": cube.member_count,
         "time_axes": cube.header_time_axes(),
-        "provenance": cube.provenance,
+        "provenance": provenance,
     }
     variables = [v.public() for v in cube.variables]
 

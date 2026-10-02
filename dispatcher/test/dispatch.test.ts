@@ -45,6 +45,36 @@ const dispatched = (id = 18_000_000_001) =>
   });
 const live: Env = { DRY_RUN: 'false', GITHUB_TOKEN: 'test-token' };
 
+describe('regional activation', () => {
+  it('restricts enabled models to canary cycles until full cadence is explicit', async () => {
+    const { deps, calls } = github();
+    await runScheduled(Date.parse('2026-10-02T13:15:00Z'), { ...live, REGIONAL_MODELS: 'weather-arome' }, deps);
+    expect(calls).toHaveLength(0);
+    const full = github(dispatched());
+    await runScheduled(Date.parse('2026-10-02T13:15:00Z'), {
+      ...live, REGIONAL_MODELS: 'weather-arome', REGIONAL_FULL_CADENCE: 'true',
+    }, full.deps);
+    expect(full.calls).toHaveLength(1);
+    expect(full.calls[0]!.body).toMatchObject({inputs: {cycle: '20261002T09', canary: 'false'}});
+  });
+
+  it('defaults to no regional dispatch even at a shared slot', async () => {
+    const { deps, calls } = github(dispatched());
+    await runScheduled(Date.parse('2026-10-02T05:45:00Z'), live, deps);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.url).toContain('ingest-currents.yml/dispatches');
+  });
+
+  it('dispatches every enabled entry at a shared slot and includes the model input', async () => {
+    const { deps, calls } = github(dispatched(), dispatched());
+    await runScheduled(Date.parse('2026-10-02T05:45:00Z'), { ...live, REGIONAL_MODELS: 'weather-arome' }, deps);
+    expect(calls).toHaveLength(2);
+    expect(calls[1]!.url).toContain('ingest-openmeteo.yml/dispatches');
+    expect(calls[1]!.body).toEqual({ref: 'main', inputs: {layer: 'weather-arome', cycle: '20261002T03',
+      wait_minutes: '90', dry_run: 'false', canary: 'true'}, return_run_details: true});
+  });
+});
+
 describe('dry run', () => {
   it('logs the dispatch it would make and contacts nothing', async () => {
     const { deps, calls, lines } = github();

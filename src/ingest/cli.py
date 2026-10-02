@@ -341,6 +341,8 @@ def main(
     if args.wait_minutes < 0:
         parser.error("--wait-minutes must be 0 or more")
     regional = registry.product(args.layer) if registry.is_regional(args.layer) else None
+    if regional and args.force:
+        parser.error("--force is unsupported for immutable regional runs; use a new cycle")
     if regional and not args.dry_run and not regional.production_enabled:
         print(
             f"ingest {args.layer}: not enabled for publication yet; use --dry-run DIR "

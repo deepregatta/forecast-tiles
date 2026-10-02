@@ -75,7 +75,7 @@ describe('dueAt', () => {
       expect(slot).toBe(t);
       slots.add(slot);
     }
-    expect(slots.size).toBe(16);
+    expect(slots.size).toBe(23);
   });
 
   it('has nothing due between slots, as most */5 ticks', () => {
@@ -84,10 +84,11 @@ describe('dueAt', () => {
     }
   });
 
-  it('fires 16 times a day for 18 dispatches, always on a cycle the layer has', () => {
+  it('fires 23 times for 26 dispatches, always on a registered cycle', () => {
     const cycleHours: Record<string, number[]> = {
       weather: [0, 6, 12, 18], waves: [0, 6, 12, 18], ensemble: [0, 6, 12, 18],
       'weather-ecmwf': [0, 12], 'weather-ecmwf-short': [6, 18], currents: [0], 'currents-ibi': [0],
+      'weather-arome': [3, 9, 15, 21], 'weather-icon-eu': [0, 6, 12, 18],
     };
     let fires = 0;
     const dispatched: Record<string, number> = {};
@@ -102,11 +103,35 @@ describe('dueAt', () => {
         expect(cycleHours[dispatch.layer]).toContain(Number(dispatch.cycle.slice(9)));
       }
     }
-    expect(fires).toBe(16);
+    expect(fires).toBe(23);
     // every provider cycle once a day
     expect(dispatched).toEqual(Object.fromEntries(
       Object.entries(cycleHours).map(([layer, hours]) => [layer, hours.length]),
     ));
+  });
+
+  it.each([
+    ['2026-10-02T05:45:00Z', 'weather-arome', '20261002T03', 90],
+    ['2026-10-02T13:15:00Z', 'weather-arome', '20261002T09', 90],
+    ['2026-10-02T18:45:00Z', 'weather-arome', '20261002T15', 90],
+    ['2027-01-01T01:18:59Z', 'weather-arome', '20261231T21', 90],
+    ['2026-10-02T03:25:00Z', 'weather-icon-eu', '20261002T00', 45],
+    ['2026-10-02T09:25:00Z', 'weather-icon-eu', '20261002T06', 45],
+    ['2026-10-02T15:25:00Z', 'weather-icon-eu', '20261002T12', 45],
+    ['2026-10-02T21:25:00Z', 'weather-icon-eu', '20261002T18', 45],
+  ])('regional %s dispatches %s with exact cycle %s', (slot, layer, cycle, waitMinutes) => {
+    expect(dueAt(at(slot))).toContainEqual({ layer, workflow: 'ingest-openmeteo.yml', cycle, waitMinutes });
+  });
+
+  it('preserves every existing dispatch across a full day and late fires', () => {
+    const root = TIMETABLE.filter(entry => !['weather-arome', 'weather-icon-eu'].includes(entry.layer));
+    for (const entry of root) for (const hour of entry.hours) {
+      const slot = at('2026-10-02T00:00:00Z') + (hour * 60 + entry.minute) * 60_000;
+      const expected = dueAt(slot).filter(d => !d.layer.startsWith('weather-arome') && d.layer !== 'weather-icon-eu');
+      expect(expected).toContainEqual({ layer: entry.layer, workflow: `ingest-${entry.layer}.yml`,
+        cycle: cycleId(slot - entry.lagMinutes * 60_000), waitMinutes: entry.waitMinutes });
+      expect(dueAt(slot + 299_999).filter(d => !['weather-arome', 'weather-icon-eu'].includes(d.layer))).toEqual(expected);
+    }
   });
 
   it('formats cycles as the ingest --cycle argument', () => {

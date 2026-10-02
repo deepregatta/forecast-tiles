@@ -2,7 +2,9 @@
 separate latest-regional.json pointer counted with the root one."""
 
 import json
+import gzip
 import random
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -11,15 +13,18 @@ from test_publish import FakeStore, seed_run
 
 from ingest.publish import (
     PublishError,
+    PreconditionFailed,
     StorageGuardError,
     check_storage_guard,
     publish_run,
     referenced_run_ids,
+    commit_layer_entry,
 )
 from ingest.sources.openmeteo import grids, registry
 from ingest.tile import build_tiles, tile_index_ranges
 from ingest.validate import validate_cube
 from tilekit.tiles import tile_id, tile_origin, tiles_for_grid
+from tilekit.codec import decode_tile
 
 
 @pytest.mark.parametrize("tile_deg, count", [(10, 12), (5, 35)])
@@ -118,3 +123,82 @@ def test_the_storage_guard_and_references_count_both_pointers():
     with pytest.raises(StorageGuardError):
         check_storage_guard(store, "ensemble", 5000, 20_000)
     assert referenced_run_ids(store) == {"weather-20260712T06Z", "weather-arome-20260712T03Z"}
+
+
+def test_regional_tiles_are_stable_and_inventory_is_only_in_the_manifest():
+    cube = regional_cube()
+    cube.provenance = {"source_digest": "abc", "source_objects": ["inventory"], "fetched_at": "one"}
+    first = build_tiles(cube)
+    cube.provenance["fetched_at"] = "two"
+    assert build_tiles(cube) == first
+    header = decode_tile(gzip.decompress(first[0][1])).header
+    assert header["generated_at"] == cube.cycle.strftime("%Y-%m-%dT%H:%M:%SZ")
+    assert header["provenance"] == {"source_digest": "abc"}
+
+
+@pytest.mark.parametrize("complete", [False, True])
+def test_regional_retry_never_overwrites_a_partial_or_complete_run(complete):
+    cube = regional_cube()
+    tiles, report = build_tiles(cube), validate_cube(cube)
+    store = FakeStore()
+    if complete:
+        publish_run(store, cube, tiles, report)
+    else:
+        tid, data = tiles[0]
+        store.objects[f"forecast-runs/{cube.run_id}/weather-arome/grid-0p025/{tid}.bin.gz"] = data
+    before = dict(store.objects)
+    with pytest.raises(PreconditionFailed):
+        publish_run(store, cube, tiles, report)
+    assert store.objects == before
+    assert not any(op == "delete" for op, _ in store.ops)
+
+
+def test_direct_pointer_commit_cannot_bypass_layer_ownership():
+    store = FakeStore()
+    with pytest.raises(PublishError, match="belongs in latest-regional.json"):
+        commit_layer_entry(store, "weather-arome", {}, pointer_key="latest.json")
+    assert not store.ops
+
+
+def test_an_existing_manifest_prevents_even_missing_tile_repairs():
+    cube = regional_cube()
+    store = FakeStore()
+    store.objects[f"forecast-runs/{cube.run_id}/manifest.json"] = b"existing"
+    with pytest.raises(PreconditionFailed, match="nothing uploaded"):
+        publish_run(store, cube, build_tiles(cube), validate_cube(cube))
+    assert not any(op == "put" for op, _ in store.ops)
+
+
+def test_duplicate_catalogue_ownership_aborts_before_upload():
+    cube = regional_cube()
+    store = FakeStore()
+    store.objects["latest.json"] = b'{"layers":{"weather-arome":{}}}'
+    with pytest.raises(PublishError, match="duplicate catalogue ownership"):
+        publish_run(store, cube, build_tiles(cube), validate_cube(cube))
+    assert not any(op == "put" for op, _ in store.ops)
+
+
+def test_regional_manifest_and_pointer_match_the_coordinated_schemas():
+    import jsonschema
+
+    cube = regional_cube()
+    store = FakeStore()
+    publish_run(store, cube, build_tiles(cube), validate_cube(cube))
+    contracts = Path(__file__).parents[1] / "contracts"
+    for key, schema_name in (
+        (f"forecast-runs/{cube.run_id}/manifest.json", "forecast-manifest.schema.json"),
+        ("latest-regional.json", "forecast-latest-regional.schema.json"),
+    ):
+        jsonschema.validate(
+            json.loads(store.objects[key]), json.loads((contracts / schema_name).read_text())
+        )
+    manifest = json.loads(store.objects[f"forecast-runs/{cube.run_id}/manifest.json"])
+    for tid, sizes in manifest["tiles"].items():
+        raw = gzip.decompress(
+            store.objects[
+                f"forecast-runs/{cube.run_id}/"
+                + manifest["tiling"]["path_template"].format(tile_id=tid)
+            ]
+        )
+        assert len(raw) == sizes["uncompressed_bytes"]
+        assert sum(a.nbytes for a in decode_tile(raw).arrays.values()) == sizes["decoded_bytes"]

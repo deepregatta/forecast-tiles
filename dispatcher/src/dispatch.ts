@@ -5,7 +5,7 @@
  * already published.
  */
 
-import { dueAt, MAX_LATE_MINUTES, slotAt, type Dispatch } from './timetable.js';
+import { dueAt, MAX_LATE_MINUTES, REGIONAL_LAYERS, slotAt, type Dispatch } from './timetable.js';
 
 export const REPO = 'deepregatta/forecast-tiles';
 export const REF = 'main';
@@ -16,6 +16,10 @@ export interface Env {
   GITHUB_TOKEN?: string;
   /** Anything but the exact string "false" logs instead of dispatching. */
   DRY_RUN?: string;
+  /** Comma-separated regional model allowlist. Empty disables all regionals. */
+  REGIONAL_MODELS?: string;
+  /** Only "true" enables four cycles; otherwise use the two-cycle canary. */
+  REGIONAL_FULL_CADENCE?: string;
 }
 
 export interface Deps {
@@ -56,7 +60,18 @@ export async function runScheduled(
     deps.error(message);
     throw new DispatchError(message);
   }
-  const due = dueAt(scheduledTime);
+  const enabled = new Set((env.REGIONAL_MODELS ?? '').split(',').filter(Boolean));
+  for (const layer of enabled) {
+    if (!(REGIONAL_LAYERS as readonly string[]).includes(layer)) {
+      throw new DispatchError(`unknown REGIONAL_MODELS layer: ${layer}`);
+    }
+  }
+  const due = dueAt(scheduledTime).filter(dispatch => {
+    if (!(REGIONAL_LAYERS as readonly string[]).includes(dispatch.layer)) return true;
+    const canaryHours = dispatch.layer === 'weather-arome' ? ['03', '15'] : ['00', '12'];
+    return enabled.has(dispatch.layer) && (env.REGIONAL_FULL_CADENCE === 'true' ||
+      canaryHours.includes(dispatch.cycle.slice(-2)));
+  });
   const dryRun = env.DRY_RUN !== 'false';
   const failed: string[] = [];
   for (const dispatch of due) {
@@ -121,7 +136,12 @@ export async function dispatchWorkflow(dispatch: Dispatch, env: Env, deps: Deps)
     headers: { ...headers(token), 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ref: REF,
-      inputs: { cycle: dispatch.cycle, wait_minutes: String(dispatch.waitMinutes) },
+      inputs: {
+        cycle: dispatch.cycle, wait_minutes: String(dispatch.waitMinutes),
+        ...(dispatch.workflow === 'ingest-openmeteo.yml' ? {
+          layer: dispatch.layer, dry_run: 'false', canary: env.REGIONAL_FULL_CADENCE === 'true' ? 'false' : 'true',
+        } : {}),
+      },
       // Without it GitHub answers 204 and no run id (the first live
       // dispatch, 2026-10-01 07:20); with it, 200 and the run.
       return_run_details: true,

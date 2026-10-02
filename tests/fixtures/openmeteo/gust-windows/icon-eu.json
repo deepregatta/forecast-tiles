@@ -1,0 +1,91 @@
+{
+ "layer": "weather-icon-eu",
+ "cycle": "2026-10-02T06Z",
+ "attribution": "Deutscher Wetterdienst ICON-EU via Open-Meteo (CC BY 4.0)",
+ "messages": [
+  {
+   "shortName": "max_i10fg",
+   "name": "Time-maximum 10 metre wind gust",
+   "stepType": "max",
+   "stepRange": "0-1",
+   "startStep": "0",
+   "endStep": "1",
+   "typeOfStatisticalProcessing": "max",
+   "lengthOfTimeRange": "60",
+   "indicatorOfUnitForTimeRange": "m",
+   "lead_h": 1,
+   "url": "https://opendata.dwd.de/weather/nwp/icon-eu/grib/06/vmax_10m/icon-eu_europe_regular-lat-lon_single-level_2026100206_001_VMAX_10M.grib2.bz2",
+   "etag": "\"6abf6eef-12549c\""
+  },
+  {
+   "shortName": "max_i10fg",
+   "name": "Time-maximum 10 metre wind gust",
+   "stepType": "max",
+   "stepRange": "1-2",
+   "startStep": "1",
+   "endStep": "2",
+   "typeOfStatisticalProcessing": "max",
+   "lengthOfTimeRange": "60",
+   "indicatorOfUnitForTimeRange": "m",
+   "lead_h": 2,
+   "url": "https://opendata.dwd.de/weather/nwp/icon-eu/grib/06/vmax_10m/icon-eu_europe_regular-lat-lon_single-level_2026100206_002_VMAX_10M.grib2.bz2",
+   "etag": "\"6abf6f0d-126355\""
+  },
+  {
+   "shortName": "max_i10fg",
+   "name": "Time-maximum 10 metre wind gust",
+   "stepType": "max",
+   "stepRange": "77-78",
+   "startStep": "77",
+   "endStep": "78",
+   "typeOfStatisticalProcessing": "max",
+   "lengthOfTimeRange": "60",
+   "indicatorOfUnitForTimeRange": "m",
+   "lead_h": 78,
+   "url": "https://opendata.dwd.de/weather/nwp/icon-eu/grib/06/vmax_10m/icon-eu_europe_regular-lat-lon_single-level_2026100206_078_VMAX_10M.grib2.bz2",
+   "etag": "\"6abf79cf-121931\""
+  },
+  {
+   "shortName": "max_i10fg",
+   "name": "Time-maximum 10 metre wind gust",
+   "stepType": "max",
+   "stepRange": "80-81",
+   "startStep": "80",
+   "endStep": "81",
+   "typeOfStatisticalProcessing": "max",
+   "lengthOfTimeRange": "60",
+   "indicatorOfUnitForTimeRange": "m",
+   "lead_h": 81,
+   "url": "https://opendata.dwd.de/weather/nwp/icon-eu/grib/06/vmax_10m/icon-eu_europe_regular-lat-lon_single-level_2026100206_081_VMAX_10M.grib2.bz2",
+   "etag": "\"6abf79ef-120bc8\""
+  },
+  {
+   "shortName": "max_i10fg",
+   "name": "Time-maximum 10 metre wind gust",
+   "stepType": "max",
+   "stepRange": "83-84",
+   "startStep": "83",
+   "endStep": "84",
+   "typeOfStatisticalProcessing": "max",
+   "lengthOfTimeRange": "60",
+   "indicatorOfUnitForTimeRange": "m",
+   "lead_h": 84,
+   "url": "https://opendata.dwd.de/weather/nwp/icon-eu/grib/06/vmax_10m/icon-eu_europe_regular-lat-lon_single-level_2026100206_084_VMAX_10M.grib2.bz2",
+   "etag": "\"6abf7a0d-12241b\""
+  },
+  {
+   "shortName": "max_i10fg",
+   "name": "Time-maximum 10 metre wind gust",
+   "stepType": "max",
+   "stepRange": "119-120",
+   "startStep": "119",
+   "endStep": "120",
+   "typeOfStatisticalProcessing": "max",
+   "lengthOfTimeRange": "60",
+   "indicatorOfUnitForTimeRange": "m",
+   "lead_h": 120,
+   "url": "https://opendata.dwd.de/weather/nwp/icon-eu/grib/06/vmax_10m/icon-eu_europe_regular-lat-lon_single-level_2026100206_120_VMAX_10M.grib2.bz2",
+   "etag": "\"6abf7beb-12503d\""
+  }
+ ]
+}

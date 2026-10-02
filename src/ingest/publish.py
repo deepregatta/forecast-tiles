@@ -34,11 +34,13 @@ from __future__ import annotations
 import fcntl
 import gzip
 import hashlib
+import io
 import json
 import os
 import random
 import re
 import time
+import struct
 import uuid
 from collections.abc import Callable
 from contextlib import contextmanager
@@ -450,6 +452,13 @@ def pointer_key_for(layer: str) -> str:
     return REGIONAL_KEY if registry.is_regional(layer) else LATEST_KEY
 
 
+def check_pointer_ownership(store, layer: str, pointer_key: str) -> None:
+    """A layer cannot be named by both catalogues, even after a manual edit."""
+    for key in POINTER_KEYS:
+        if key != pointer_key and layer in (_get_json(store, key) or {}).get("layers", {}):
+            raise PublishError(f"{layer}: duplicate catalogue ownership in {key} and {pointer_key}")
+
+
 def check_storage_guard(
     store, layer: str, new_run_bytes: int, max_bucket_bytes: int
 ) -> dict[str, int]:
@@ -486,7 +495,24 @@ def build_manifest(
     validated_at: str,
 ) -> dict:
     tile_map = {tid: {"bytes": len(gz), "fnv64": fnv64(gz)} for tid, gz in tiles}
-    return {
+    regional = pointer_key_for(cube.layer) == REGIONAL_KEY
+    if regional:
+        for tid, gz in tiles:
+            with gzip.GzipFile(fileobj=io.BytesIO(gz)) as stream:
+                prefix = stream.read(8)
+                header_len = struct.unpack("<I", prefix[4:8])[0]
+                header = json.loads(stream.read(header_len))
+            decoded = sum(
+                var["byte_length"] // (2 if var["dtype"] == "i16" else 1) * 4
+                for var in header["variables"]
+            )
+            inflated = (8 + header_len + 3) // 4 * 4 + sum(
+                (var["byte_length"] + 3) // 4 * 4 for var in header["variables"]
+            )
+            tile_map[tid].update(decoded_bytes=decoded, uncompressed_bytes=inflated)
+            if len(gz) > 8 << 20 or decoded > 32 << 20:
+                raise PublishError(f"{tid}: exceeds regional browser tile budgets (8/32 MiB)")
+    manifest = {
         "schema_version": 1,
         "run_id": cube.run_id,
         "layer": cube.layer,
@@ -512,6 +538,34 @@ def build_manifest(
         "provenance": cube.provenance,
         "published_at": published_at,
     }
+    if regional:
+        from ingest.sources.openmeteo.registry import product
+
+        p = product(cube.layer)
+        manifest.update(
+            coverage={
+                "minLat": cube.grid.lat0,
+                "maxLat": float(cube.grid.lats()[-1]),
+                "minLon": cube.grid.lon0,
+                "maxLon": float(cube.grid.lons()[-1]),
+            },
+            served_grid={
+                "lat0": cube.grid.lat0,
+                "lon0": cube.grid.lon0,
+                "dlat": cube.grid.dlat,
+                "dlon": cube.grid.dlon,
+                "nlat": cube.grid.nlat,
+                "nlon": cube.grid.nlon,
+            },
+            capabilities=cube.provenance.get("capabilities", ["wind"]),
+            attribution=cube.provenance.get("attribution", p.attribution),
+            schedule={
+                "cycles_utc": list(p.cycles),
+                "lag_minutes": {str(hour): lag for hour, lag in p.lag_minutes.items()},
+                "wait_minutes": p.wait_minutes,
+            },
+        )
+    return manifest
 
 
 def _post_publish_check(store, run_id: str, manifest: dict, rng: random.Random) -> None:
@@ -572,12 +626,16 @@ def commit_layer_entry(
     which finds this exact entry if the write landed. Returns once the commit
     is confirmed; raises StalePublishError or PointerConflictError otherwise,
     and then the caller must not prune anything."""
+    expected_pointer = pointer_key_for(layer)
+    if pointer_key != expected_pointer:
+        raise PublishError(f"{layer} belongs in {expected_pointer}, not {pointer_key}")
     rng = rng or random.Random()
     outcome = ""
     for attempt in range(1, attempts + 1):
         raw, etag = store.get_with_etag(pointer_key)
         doc = json.loads(raw) if raw is not None else None
         layers = (doc or {}).get("layers", {})
+        check_pointer_ownership(store, layer, pointer_key)
         current = layers.get(layer)
         if _same_commit(current, entry):
             return CommitResult(current.get("previous_run_id"), attempt, recovered=True)
@@ -720,6 +778,7 @@ def publish_run(
     t0 = started_at if started_at is not None else time.time()
     rng = rng or random.Random()
     run_id = cube.run_id
+    regional = pointer_key == REGIONAL_KEY
     published_at = utcnow_iso()
     manifest = build_manifest(
         cube, tiles, report, published_at=published_at, validated_at=published_at
@@ -727,8 +786,26 @@ def publish_run(
 
     # 1. an older cycle than the pointer's, and the storage guard: before any upload
     current = published_layer(store, cube.layer, pointer_key)
+    check_pointer_ownership(store, cube.layer, pointer_key)
     check_not_older(cube.layer, current, cube.cycle_iso, pointer_key)
+    if regional and store.get(f"forecast-runs/{run_id}/manifest.json") is not None:
+        raise PreconditionFailed(f"{run_id}: immutable manifest already exists; nothing uploaded")
     check_storage_guard(store, cube.layer, manifest["totals"]["bytes"], max_bucket_bytes)
+    if regional:
+        from ingest.sources.openmeteo.registry import product
+
+        run_bytes = manifest["totals"]["bytes"] + len(json_bytes(manifest))
+        if run_bytes > product(cube.layer).max_run_bytes:
+            raise StorageGuardError(f"{cube.layer}: compressed run exceeds its registered cap")
+        if isinstance(store, S3Store):
+            from ingest.capacity import RegionalAllocation, check_regional_capacity
+
+            check_regional_capacity(
+                store,
+                run_bytes,
+                max_bucket_bytes,
+                RegionalAllocation.from_env(cube.layer),
+            )
 
     # 2. tiles under the immutable run id
     template = manifest["tiling"]["path_template"]
@@ -738,6 +815,7 @@ def publish_run(
             gz,
             content_type=OCTET_STREAM,  # stored gzipped; client decompresses explicitly
             cache_control=CACHE_IMMUTABLE,
+            if_none_match=regional,
         )
 
     # 3. manifest LAST — its presence marks the run complete
@@ -746,6 +824,7 @@ def publish_run(
         json_bytes(manifest),
         content_type=APPLICATION_JSON,
         cache_control=CACHE_IMMUTABLE,
+        if_none_match=regional,
     )
 
     # 4. post-publish check

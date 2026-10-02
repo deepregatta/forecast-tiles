@@ -15,7 +15,8 @@ depends on it: an unverified gust window means a wind-only run.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import os
+from dataclasses import dataclass, field, replace
 
 from ingest.cube import axis_offsets
 
@@ -133,12 +134,11 @@ AROME = Product(
     gust_first_lead_h=1,
     gust_windows=GustWindows(
         segments=((1, 51, 1),),
-        verified=False,
+        verified=True,
         evidence=(
-            "Open-Meteo reads Météo-France's SP1 gust (10fg / 10efg+10nfg); the interval is "
-            "the upstream GRIB stepRange, not yet read (object.data.gouv.fr unreachable from "
-            "the 2026-10-02 probe). Expected 1 h; run `scripts/probe_openmeteo.py gust-window "
-            "weather-arome` where that host is reachable, then set verified=True"
+            "Météo-France SP1 GRIB2, 2026-10-02T09Z: max_i10fg/10efg/10nfg at +13..18 "
+            "and +49..51 h all have endStep-startStep=1 h. Also checked +1..6 h at 12Z. "
+            "Recorded in tests/fixtures/openmeteo/gust-windows/arome.json"
         ),
     ),
     footprint="meteofrance_arome_france0025.v1",
@@ -179,13 +179,13 @@ ICON_EU = Product(
     source_precision="0.1 m/s (Open-Meteo scale_factor 10)",
     gust_first_lead_h=1,
     gust_windows=GustWindows(
-        segments=((1, 78, 1), (81, 120, 3)),
-        verified=False,
+        segments=((1, 120, 1),),
+        verified=True,
         evidence=(
-            "Open-Meteo stores DWD VMAX_10M; whether its maximum covers the 3 h between "
-            "steps after +78 h (or only the last hour) is the upstream GRIB stepRange, not "
-            "yet read (opendata.dwd.de unreachable from the 2026-10-02 probe). Run "
-            "`scripts/probe_openmeteo.py gust-window weather-icon-eu`, then set verified=True"
+            "DWD VMAX_10M GRIB2, 2026-10-02T06Z at +1,2,78,81,84,120 h: "
+            "endStep-startStep=1 h (including 80-81, 83-84, 119-120); output spacing "
+            "after +78 h does not change the maximum window. Recorded in "
+            "tests/fixtures/openmeteo/gust-windows/icon-eu.json"
         ),
     ),
     footprint=None,
@@ -215,7 +215,16 @@ LAYERS: tuple[str, ...] = tuple(PRODUCTS)
 
 
 def product(layer: str) -> Product:
-    return PRODUCTS[layer]
+    p = PRODUCTS[layer]
+    if os.environ.get("OPENMETEO_CANARY") == "true":
+        hours = (3, 15) if layer == "weather-arome" else (0, 12)
+        return replace(
+            p,
+            axes={h: p.axes[h] for h in hours},
+            lag_minutes={h: p.lag_minutes[h] for h in hours},
+            cadence_hours=12,
+        )
+    return p
 
 
 def is_regional(layer: str) -> bool:
