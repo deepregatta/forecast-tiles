@@ -201,7 +201,13 @@ datasets can reduce download/format work but do not automatically eliminate
 projection or cycle-selection work. Do not use rendered weather maps or WMS
 images as numerical wind input.
 
-**Proposed implementation sequence and acceptance criteria.**
+**Implementation plan.** The subsequent
+[Open-Meteo bulk integration plan](open-meteo-bulk-implementation-plan.md)
+supersedes the provider-first sequence below: new models use Open-Meteo's public
+AWS distribution where verified, while existing sources remain unchanged. The
+sequence below is retained as the original direct-provider assessment.
+
+**Original implementation sequence and acceptance criteria.**
 
 1. **AROME + ICON-EU feasibility samples.** Obtain one complete recent cycle
    from each chosen feed, inspect u/v/gust metadata and the first/last lead
