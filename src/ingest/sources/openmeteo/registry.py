@@ -221,7 +221,7 @@ ICON_EU = Product(
     lookback_cycles=4,
     tile_deg=10,
     max_run_bytes=200_000_000,
-    production_enabled=False,
+    production_enabled=True,  # Individually activated ICON-EU canary after AROME live verification.
     evidence=(
         "2026-10-02 probe of data_run 2026-10-02T06Z: u/v 93 steps (hourly 0-78 h, 3-hourly "
         "81-120 h), gust 92 steps from +1 h, 657x1377, BBOX 29.5..70.5N 23.5W..62.5E, no "

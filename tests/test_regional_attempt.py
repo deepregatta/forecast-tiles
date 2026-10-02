@@ -211,6 +211,10 @@ def test_wait_timeout_reports_upstream_failure(regional, monkeypatch):
 def test_disabled_publication_records_configuration_failure_without_credentials(
     tmp_path, monkeypatch
 ):
+    configured = cli.registry.product("weather-arome")
+    monkeypatch.setattr(
+        cli.registry, "product", lambda layer: replace(configured, production_enabled=False)
+    )
     for name in ("R2_BUCKET", "R2_ENDPOINT", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY"):
         monkeypatch.delenv(name, raising=False)
     report = tmp_path / "attempt.json"

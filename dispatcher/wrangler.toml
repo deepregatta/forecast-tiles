@@ -25,7 +25,7 @@ crons = [
 # "would dispatch …" lines instead of starting workflows. The GITHUB_TOKEN
 # secret is set with `npx wrangler secret put GITHUB_TOKEN`, never here.
 DRY_RUN = "false"
-REGIONAL_MODELS = "weather-arome" # Owner-authorized first canary after consumer/capacity checks.
+REGIONAL_MODELS = "weather-arome,weather-icon-eu" # Individually activated two-cycle canaries.
 REGIONAL_FULL_CADENCE = "false" # Keep two cycles/day until the seven-day canary passes.
 
 [observability]

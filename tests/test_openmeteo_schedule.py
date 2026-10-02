@@ -1,4 +1,5 @@
 import importlib.util
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -10,7 +11,17 @@ matrix = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(matrix)
 
 
-def test_manual_dry_run_and_explicit_canary_activation():
+def test_manual_dry_run_and_explicit_canary_activation(monkeypatch):
+    configured = matrix.registry.product
+    monkeypatch.setattr(
+        matrix.registry,
+        "product",
+        lambda layer: (
+            replace(configured(layer), production_enabled=False)
+            if layer == "weather-icon-eu"
+            else configured(layer)
+        ),
+    )
     jobs = matrix.job_matrix("workflow_dispatch", "weather-arome", "20261002T03", "90", True, "")
     assert jobs == [
         {
