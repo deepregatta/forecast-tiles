@@ -7,9 +7,10 @@ Passage consumer, schemas, scheduling, capacity admission and regional rollback
 are implemented, with production disabled. Desktop scratch-data browser checks
 passed with representative production root bytes. Phase 4 UKV now passes
 primary identity, corrected geometry, instantaneous-gust, tile-size and desktop
-checks. Individual physical-phone selections also passed; the final combined
-cache refinement still needs a phone retest. The owner-approved capacity
-settings are now applied and verified; representative-cycle capacity refreshes,
+checks. Final individual, combined and boundary physical-phone checks passed,
+including automatic warm transfer/decode reuse after the cache refinement.
+The owner-approved capacity settings are now applied and verified;
+representative-cycle capacity refreshes,
 maintainer deployment and seven-day canaries remain gates.
 Release 1 is not complete. See the evidence and operations
 in [regional-delivery.md](regional-delivery.md). Historical review measurements
@@ -724,9 +725,9 @@ nonreferenced objects and headroom. Unknown capacity refuses before upload.
 The workflow/Worker are disabled by registry and allowlist gates and default to
 the reduced canary cadence. Desktop measurements are recorded in
 [regional-delivery.md](regional-delivery.md); representative desktop root
-workload and individual physical-phone selections passed. A combined phone
-retest after the cache refinement remains open. Seven-day live canaries have
-not started.
+workload and final individual, combined and boundary physical-phone checks
+passed. The larger explicit ICON-EU boundary mosaic still evicts tiles; a
+smaller retained request reuses them. Seven-day live canaries have not started.
 
 ### Phase 4 — UKV
 
@@ -745,8 +746,8 @@ onto a pinned 0.025° footprint and preserves +0 h. A 3° layout passes tile
 limits after 5° failed. Producer/Passage contracts, lookup, export, selection
 and disabled scheduling support it. Source precision, licence and post-remap
 measurements are in [ukv-discovery.md](ukv-discovery.md); representative desktop
-checks and individual phone selections pass. Final combined-phone retest,
-representative-cycle capacity checks, deployment and seven-day canary
+checks and final individual, combined and boundary phone selections pass.
+Representative-cycle capacity checks, deployment and seven-day canary
 criteria remain open; the approved capacity configuration is applied.
 
 ### Phase 5 — Expansion after a capacity decision
@@ -805,9 +806,10 @@ not delivery commitments.
 The original revision used supplied review measurements. The 2 October
 implementation additionally reproduced bulk dry runs, primary gust probes,
 isolated R2 writes and a desktop browser benchmark; these are separately
-recorded in [regional-delivery.md](regional-delivery.md), including individual
-physical-phone selections. The final combined-phone retest and seven-day
-canaries remain open.
+recorded in [regional-delivery.md](regional-delivery.md), including final
+individual, combined and boundary physical-phone checks and synchronous
+decoder timing. Representative-cycle capacity refreshes, deployment and
+seven-day canaries remain open.
 
 Release 1 is complete only when all three models meet their numerical,
 browser, capacity and canary gates; existing seven-layer sources and behavior

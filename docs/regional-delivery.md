@@ -69,58 +69,97 @@ This supersedes the earlier synthetic-root result for the desktop gate.
 | Root + UKV | 5,682,390 B / 506 ms | 0 B / 15 ms | 94,981,105 B (90.58 MiB) |
 
 AROME/ICON-EU used one regional tile; UKV used two. Time includes root
-fetch/decode/sampling. CDP `Runtime.getHeapUsage` was sampled every 25 ms with
-a fresh page/GC between models. Increases include the root workload; they are
+fetch/decode/sampling. CDP `Runtime.getHeapUsage` sampling used a 25 ms pause
+between round trips, with a fresh page/GC between models. Increases include
+the root workload; they are
 not process RSS or proof of the absolute peak. Each stayed below 128 MiB and
 the transfer gates. Passage's scratch benchmark accepts `--root-kind live`,
 `--ukv` and `?workload=full`. Mobile viewport regressions are separate
 from physical-phone evidence.
 
-### Physical phone, before combined-admission refinement
+### Final physical-phone checks, 2026-10-02
 
 Samsung Galaxy A53 (SM-A536B), Android 16, Chrome 154.0.8037.92 ran the same
-root workload through USB loopback. This measures real phone decoding and
-sampling, not mobile-network latency. Each cold comparison used a fresh page;
-CDP heap plus backing storage was sampled every 25 ms.
+root workload through USB loopback. Browser HTTP caching was disabled only for
+the scratch tab; CDP network events confirmed cold tile responses came from
+the server. Warm automatic repeats made **zero tile requests and zero decodes**.
+This measures phone execution, not mobile-network latency.
 
-| Workload | Cold regional bytes / total call time | Warm regional bytes / total call time | Sampled increase |
-|---|---:|---:|---:|
-| Root only | 0 / 2,394 ms | 0 / 71 ms | 38,448,152 B (36.67 MiB) |
-| Root + AROME | 3,845,933 / 3,269 ms | 0 / 65 ms | 89,224,220 B (85.09 MiB) |
-| Root + ICON-EU | 4,888,594 / 3,481 ms | 0 / 62 ms | 97,507,961 B (92.99 MiB) |
-| Root + UKV | 5,682,390 / 3,604 ms | 0 / 66 ms | 74,657,461 B (71.20 MiB) |
+| Workload | Cold regional bytes / total call time | Warm regional bytes / total call time | Sampled heap + backing-storage increase | Added above matching root-only workload |
+|---|---:|---:|---:|---:|
+| Root only | 0 / 1,148 ms | 0 / 21 ms | 38,956,850 B (37.15 MiB) | — |
+| Root + all three enabled | 3,845,933 / 1,568 ms | 0 / 20 ms | 96,369,191 B (91.90 MiB) | 54.75 MiB |
+| Root + AROME | 3,845,933 / 1,549 ms | 0 / 31 ms | 96,139,386 B (91.69 MiB) | 54.53 MiB |
+| Root + ICON-EU | 4,888,594 / 1,992 ms | 0 / 26 ms | 104,280,528 B (99.45 MiB) | 62.30 MiB |
+| Root + UKV | 5,682,390 / 2,338 ms | 0 / 28 ms | 66,098,192 B (63.04 MiB) | 25.88 MiB |
 
-All three individual selections passed sampled memory and transfer limits.
-Selecting all three together exposed warm cache churn: 14,416,917 regional
-bytes downloaded again. Automatic comparison now preflights declared retained
-bytes against the 64 MiB cache remaining after root loading, and each model's
-transient peak against the shared 128 MiB regional ceiling. It admits models
-in allowlist order and omits those that cannot coexist; named requests/export
-remain explicit. No cache or forecast resolution is increased to fix this.
+The combined selection admits AROME alongside the root and omits ICON-EU/UKV
+before transfer. An earlier combined run exposed warm cache churn. Automatic
+comparison now preflights retained bytes against the shared 64 MiB cache
+remaining after root loading and each model's transient peak against the
+128 MiB regional ceiling. Admission follows allowlist order; named requests
+and export remain explicit. Regression tests cover refusal before a second
+model downloads. The final desktop combined check also reused AROME warm.
 
-The final desktop all-model selection admitted AROME alongside the root,
-transferred 3,845,933 B cold / zero warm, took 462 / 17 ms, and increased sampled
-heap plus backing storage by 100,139,367 B. Root-only increase was 47,859,812 B.
-Regression tests cover both retained and transient refusal before a second
-model downloads. The phone became unavailable before this combined fix could
-be retested; **that final combined-phone gate remains open**. Boundary/mask
-regressions are separate from these three-point route measurements.
+The boundary route at 49.9–50.1°N crosses AROME's 5° and ICON-EU's 10° tile
+lines. Named grids returned finite vectors for every requested point: 36 for
+AROME/UKV and 16 for ICON-EU. Automatic comparison preserves the root and omits
+AROME/ICON-EU on this route; the combined selection admits only UKV.
 
-A desktop boundary route at 49.9–50.1°N crossed AROME's 5° and ICON-EU's
-10° tile lines. Named grids returned finite vectors for all three models.
-AROME transferred 8,508,522 B and reused both tiles warm; UKV reused its one
-already-admitted tile. The larger explicit ICON-EU mosaic transferred
-10,381,719 B again warm because serialized transient admission evicted a
-previous tile. Automatic comparison omitted that request before transfer,
-preserving the root workload. Explicit mosaics remain subject to their request
-budgets and may require a smaller region for warm reuse. Boundary-phone
-measurement remains outstanding.
+| Boundary workload, including explicit grid reads where applicable | Automatic cold regional bytes | Named cold / warm regional bytes | Sampled increase | Added above boundary root-only workload |
+|---|---:|---:|---:|---:|
+| Root only | 0 | — | 80,184,013 B (76.47 MiB) | — |
+| Root + all three enabled | 2,835,417 | — | 94,005,449 B (89.65 MiB) | 13.18 MiB |
+| Root + AROME | 0 | 8,508,522 / 0 | 129,950,478 B (123.93 MiB) | 47.46 MiB |
+| Root + ICON-EU | 0 | 10,381,719 / 10,381,719 | 203,370,904 B (193.95 MiB) | 117.48 MiB |
+| Root + UKV | 2,835,417 | 0 / 0 | 92,391,457 B (88.11 MiB) | 11.64 MiB |
+
+The larger explicit ICON-EU mosaic evicts a prior tile under serialized transient
+admission and therefore downloads/decodes both tiles again warm, as on desktop.
+A smaller 49.90–49.95°N request fetched one 4,888,594 B tile and reused it with
+zero warm requests/decodes. The ICON-EU memory row includes that extra check.
+Explicit mosaics remain subject to request budgets and may need a smaller
+region for warm reuse. AROME retained both boundary tiles; UKV retained its
+already-admitted tile. No automatic regional transfer exceeded 20 MiB, and
+all sampled additional working sets stayed below 128 MiB.
+
+Every workload used a fresh scratch document, reset its own navigation history
+and collected garbage before measuring. Initial backing storage was 54,326 B
+in every final run. CDP heap sampling used a 25 ms pause between round trips;
+observed intervals were 27–564 ms, with 20–64 samples per workload. These are
+sampled heap plus backing-storage increases, including root work, rather than
+process RSS or proof of an absolute transient peak. Boundary/mask regressions
+remain separate evidence. The scratch tab, wake lock and USB mappings were
+removed after verification; other phone tabs were preserved.
+
+### Decoder timing and repeated reads
+
+Scratch-only wrappers timed the actual consumer's synchronous `decodeTile`
+function and asynchronous `gunzip`, without changing production functions.
+Synchronous elapsed time is a main-thread decoder CPU proxy; gzip elapsed time
+also includes asynchronous work and is not a CPU measurement. A fresh desktop
+Chrome 154 scratch browser used the same bytes and disabled HTTP cache.
+
+| Cold regional decoding on the three-point route | Phone count / synchronous elapsed | Desktop count / synchronous elapsed |
+|---|---:|---:|
+| Combined selection (AROME admitted) | 1 / 51.0 ms | 1 / 27.1 ms |
+| AROME selected | 1 / 64.5 ms | 1 / 26.6 ms |
+| ICON-EU selected | 1 / 68.3 ms | 1 / 30.6 ms |
+| UKV selected | 2 / 132.1 ms | 2 / 29.5 ms |
+
+All automatic warm repeats on both devices performed zero gzip operations and
+zero PFT1 decodes. On the phone, the explicit boundary cold grids decoded
+AROME twice in 138.9 ms and ICON-EU twice in 164.3 ms. The larger ICON-EU warm
+mosaic decoded twice again in 207.0 ms; the smaller retained grid decoded zero
+times warm. UKV's boundary tile decoded once during automatic loading and
+needed no further decode for either named read.
 
 ## Activation sequence
 
-1. Complete the final combined-phone retest and representative boundary-route
-   measurements against the root-only baseline. Audit Tactician separately;
-   tile decoding does not prove that consumer's model/export support.
+1. The final individual, combined and boundary physical-phone checks above
+   close the remaining phone verification gate for these workloads. Keep the
+   larger explicit ICON-EU warm-eviction limitation visible. Audit Tactician
+   separately; tile decoding does not prove that consumer's model/export support.
 2. Run the live read-only audit. Reconcile damaged references and abandoned
    uploads before measuring a worst-case simultaneous **existing-layer** peak.
    Keep private account figures in GitHub variables, outside this public repo.
@@ -276,7 +315,8 @@ RSS. The downloaded JSON was checked against the job log. Those original
 artifacts called metadata creation time/lag `source_completed_at` /
 `completion_lag_s`; the fields are now named `metadata_created_at` /
 `metadata_lag_s` to avoid claiming measured upload availability.
-Production activation and the phone retest remain pending.
+Production activation and seven-day canaries remain pending; final phone
+verification is recorded above.
 
 ## Disable, rollback and partial uploads
 
