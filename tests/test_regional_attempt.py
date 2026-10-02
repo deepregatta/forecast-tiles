@@ -43,7 +43,7 @@ def test_report_is_separate_and_matches_published_bytes(regional, monkeypatch):
     assert data["destination"] == "scratch" and data["pointer"] == "latest-regional.json"
     assert data["pointer_commit_confirmed"] is True and data["failure_category"] is None
     assert data["last_success_before"] is None
-    assert data["source"]["completion_lag_s"] == 10060
+    assert data["source"]["metadata_lag_s"] == 10060
     files = data["source"]["completed_objects"]
     assert len(files) == len(bucket.downloads) == 3
     assert data["source"]["downloads_complete"] is True
@@ -98,7 +98,7 @@ def test_optional_completion_time_is_unknown_without_breaking_ingestion(regional
         catalog, "fetch_meta", lambda *a, **kw: replace(original(*a, **kw), created_at="unknown")
     )
     assert cli.main(args + ["--attempt-report", str(report)]) == 0
-    assert json.loads(report.read_text())["source"]["completion_lag_s"] is None
+    assert json.loads(report.read_text())["source"]["metadata_lag_s"] is None
 
 
 def test_upstream_skip_is_not_counted_as_success_and_keeps_good_data(regional):
@@ -240,3 +240,13 @@ def test_failed_report_write_does_not_mislabel_confirmed_publication(regional, m
     assert (out / "latest-regional.json").exists() and not report.exists()
     stderr = capsys.readouterr().err
     assert "attempt report unavailable (OSError)" in stderr and "private-test-secret" not in stderr
+
+
+def test_parser_rejection_keeps_actual_nonzero_exit_code(regional):
+    _, _, out, report, args = regional
+    with pytest.raises(SystemExit) as exc:
+        cli.main(args + ["--force", "--attempt-report", str(report)])
+    assert exc.value.code == 2 and not out.exists()
+    data = json.loads(report.read_text())
+    assert data["exit_code"] == 2 and data["failure_category"] == "configuration"
+    assert data["pointer_commit_confirmed"] is None

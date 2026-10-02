@@ -255,8 +255,8 @@ def build_cube(
     if metrics is not None:
         metrics.update(
             meta=meta.record.public(),
-            source_completed_at=meta.created_at,
-            completion_lag_s=None,
+            metadata_created_at=meta.created_at,
+            metadata_lag_s=None,
             completed_objects=[],
             completed_download_bytes=0,
             downloads_complete=False,
@@ -267,7 +267,7 @@ def build_cube(
         try:
             completed = datetime.fromisoformat(meta.created_at.replace("Z", "+00:00"))
             if completed.tzinfo is not None and completed >= cycle:
-                metrics["completion_lag_s"] = (completed - cycle).total_seconds()
+                metrics["metadata_lag_s"] = (completed - cycle).total_seconds()
         except (AttributeError, TypeError, ValueError):
             pass  # optional timing metadata is unknown, never a zero lag
     catalog.require_complete(product, meta, roles)

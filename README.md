@@ -227,7 +227,7 @@ unchanged. When individually activated, default canary profiles select AROME
 Maintainer deployment and the plan's seven-day gates are still required.
 
 Regional jobs save a separate attempt JSON artifact for 30 days, including
-failure category, prior successful run, source identities/bytes and completion
+failure category, prior successful run, source identities/bytes and metadata
 lag, download/decode/encode times, output sizes, temporary disk and peak process
 RSS. `--attempt-report /tmp/attempt.json` enables the same evidence locally;
 the path must stay outside the `--dry-run` forecast layout. A scratch success,

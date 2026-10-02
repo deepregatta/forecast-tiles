@@ -358,7 +358,8 @@ def main(
     except BaseException as exc:
         if args.attempt:
             args.attempt.outcome("failed", error=exc)
-            args.attempt.finish(1)
+            code = exc.code if isinstance(exc, SystemExit) and isinstance(exc.code, int) else 1
+            args.attempt.finish(code)
         raise
     else:
         if args.attempt:

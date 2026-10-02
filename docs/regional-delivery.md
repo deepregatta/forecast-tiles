@@ -213,13 +213,16 @@ pointer/manifest read-back. The previous successful pointer entry is recorded
 separately, and failed attempts do not overwrite it.
 
 Evidence includes public metadata/object keys, ETags, completed download bytes,
-metadata completion lag when a valid timestamp exists, download/decode/conversion
+metadata creation lag when a valid timestamp exists, download/decode/conversion
 and phase times, largest gzip/Float32-decoded/inflated tile sizes, scratch free
 space, largest observed source file and Linux process peak RSS in KiB. Output
 gzip bytes count tiles only; manifest and pointer overhead are separate. A
 partial download is not counted as a completed object. Temporary-file peak
 comes from file sizes observed after each download, not a filesystem sampler.
 RSS is the process-wide high-water mark, not an incremental array measurement.
+`metadata_lag_s` comes from the source document's `created_at`, not a measurement
+of when every uploaded object first became publicly available. Keep that
+distinction when selecting a freshness threshold or scoring canary delivery.
 Reports omit credentials, destination paths and error-message text. Reporting
 does not change tile bytes; a report-write error cannot undo a confirmed publish.
 
@@ -242,11 +245,27 @@ still require their separate canary evidence. The command makes no writes and
 sends no notifications.
 
 Local verification after adding this evidence: `uv run pytest -q` passed
-311 tests with the three separately gated live R2 tests skipped; Ruff lint and
-format passed. The 24 new checks cover scratch evidence, preserved pointers on
+312 tests with the three separately gated live R2 tests skipped; Ruff lint and
+format passed. The 25 new checks cover scratch evidence, preserved pointers on
 upstream/decode/validation/publication failures, bounded wait reporting,
 unknown timing, report-write failure and full/canary stale thresholds across
-UTC rollovers. Production activation and the phone retest remain pending.
+UTC rollovers. [Hosted CI](https://github.com/deepregatta/forecast-tiles/actions/runs/37050369572)
+passed for the initial report implementation (`aee52a8`): 311 Python tests,
+three live R2 skips, Ruff and 60 dispatcher tests/typecheck. The additional
+local check preserves parser rejection's actual nonzero exit code.
+
+Two scratch-only jobs verify artifact delivery on that implementation:
+[15Z not yet available](https://github.com/deepregatta/forecast-tiles/actions/runs/37050378762)
+correctly recorded `source_unavailable` despite a zero exit code;
+[the complete 03Z run](https://github.com/deepregatta/forecast-tiles/actions/runs/37050497359)
+recorded `scratch_published`, 16 validation checks, 28 tiles / 73,854,633 bytes,
+largest gzip / decoded tile 5,157,931 / 24,960,000 bytes, 46.91 s total,
+2.72 s download / 0.37 s decode / 32.68 s encode and 1,318,624 KiB process peak
+RSS. The downloaded JSON was checked against the job log. Those original
+artifacts called metadata creation time/lag `source_completed_at` /
+`completion_lag_s`; the fields are now named `metadata_created_at` /
+`metadata_lag_s` to avoid claiming measured upload availability.
+Production activation and the phone retest remain pending.
 
 ## Disable, rollback and partial uploads
 
