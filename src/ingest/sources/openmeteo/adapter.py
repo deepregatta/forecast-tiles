@@ -10,6 +10,7 @@ or clamp data to pass validation.
 
 from __future__ import annotations
 
+import shutil
 import tempfile
 import time
 from dataclasses import dataclass
@@ -242,6 +243,7 @@ def build_cube(
     *,
     workdir: Path | None = None,
     assume_gust_windows: bool = False,
+    metrics: dict | None = None,
     session=None,
     sleep=time.sleep,
 ) -> tuple[ForecastCube, SourceRun]:
@@ -250,25 +252,64 @@ def build_cube(
     roles = ["speed", "direction"] if product.wind_encoding == "speed_direction" else ["u", "v"]
     roles += ["gust"] if include_gust(product, assume_gust_windows) else []
     meta = catalog.fetch_meta(product, cycle, **kwargs)
+    if metrics is not None:
+        metrics.update(
+            meta=meta.record.public(),
+            source_completed_at=meta.created_at,
+            completion_lag_s=None,
+            completed_objects=[],
+            completed_download_bytes=0,
+            downloads_complete=False,
+            download_s=0.0,
+            decode_s=0.0,
+            temporary_file_peak_bytes=0,
+        )
+        try:
+            completed = datetime.fromisoformat(meta.created_at.replace("Z", "+00:00"))
+            if completed.tzinfo is not None and completed >= cycle:
+                metrics["completion_lag_s"] = (completed - cycle).total_seconds()
+        except (AttributeError, TypeError, ValueError):
+            pass  # optional timing metadata is unknown, never a zero lag
     catalog.require_complete(product, meta, roles)
 
     with tempfile.TemporaryDirectory(dir=workdir, prefix=f"{product.layer}-") as tmp:
+        if metrics is not None:
+            metrics["temporary_disk_free_bytes_before"] = shutil.disk_usage(tmp).free
         records: list[ObjectRecord] = []
         fields: dict[str, reader.Decoded] = {}
         for role in roles:  # sequential: three GETs, then each file freed once decoded
             key = catalog.file_key(product, cycle, role)
             path = Path(tmp) / f"{product.files[role]}.om"
-            record = reader.download(key, path, **kwargs)
+            download_started = time.perf_counter()
+            try:
+                record = reader.download(key, path, **kwargs)
+            finally:
+                if metrics is not None:
+                    metrics["download_s"] += time.perf_counter() - download_started
+                    metrics["temporary_file_peak_bytes"] = max(
+                        metrics["temporary_file_peak_bytes"],
+                        path.stat().st_size if path.exists() else 0,
+                    )
+            if metrics is not None:
+                metrics["completed_objects"].append(record.public())
+                metrics["completed_download_bytes"] += record.bytes
+                metrics["downloads_complete"] = len(metrics["completed_objects"]) == len(roles)
             records.append(record)
             print(f"ingest {product.layer}: {key} {record.bytes / 1e6:.1f} MB", flush=True)
-            fields[role] = reader.decode(
-                path,
-                grid=product.source_grid or product.grid,
-                unit=product.direction_unit if role == "direction" else product.source_unit,
-                reference=cycle,
-            )
+            decode_started = time.perf_counter()
+            try:
+                fields[role] = reader.decode(
+                    path,
+                    grid=product.source_grid or product.grid,
+                    unit=product.direction_unit if role == "direction" else product.source_unit,
+                    reference=cycle,
+                )
+            finally:
+                if metrics is not None:
+                    metrics["decode_s"] += time.perf_counter() - decode_started
             path.unlink()
         source = SourceRun(meta=meta.record, files=records)
+        conversion_started = time.perf_counter()
         cube = to_cube(
             product,
             cycle,
@@ -276,6 +317,8 @@ def build_cube(
             source=source,
             meta_created_at=meta.created_at,
         )
+        if metrics is not None:
+            metrics["conversion_s"] = time.perf_counter() - conversion_started
     return cube, source
 
 

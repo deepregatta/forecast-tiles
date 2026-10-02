@@ -597,6 +597,16 @@ Failures do not replace good forecasts. Flag stale data after two missed
 publication opportunities plus measured source lag. Keep manual retry and a
 per-model disable switch; no new notification service is needed.
 
+Implemented: `ingest --attempt-report FILE` writes separate JSON evidence;
+`ingest-openmeteo` uploads it on success or failure with 30-day retention.
+Reports distinguish scratch, confirmed R2 publication, upstream skips and
+failures, and capture the prior successful entry without modifying it. The
+read-only `scripts/regional_health.py` flags the two-opportunity threshold
+using an explicitly supplied observed source lag and full/canary cycle profile.
+Missing reports and missing/invalid pointers remain unknown; no alert delivery
+or seven-day acceptance is inferred. Commands and measurement limits are in
+[regional operations](regional-delivery.md).
+
 ## Implementation order and gates
 
 ### Phase 0 — Standalone current-publisher fix

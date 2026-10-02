@@ -226,6 +226,15 @@ unchanged. When individually activated, default canary profiles select AROME
 `OPENMETEO_FULL_CADENCE` variable and Worker `REGIONAL_FULL_CADENCE` setting.
 Maintainer deployment and the plan's seven-day gates are still required.
 
+Regional jobs save a separate attempt JSON artifact for 30 days, including
+failure category, prior successful run, source identities/bytes and completion
+lag, download/decode/encode times, output sizes, temporary disk and peak process
+RSS. `--attempt-report /tmp/attempt.json` enables the same evidence locally;
+the path must stay outside the `--dry-run` forecast layout. A scratch success,
+an upstream skip and a confirmed R2 publication are distinct outcomes. Missing
+reports are unknown evidence. For a read-only freshness check using a recently
+measured completion lag, see [regional operations](docs/regional-delivery.md).
+
 ## Dispatcher
 
 GitHub's `schedule` starts runs hours late and drops slots (measured

@@ -20,7 +20,7 @@ The dispatcher (dispatcher/) starts each layer this way at its provider's
 usual publication time.
 
 Regional models from Open-Meteo's bulk files (weather-arome,
-weather-icon-eu: src/ingest/sources/openmeteo, `uv sync --extra openmeteo`)
+weather-icon-eu, weather-ukv: src/ingest/sources/openmeteo, `uv sync --extra openmeteo`)
 take their settings from that registry and publish to latest-regional.json.
 Until a model's production gate opens they run with --dry-run only."""
 
@@ -31,6 +31,7 @@ import sys
 import time
 from collections.abc import Callable
 from datetime import datetime, timezone
+from pathlib import Path
 
 from ingest.cube import ForecastCube, cycle_iso
 from ingest.publish import (
@@ -45,6 +46,7 @@ from ingest.publish import (
     publish_run,
     published_layer,
 )
+from ingest.regional_attempt import RegionalAttempt
 from ingest.sources.base import CycleNotAvailableError, allow_missing_files, parse_cycle_arg
 from ingest.sources.openmeteo import registry
 from ingest.sources.openmeteo.reader import SourceError
@@ -209,7 +211,8 @@ def _build(args: argparse.Namespace, cycle: datetime, requested: datetime | None
     if registry.is_regional(layer):
         from ingest.sources.openmeteo import adapter
 
-        cube, source = adapter.build_cube(registry.product(layer), cycle)
+        extra = {"metrics": args.attempt.source_metrics} if args.attempt else {}
+        cube, source = adapter.build_cube(registry.product(layer), cycle, **extra)
         args.source_run = source  # rechecked just before publication
         return cube
     raise ValueError(f"unknown layer {layer}")
@@ -331,7 +334,60 @@ def main(
         type=float,
         help="land only: depth below LAT treated as unsailable (default: the recorded 0)",
     )
+    parser.add_argument(
+        "--attempt-report",
+        metavar="FILE",
+        help="regional only: write attempt evidence outside the forecast layout",
+    )
     args = parser.parse_args(argv)
+    if args.attempt_report and not registry.is_regional(args.layer):
+        parser.error("--attempt-report is only supported for regional layers")
+    if (
+        args.attempt_report
+        and args.dry_run
+        and Path(args.attempt_report).resolve().is_relative_to(Path(args.dry_run).resolve())
+    ):
+        parser.error("--attempt-report must be outside the immutable forecast layout")
+    args.attempt = (
+        RegionalAttempt(args.attempt_report, args.layer, args.cycle, bool(args.dry_run))
+        if args.attempt_report
+        else None
+    )
+    try:
+        code = _run_forecast(args, parser, clock=clock, sleep=sleep)
+    except BaseException as exc:
+        if args.attempt:
+            args.attempt.outcome("failed", error=exc)
+            args.attempt.finish(1)
+        raise
+    else:
+        if args.attempt:
+            args.attempt.finish(code)
+        return code
+    finally:
+        if args.attempt:
+            try:
+                args.attempt.write()
+            except (OSError, ValueError) as exc:
+                # Publication may already be committed. A missing report is
+                # unknown evidence; do not mislabel that forecast as failed.
+                print(
+                    f"ingest {args.layer}: attempt report unavailable ({type(exc).__name__})",
+                    file=sys.stderr,
+                )
+
+
+def _observe(args, phase: str | None = None, **fields):
+    if args.attempt:
+        args.attempt.update(phase, **fields)
+
+
+def _outcome(args, name: str, category: str | None = None, error: BaseException | None = None):
+    if args.attempt:
+        args.attempt.outcome(name, category, error)
+
+
+def _run_forecast(args, parser, *, clock, sleep) -> int:
 
     if args.layer == "land":
         from ingest.land.cli import run_land
@@ -344,6 +400,7 @@ def main(
     if regional and args.force:
         parser.error("--force is unsupported for immutable regional runs; use a new cycle")
     if regional and not args.dry_run and not regional.production_enabled:
+        _outcome(args, "disabled", "configuration")
         print(
             f"ingest {args.layer}: not enabled for publication yet; use --dry-run DIR "
             "(docs/open-meteo-bulk-implementation-plan.md, Phase 3)"
@@ -354,7 +411,18 @@ def main(
 
     t0 = time.time()
     requested = parse_cycle_arg(args.cycle) if args.cycle else None
+    _observe(args, "resolve", requested_cycle=cycle_iso(requested) if requested else None)
     store = DirStore(args.dry_run) if args.dry_run else make_r2_store_from_env()
+    if args.attempt:
+        previous = published_layer(store, args.layer, pointer_key=pointer_key_for(args.layer))
+        _observe(
+            args,
+            last_success_before={
+                name: previous.get(name) for name in ("run_id", "cycle", "published_at")
+            }
+            if previous
+            else None,
+        )
     try:
         if args.wait_minutes:
             try:
@@ -362,13 +430,17 @@ def main(
                     args.layer, requested, args.wait_minutes, clock=clock, sleep=sleep
                 )
             except CycleWaitExpired as exc:
+                _outcome(args, "source_wait_expired", "upstream_timeout", exc)
                 print(f"ingest {args.layer}: {exc}")
                 return 1
             t0 = time.time()  # status duration_s covers the job, not the wait
         else:
             cycle = _resolve(args.layer, requested)
+        _observe(args, cycle=cycle_iso(cycle))
         published = already_published(store, args.layer, cycle)
         if published and not args.force:
+            _outcome(args, "already_published")
+            _observe(args, confirmed_current_run_id=published["run_id"])
             print(
                 f"ingest {args.layer}: cycle {cycle_iso(cycle)} already published "
                 f"(latest {published['run_id']}, published {published['published_at']}); "
@@ -381,17 +453,21 @@ def main(
             except StalePublishError as exc:
                 print(f"ingest {args.layer}: --force refused: {exc}")
                 return 1
+        _observe(args, "build")
         cube = _build(args, cycle, requested)
     except SourceError as exc:  # a regional run's files are not what the registry expects
+        _outcome(args, "source_rejected", "source_check", exc)
         print(f"ingest {args.layer}: source check failed: {exc}")
         return 1
     except CycleNotAvailableError as exc:
+        _outcome(args, "source_unavailable", "upstream_not_available", exc)
         if skip_when_not_available(args.layer):
             print(f"ingest {args.layer}: cycle not available yet, skipping ({exc})")
             return 0
         print(f"ingest {args.layer}: no complete cycle available ({exc})")
         return 1
 
+    _observe(args, "validate", cycle=cube.cycle_iso, run_id=cube.run_id)
     print(f"ingest {args.layer}: cycle {cube.cycle_iso} -> run {cube.run_id}")
 
     if regional:
@@ -409,12 +485,24 @@ def main(
             max_missing=max_missing(args.layer),
             expected_axes=expected_axes,
         )
+    _observe(
+        args,
+        validation={
+            "ok": report.ok,
+            "checks_passed": report.checks_passed,
+            "failure_count": len(report.failures),
+        },
+    )
     print(report.summary())
     if not report.ok:
+        _outcome(args, "validation_rejected", "validation")
         print(f"ingest {args.layer}: validation FAILED, aborting before upload")
         return 1
 
+    _observe(args, "encode")
     tiles = build_tiles(cube)
+    if args.attempt:
+        args.attempt.tiles(tiles)
     total = sum(len(gz) for _, gz in tiles)
     print(f"ingest {args.layer}: {len(tiles)} tiles, {total / 1e6:.1f} MB gz")
 
@@ -422,6 +510,7 @@ def main(
         from ingest.sources.openmeteo import catalog
 
         if total > regional.max_run_bytes:
+            _outcome(args, "run_cap_refused", "capacity")
             print(
                 f"ingest {args.layer}: run is {total} B, over its {regional.max_run_bytes} B "
                 "cap; refusing before upload"
@@ -430,19 +519,31 @@ def main(
         source = getattr(args, "source_run", None)
         if source is not None:
             try:
+                _observe(args, "source_recheck")
                 catalog.recheck(source.meta, source.files)
             except SourceError as exc:
+                _outcome(args, "source_changed", "source_identity", exc)
                 print(f"ingest {args.layer}: source changed, refusing to publish: {exc}")
                 return 1
 
+    _observe(args, "publish")
     try:
         result = publish_run(
             store, cube, tiles, report, max_bucket_bytes=max_bucket_bytes_from_env(), started_at=t0
         )
     except PublishError as exc:
+        _outcome(args, "publication_failed", "publication", exc)
         print(f"ingest {args.layer}: publish FAILED: {exc}")
         return 1
 
+    _outcome(args, "scratch_published" if args.dry_run else "published")
+    _observe(
+        args,
+        pointer_commit_confirmed=True,
+        committed_run_id=result.run_id,
+        commit_attempts=result.commit_attempts,
+        previous_run_id=result.previous_run_id,
+    )
     dest = args.dry_run or "R2"
     print(
         f"ingest {args.layer}: published {result.run_id} to {dest} "

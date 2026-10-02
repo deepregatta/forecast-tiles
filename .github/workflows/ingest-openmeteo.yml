@@ -71,7 +71,7 @@ jobs:
           python-version: '3.13'
       - run: uv sync --extra openmeteo
       - run: |
-          args=("$LAYER")
+          args=("$LAYER" --attempt-report "$RUNNER_TEMP/regional-attempt.json")
           if [[ -n "$CYCLE" ]]; then args+=(--cycle "$CYCLE" --wait-minutes "$WAIT"); fi
           if [[ "$DRY_RUN" == true ]]; then args+=(--dry-run "$RUNNER_TEMP/regional"); fi
           uv run ingest "${args[@]}"
@@ -90,3 +90,10 @@ jobs:
           REGIONAL_ENABLED_LAYERS: ${{ vars.OPENMETEO_ENABLED_LAYERS }}
           REGIONAL_EXISTING_PEAK_BYTES: ${{ vars.REGIONAL_EXISTING_PEAK_BYTES }}
           REGIONAL_HEADROOM_BYTES: ${{ vars.REGIONAL_HEADROOM_BYTES }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.layer }}-attempt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/regional-attempt.json
+          retention-days: 30
+          if-no-files-found: warn

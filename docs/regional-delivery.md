@@ -190,6 +190,64 @@ claiming unused allowance. Keep account-specific figures outside public docs.
   passed for `e9531a8`, including its Python and hosted browser jobs. Contracts
   are byte-identical between repositories.
 
+## Attempt evidence and freshness
+
+`ingest-openmeteo` uploads one `LAYER-attempt-RUN_ID-RUN_ATTEMPT` JSON artifact
+per matrix job, on success or failure, retained for 30 days. A killed runner or
+an earlier setup failure can leave no report: treat that as unknown, even if
+an upload step warns instead of failing. Download artifacts during each canary
+review and retain the reviewed evidence outside immutable forecast runs.
+
+Locally, keep the report beside the scratch layout:
+
+```sh
+uv run ingest weather-arome --cycle 20261002T15 --dry-run /tmp/regional-attempt-tiles --attempt-report /tmp/regional-attempt.json
+```
+
+The report separates `scratch_published`, `published`, `already_published`,
+upstream unavailability/timeouts, source identity/validation failures and
+publication failures. Exit 0 after an unavailable catch-up source is **not**
+a canary success. Only a returned publisher result sets
+`pointer_commit_confirmed: true`; an interrupted or uncertain result requires
+pointer/manifest read-back. The previous successful pointer entry is recorded
+separately, and failed attempts do not overwrite it.
+
+Evidence includes public metadata/object keys, ETags, completed download bytes,
+metadata completion lag when a valid timestamp exists, download/decode/conversion
+and phase times, largest gzip/Float32-decoded/inflated tile sizes, scratch free
+space, largest observed source file and Linux process peak RSS in KiB. Output
+gzip bytes count tiles only; manifest and pointer overhead are separate. A
+partial download is not counted as a completed object. Temporary-file peak
+comes from file sizes observed after each download, not a filesystem sampler.
+RSS is the process-wide high-water mark, not an incremental array measurement.
+Reports omit credentials, destination paths and error-message text. Reporting
+does not change tile bytes; a report-write error cannot undo a confirmed publish.
+
+Use recent source completion measurements to supply the stale threshold.
+For example, a **measured** 180-minute lag for the selected model is passed as:
+
+```sh
+uv run python scripts/regional_health.py weather-arome --dir /tmp/regional-attempt-tiles --canary --source-lag-minutes 180
+```
+
+Omit `--dir` to read the live regional pointer. Omit `--canary` only for an
+activated full-cadence model; the tool selects 03/15Z for canary AROME and
+00/12Z for canary ICON-EU/UKV. It flags stale once the second selected cycle
+after the pointer's current cycle plus the supplied source lag has passed.
+`--now` accepts an explicit timestamp for a reproducible check. Exit codes are
+0 fresh, 1 stale, 2 unknown. Unknown lag is not zero: refresh measurements before
+running the check. This checks pointer freshness only; manifest integrity,
+95% delivery within the configured window and seven days of live observation
+still require their separate canary evidence. The command makes no writes and
+sends no notifications.
+
+Local verification after adding this evidence: `uv run pytest -q` passed
+311 tests with the three separately gated live R2 tests skipped; Ruff lint and
+format passed. The 24 new checks cover scratch evidence, preserved pointers on
+upstream/decode/validation/publication failures, bounded wait reporting,
+unknown timing, report-write failure and full/canary stale thresholds across
+UTC rollovers. Production activation and the phone retest remain pending.
+
 ## Disable, rollback and partial uploads
 
 Stop dispatch, catch-up and in-flight writers for the named model; disable its
