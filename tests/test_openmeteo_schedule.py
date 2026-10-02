@@ -10,7 +10,7 @@ matrix = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(matrix)
 
 
-def test_manual_dry_run_and_disabled_catchup():
+def test_manual_dry_run_and_explicit_canary_activation():
     jobs = matrix.job_matrix("workflow_dispatch", "weather-arome", "20261002T03", "90", True, "")
     assert jobs == [
         {
@@ -22,9 +22,12 @@ def test_manual_dry_run_and_disabled_catchup():
         }
     ]
     assert matrix.job_matrix("schedule", "", "", "0", False, "") == []
-    assert matrix.job_matrix("schedule", "", "", "0", False, "weather-arome") == []
+    activated = matrix.job_matrix("schedule", "", "", "0", False, "weather-arome")
+    assert len(activated) == 1 and activated[0]["layer"] == "weather-arome"
+    assert activated[0]["dry_run"] is False
+    assert matrix.job_matrix("schedule", "", "", "0", False, "weather-icon-eu") == []
     with pytest.raises(ValueError, match="gates"):
-        matrix.job_matrix("workflow_dispatch", "weather-arome", "", "0", False, "weather-arome")
+        matrix.job_matrix("workflow_dispatch", "weather-icon-eu", "", "0", False, "weather-icon-eu")
 
 
 @pytest.mark.parametrize("cycle,wait", [("20261002T06", "0"), ("20261002T03", "91"), ("", "90")])

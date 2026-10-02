@@ -241,7 +241,6 @@ def test_regional_layers_reach_every_setting_without_a_key_error():
         assert cli.skip_when_not_available(layer) is True
         assert publish.cadence_hours_for(layer) == p.cadence_hours
         assert publish.pointer_key_for(layer) == publish.REGIONAL_KEY
-        assert not p.production_enabled
     for layer in publish.CADENCE_HOURS:  # existing settings are unchanged
         assert cli.max_missing(layer) == cli.MAX_MISSING[layer]
         assert cli.poll_seconds(layer) == cli.POLL_SECONDS[layer]

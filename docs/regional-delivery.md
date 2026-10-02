@@ -341,3 +341,16 @@ overwrite, pointer commit or retention. Deterministic bytes are not permission
 to resume automatically. Inspect unreferenced partial data after all writers
 stop; cleanup remains separately age-gated via `scripts/audit_runs.py`, then
 retry. The read-only audit workflow never requests cleanup.
+
+## Canary activation authorized, 2026-10-02
+
+The owner authorized proceeding after final phone verification. A
+[fresh read-only capacity audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37061907290)
+measured newer current/previous root runs and still fits the approved guard.
+The existing-layer reservation was refreshed from that profile without raising
+the guard. Account figures remain outside this public repository.
+
+AROME is the first registry-eligible canary; GitHub, consumer and Worker
+allowlists still control actual activation. Keep two cycles/day until the
+seven-day criteria pass. Subsequent models activate individually after the
+first live publication/consumer checks; later expansion is a separate decision.

@@ -428,6 +428,10 @@ def test_cli_publishes_gust_once_its_window_is_verified(tmp_path, monkeypatch):
 
 
 def test_cli_refuses_r2_for_a_regional_layer_until_enabled(tmp_path, monkeypatch, capsys):
+    configured = registry.product("weather-arome")
+    monkeypatch.setattr(
+        registry, "product", lambda layer: replace(configured, production_enabled=False)
+    )
     monkeypatch.setenv("R2_BUCKET", "unused")
     assert cli.main(["weather-arome", "--cycle", "20261002T03"]) == 1
     assert "not enabled for publication yet" in capsys.readouterr().out

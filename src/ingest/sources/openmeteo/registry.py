@@ -174,7 +174,7 @@ AROME = Product(
     lookback_cycles=4,
     tile_deg=5,
     max_run_bytes=110_000_000,
-    production_enabled=False,
+    production_enabled=True,  # Owner-authorized AROME canary, 2026-10-02; runtime allowlist still required.
     evidence=(
         "2026-10-02 probe of data_run 2026-10-02T03Z: u/v 52 steps (0-51 h), gust 51 "
         "steps (1-51 h), [lat, lon, time] float32, 717x1121, BBOX 37.5..55.4N 12W..16E",

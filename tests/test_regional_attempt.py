@@ -214,7 +214,7 @@ def test_disabled_publication_records_configuration_failure_without_credentials(
     for name in ("R2_BUCKET", "R2_ENDPOINT", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY"):
         monkeypatch.delenv(name, raising=False)
     report = tmp_path / "attempt.json"
-    assert cli.main(["weather-arome", "--attempt-report", str(report)]) == 1
+    assert cli.main(["weather-icon-eu", "--attempt-report", str(report)]) == 1
     data = json.loads(report.read_text())
     assert data["outcome"] == "disabled" and data["failure_category"] == "configuration"
     assert data["source"] == {} and data["pointer_commit_confirmed"] is None
