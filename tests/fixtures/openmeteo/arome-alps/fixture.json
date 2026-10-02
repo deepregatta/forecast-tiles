@@ -1,0 +1,43 @@
+{
+ "layer": "weather-arome",
+ "domain": "meteofrance_arome_france0025",
+ "cycle": "2026-10-02T03Z",
+ "crop": {
+  "rows": [
+   323,
+   344
+  ],
+  "cols": [
+   745,
+   766
+  ],
+  "lat0": 45.575,
+  "lon0": 6.625
+ },
+ "attribution": "M\u00e9t\u00e9o-France AROME via Open-Meteo (open-data, CC BY 4.0)",
+ "licence": "CC BY 4.0 (Open-Meteo bulk catalogue); M\u00e9t\u00e9o-France open data",
+ "note": "Cropped from the source files below; values unchanged (0.1 m/s precision)",
+ "files": {
+  "wind_u_component_10m.om": {
+   "key": "data_run/meteofrance_arome_france0025/2026/10/02/0300Z/wind_u_component_10m.om",
+   "etag": "\"bfb4d48367546dc8c57020be62ea36f7-3\"",
+   "bytes": 18791176
+  },
+  "wind_v_component_10m.om": {
+   "key": "data_run/meteofrance_arome_france0025/2026/10/02/0300Z/wind_v_component_10m.om",
+   "etag": "\"a96ccdfb25ef4f68bf6967a24401ef19-3\"",
+   "bytes": 17792656
+  },
+  "wind_gusts_10m.om": {
+   "key": "data_run/meteofrance_arome_france0025/2026/10/02/0300Z/wind_gusts_10m.om",
+   "etag": "\"a8d03011b9a4d4566ae9e4e4d991448e-3\"",
+   "bytes": 19154784
+  },
+  "HSURF.npy": {
+   "key": "data/meteofrance_arome_france0025/static/HSURF.om",
+   "etag": "\"ca0be2c1b08000f899b984d004163f0f\"",
+   "bytes": 534000
+  }
+ },
+ "meta_etag": "\"e2ff3823216cf45b30f389bdc3f5e142\""
+}

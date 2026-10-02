@@ -1,10 +1,12 @@
 # Open-Meteo bulk integration implementation plan
 
-Status: revised proposal. Phase 0 (the standalone publisher fix) is
-implemented in code and awaits its live R2 check; no Open-Meteo code or model
-activation yet. Revised 2026-10-02 against forecast-tiles commit `f5e0414`,
-incorporating the implementation review and its reported 24 September–1
-October measurements.
+Status, 2026-10-02: Phase 0 (the standalone publisher fix) is on main and
+awaits its live R2 check. Phases 1 and 2 (AROME and ICON-EU dry runs) are
+implemented; both models run end to end into a local `--dry-run` layout and
+publish nothing to R2. Gust windows remain unverified, so dry runs are
+wind-only. No model is activated. Revised the same day against forecast-tiles
+commit `f5e0414`, incorporating the implementation review and its reported
+24 September–1 October measurements.
 
 Add new deterministic weather models from Open-Meteo's public AWS files while
 keeping every existing layer on its current provider, with its current fields,
@@ -100,13 +102,19 @@ does not establish the size of the proposed new delivery layout.
 
 - UKV wind-direction reference frame and gust interval, including step 0.
 - AROME gust windows and ICON-EU windows after +78 h; output step spacing is
-  not evidence of the maximum's accumulation interval.
+  not evidence of the maximum's accumulation interval. **Still open:** the
+  upstream GRIBs (object.data.gouv.fr, opendata.dwd.de) were unreachable from
+  the 2026-10-02 implementation environment. `scripts/probe_openmeteo.py
+  gust-window LAYER` reads their `stepRange` wherever those hosts are reachable.
 - UKV gzip size and footprint after geographic remapping.
-- UKV redistribution terms and the repository licence before the GPL reader.
+- UKV redistribution terms. The repository licence is now **MIT**, chosen by
+  the owner on 2026-10-02, and `omfiles` stays an optional extra.
 - Live R2 conditional-write behavior. The installed boto3 1.43.46 was checked
   during this revision: `PutObject` accepts `IfMatch` and `IfNoneMatch` already.
-- Known-point/mask fixtures, browser budgets and current combined storage
-  headroom. Source completeness alone does not establish these.
+  The `r2-conditional-check` workflow runs that check under an isolated prefix.
+- Browser budgets with the actual consumer and current combined storage
+  headroom. Source completeness alone does not establish these. Known-point
+  and mask fixtures now exist for AROME and ICON-EU (`tests/fixtures/openmeteo/`).
 
 ## Model order and definitions
 
@@ -598,6 +606,40 @@ transpose and all CLI settings. Produce local PFT1 tiles and a benchmark.
 missing wind steps and changed geometry fail clearly; no new-layer `KeyError`;
 numerics and reported resources are reproducible. No production writes yet.
 
+**Done 2026-10-02**, apart from gust semantics:
+
+- MIT `LICENSE`; `omfiles==1.2.0` in the `openmeteo` extra only, with no
+  fsspec/s3fs. Production workflows still run plain `uv sync`, and every
+  existing layer imports and runs without `omfiles`.
+- `src/ingest/sources/openmeteo/`: `registry` (layers, grids, axes, files,
+  footprint, limits, scheduling, run caps, production gate; every CLI setting
+  through `cli.max_missing` / `poll_seconds` / `skip_when_not_available` and
+  `publish.cadence_hours_for`), `catalog` (meta.json completion, exact
+  explicit cycle, bounded lookback, source digest, ETag recheck before
+  publication), `reader` (three sequential whole-file GETs with ETag/length
+  records, truncation refusal and bounded retries; decode checks grid, CRS
+  BBOX, unit, run time and timestamps, then transposes band by band),
+  `grids` (exact geometry, versioned footprints) and `adapter`.
+- Live probe of AROME 2026-10-02T03Z: 52 wind steps (0–51 h) and 51 gust
+  steps (1–51 h), stored `[lat, lon, time]` at 0.1 m/s. Static terrain
+  confirms ascending rows: Mont Blanc reads 3,887 m in the expected cell and
+  would read 1,250 m if the rows were flipped. The missing outline (17.18 %)
+  equals the static terrain file's NaN mask. Checked against five runs, it
+  has no interior gap at any step and at most 2 valid edge cells outside it per
+  step. It is registered as footprint `meteofrance_arome_france0025.v1`
+  (SHA-256 pinned). Validation is per step inside it (limit 0.5 %), with +0 h
+  gust exempt. More than 0.05 % of outside cells carrying data is refused as
+  a changed footprint, and the outside is masked.
+- Measurements reproduced, not just reported: AROME 03Z with gust under its
+  expected 1 h window makes 11 tiles and 74.2 MB at 10° (largest 19.6 MB gz,
+  99.8 MB decoded). At 5° it makes **28 tiles and 73.9 MB (largest 5.2 MB gz,
+  25.0 MB decoded)**, inside the 8 MiB / 32 MiB gates. Peak RSS was 1.3 GB and
+  encoding took 30 s. A live wind-only `ingest weather-arome --dry-run` of 09Z
+  wrote 48.4 MB in 32 s.
+- Gust is published only when `GustWindows.verified` is set. Until then runs
+  are wind-only and say so in `provenance.capabilities` and `provenance.gust`.
+  The benchmark's `--assume-gust-windows` labels its gust as assumed.
+
 ### Phase 2 — ICON-EU dry run
 
 Reuse the adapter; verify the 93-step axis, gust windows after +78 h and the
@@ -606,6 +648,28 @@ abstraction without a demonstrated incompatibility.
 
 **Exit:** timestamp-aligned wind/gust through 120 h; unexpected missing data
 rejected without weakening current model thresholds.
+
+**Done 2026-10-02**, apart from the post-+78 h gust window. The same adapter
+needed no new reader code. ICON-EU 2026-10-02T06Z has 93 wind steps (hourly
+0–78 h, 3-hourly 81–120 h) and 92 gust steps from +1 h, with no missing cell
+at any step. Its 03/09/15/21Z runs stop at +30 h, so only 00/06/12/18Z are
+registered. Terrain confirms the orientation (Etna 2,228 m, Elbrus 3,717 m).
+With gust under its expected 1 h/3 h windows, 10° tiles give **60 tiles and
+170.3 MB (largest 6.6 MB gz, 28.6 MB decoded)**, inside the gates without
+smaller tiles. Peak RSS was 2.7 GB. A live wind-only dry run wrote 105.6 MB
+in 70 s. Missing data is validated per step over the whole grid at 0.5 %,
+stricter than the 5 % global rule, which is unchanged.
+
+**Started ahead of Phase 3** (producer side only, dry runs only): a
+per-product `tile_deg` (5 or 10; existing layers keep 10° and
+byte-identical tiles) with explicit `grid-0p025` / `grid-0p0625` path labels;
+`latest-regional.json` with the same compare-and-swap commit; refusal to
+commit a layer to the other pointer; both pointers counted by the storage
+guard, retention's reference recheck and the audit; and a per-model run cap
+(`max_run_bytes`) enforced before upload. Still to do: Passage schemas and
+consumer work, `If-None-Match` creation of regional run objects, the
+`ingest-openmeteo.yml` matrix workflow and dispatcher entries, gust
+verification, browser measurements and production enablement.
 
 ### Phase 3 — Regional pointer, browser delivery and Passage
 

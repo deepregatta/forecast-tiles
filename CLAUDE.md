@@ -5,6 +5,7 @@ Public repo. Scheduled ingestion pipeline turning open NOAA / Copernicus / ECMWF
 ## Layout
 
 - `src/` — Python pipeline (uv-managed): resolve latest complete provider cycle → byte-range download → decode/orient/quantize into a `ForecastCube` → 10°×10° tiles → gzip → R2. `src/landkit/` + `src/ingest/land/` are the second, non-scheduled pipeline: the **conservative routing index** (`docs/land-index-format.md`), consumed by tactician's `core/land`.
+- `src/ingest/sources/openmeteo/` — regional models from Open-Meteo's bulk files (registry, catalog, reader, footprints, adapter); they publish to `latest-regional.json`, never the root `latest.json`, and are dry-run only until enabled (`docs/open-meteo-bulk-implementation-plan.md`).
 - `contracts/` — tile/manifest/latest JSON Schemas. The `forecast-*` ones are vendored from passage's `contracts/`; keep in sync when the spec changes. The `land-index-*` ones are **canonical here** — tactician consumes them.
 - `scripts/`, `tests/` — tooling and pytest suite.
 - Production runs are GitHub Actions workflows, one per layer. `dispatcher/` is a Cloudflare Worker (TypeScript, Cron Triggers only) that dispatches each layer at its provider's publication time with `--wait-minutes`, live since 2026-10-01 (Passage plan Phase 5B); each workflow keeps a 6-hourly fallback cron (README → Dispatcher).
@@ -17,6 +18,7 @@ uv run pytest
 uv run ingest weather --dry-run /tmp/tiles   # local run, no R2 writes
 uv run ingest weather|ensemble|waves|currents|weather-ecmwf|weather-ecmwf-short
 uv run ingest land --domain nweu             # routing index; one-shot, not a cron
+uv sync --extra openmeteo && uv run ingest weather-arome|weather-icon-eu --dry-run /tmp/x   # regional, dry runs only
 cd dispatcher && npm ci && npm test          # dispatcher Worker (deploys are Davi's: README → Dispatcher)
 ```
 

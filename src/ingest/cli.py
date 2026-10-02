@@ -17,7 +17,12 @@ cycle `latest.json` already has; it never moves a layer back to an older one.
 finished the cycle: it re-checks readiness every minute or two until the
 cycle is out, then continues as above, and exits 1 if N minutes pass first.
 The dispatcher (dispatcher/) starts each layer this way at its provider's
-usual publication time."""
+usual publication time.
+
+Regional models from Open-Meteo's bulk files (weather-arome,
+weather-icon-eu: src/ingest/sources/openmeteo, `uv sync --extra openmeteo`)
+take their settings from that registry and publish to latest-regional.json.
+Until a model's production gate opens they run with --dry-run only."""
 
 from __future__ import annotations
 
@@ -36,10 +41,13 @@ from ingest.publish import (
     make_r2_store_from_env,
     max_bucket_bytes_from_env,
     parse_cycle_iso,
+    pointer_key_for,
     publish_run,
     published_layer,
 )
 from ingest.sources.base import CycleNotAvailableError, allow_missing_files, parse_cycle_arg
+from ingest.sources.openmeteo import registry
+from ingest.sources.openmeteo.reader import SourceError
 from ingest.tile import build_tiles
 from ingest.validate import validate_cube
 
@@ -51,6 +59,7 @@ LAYERS = (
     "waves",
     "currents",
     "currents-ibi",
+    *registry.LAYERS,
     "land",
 )
 
@@ -96,6 +105,28 @@ POLL_SECONDS = {
 MISSING_FILES_GRACE_MINUTES = 15
 
 
+# Per-layer settings: the tables above for the existing layers, the
+# Open-Meteo registry for regional ones. Everything looks them up here, so a
+# regional layer never meets a KeyError in a table it is not in.
+def max_missing(layer: str) -> float:
+    """Allowed missing fraction: overall for a global layer, per step inside
+    the footprint for a regional one."""
+    if layer in MAX_MISSING:
+        return MAX_MISSING[layer]
+    return registry.product(layer).max_interior_missing
+
+
+def poll_seconds(layer: str) -> int:
+    if layer in POLL_SECONDS:
+        return POLL_SECONDS[layer]
+    return registry.product(layer).poll_seconds
+
+
+def skip_when_not_available(layer: str) -> bool:
+    """A regional run not yet written is a normal outcome for a catch-up run."""
+    return layer in SKIP_WHEN_NOT_AVAILABLE or registry.is_regional(layer)
+
+
 class CycleWaitExpired(RuntimeError):
     """--wait-minutes ran out before the provider published the cycle."""
 
@@ -130,6 +161,10 @@ def _resolve(layer: str, requested: datetime | None) -> datetime:
         from ingest.sources import ibi
 
         return ibi.resolve(requested)
+    if registry.is_regional(layer):
+        from ingest.sources.openmeteo import catalog
+
+        return catalog.resolve(registry.product(layer), requested)
     raise ValueError(f"unknown layer {layer}")
 
 
@@ -171,6 +206,12 @@ def _build(args: argparse.Namespace, cycle: datetime, requested: datetime | None
         from ingest.sources import ibi
 
         return ibi.build_cube(cycle)
+    if registry.is_regional(layer):
+        from ingest.sources.openmeteo import adapter
+
+        cube, source = adapter.build_cube(registry.product(layer), cycle)
+        args.source_run = source  # rechecked just before publication
+        return cube
     raise ValueError(f"unknown layer {layer}")
 
 
@@ -193,7 +234,7 @@ def wait_for_cycle(
     """Resolve `requested`, re-checking every POLL_SECONDS while the provider
     reports it not available, for at most `wait_minutes`."""
     deadline = clock() + wait_minutes * 60
-    interval = POLL_SECONDS[layer]
+    interval = poll_seconds(layer)
     checks = 0
     while True:
         checks += 1
@@ -225,8 +266,8 @@ def wait_for_cycle(
 
 
 def already_published(store, layer: str, cycle: datetime) -> dict | None:
-    """The layer's `latest.json` entry when it already holds `cycle` or a newer one."""
-    entry = published_layer(store, layer)
+    """The layer's pointer entry when it already holds `cycle` or a newer one."""
+    entry = published_layer(store, layer, pointer_key_for(layer))
     if not entry:
         return None
     return entry if parse_cycle_iso(entry["cycle"]) >= _utc(cycle) else None
@@ -299,6 +340,13 @@ def main(
 
     if args.wait_minutes < 0:
         parser.error("--wait-minutes must be 0 or more")
+    regional = registry.product(args.layer) if registry.is_regional(args.layer) else None
+    if regional and not args.dry_run and not regional.production_enabled:
+        print(
+            f"ingest {args.layer}: not enabled for publication yet; use --dry-run DIR "
+            "(docs/open-meteo-bulk-implementation-plan.md, Phase 3)"
+        )
+        return 1
     if args.wait_minutes and not args.cycle:
         parser.error("--wait-minutes needs --cycle: a run waits for one named cycle")
 
@@ -332,8 +380,11 @@ def main(
                 print(f"ingest {args.layer}: --force refused: {exc}")
                 return 1
         cube = _build(args, cycle, requested)
+    except SourceError as exc:  # a regional run's files are not what the registry expects
+        print(f"ingest {args.layer}: source check failed: {exc}")
+        return 1
     except CycleNotAvailableError as exc:
-        if args.layer in SKIP_WHEN_NOT_AVAILABLE:
+        if skip_when_not_available(args.layer):
             print(f"ingest {args.layer}: cycle not available yet, skipping ({exc})")
             return 0
         print(f"ingest {args.layer}: no complete cycle available ({exc})")
@@ -341,16 +392,21 @@ def main(
 
     print(f"ingest {args.layer}: cycle {cube.cycle_iso} -> run {cube.run_id}")
 
-    expected_axes = None
-    if args.layer == "currents-ibi":
-        from ingest.sources import ibi
+    if regional:
+        from ingest.sources.openmeteo import adapter
 
-        expected_axes = {ibi.AXIS_NAME: ibi.STEP_AXIS}
-    report = validate_cube(
-        cube,
-        max_missing=MAX_MISSING[args.layer],
-        expected_axes=expected_axes,
-    )
+        report = adapter.validate(regional, cube)
+    else:
+        expected_axes = None
+        if args.layer == "currents-ibi":
+            from ingest.sources import ibi
+
+            expected_axes = {ibi.AXIS_NAME: ibi.STEP_AXIS}
+        report = validate_cube(
+            cube,
+            max_missing=max_missing(args.layer),
+            expected_axes=expected_axes,
+        )
     print(report.summary())
     if not report.ok:
         print(f"ingest {args.layer}: validation FAILED, aborting before upload")
@@ -359,6 +415,23 @@ def main(
     tiles = build_tiles(cube)
     total = sum(len(gz) for _, gz in tiles)
     print(f"ingest {args.layer}: {len(tiles)} tiles, {total / 1e6:.1f} MB gz")
+
+    if regional:
+        from ingest.sources.openmeteo import catalog
+
+        if total > regional.max_run_bytes:
+            print(
+                f"ingest {args.layer}: run is {total} B, over its {regional.max_run_bytes} B "
+                "cap; refusing before upload"
+            )
+            return 1
+        source = getattr(args, "source_run", None)
+        if source is not None:
+            try:
+                catalog.recheck(source.meta, source.files)
+            except SourceError as exc:
+                print(f"ingest {args.layer}: source changed, refusing to publish: {exc}")
+                return 1
 
     try:
         result = publish_run(

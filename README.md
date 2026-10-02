@@ -55,6 +55,9 @@ uv run ingest currents-ibi                   # hourly regional current field
 uv run ingest weather --force                # re-publish the cycle latest.json already has (repairs only)
 uv run ingest weather --cycle 20260930T06 --wait-minutes 90   # wait for the provider, then publish
 uv run ingest land --domain nweu             # rebuild the routing index (one-shot)
+uv sync --extra openmeteo                    # regional models (dry runs only so far)
+uv run ingest weather-arome --cycle 20261002T09 --dry-run /tmp/arome
+uv run ingest weather-icon-eu --dry-run /tmp/icon-eu
 ```
 
 Each run: resolve the latest **complete** provider cycle (`.idx` presence,
@@ -171,6 +174,41 @@ Before 2026-09-24 GLO12 headers took the step from two float32 coordinates
 column at the end of the western tile. IBI keeps the provider's own regular
 0.02777863° lattice, which sits up to 0.0013° off the 1/36° lines
 ([docs/ibi-currents.md](docs/ibi-currents.md)).
+
+### Regional layers (dry runs only)
+
+Phases 1 and 2 of the [Open-Meteo bulk plan](docs/open-meteo-bulk-implementation-plan.md)
+add regional deterministic models from Open-Meteo's public AWS files
+(`src/ingest/sources/openmeteo/`). Each run is three whole `.om` files from a
+complete `data_run/` cycle, decoded locally with `omfiles` (the optional
+`openmeteo` extra). The registry defines each layer; none is enabled for R2
+yet, so the CLI accepts them only with `--dry-run`. They publish to their own
+`latest-regional.json`, never to the root `latest.json`.
+
+| Layer | Source | Grid / tiles | Cycles and axis |
+|---|---|---|---|
+| `weather-arome` | Météo-France AROME France 0.025° | 717×1121 from 37.5N 12W, `grid-0p025`, 5° tiles, versioned footprint mask | 03/09/15/21Z, hourly 0–51 h |
+| `weather-icon-eu` | DWD ICON-EU 0.0625° | 657×1377 from 29.5N 23.5W, `grid-0p0625`, 10° tiles | 00/06/12/18Z, hourly to 78 h then 3-hourly to 120 h |
+
+Both publish `wind_u_kt` / `wind_v_kt` with the global layers' int16
+encoding. Gust (`gust_kt`, a maximum with a per-step `statistic` window,
+missing at +0 h) is added only once the registry marks its window verified
+from the upstream GRIB (`scripts/probe_openmeteo.py gust-window`); until then
+runs are wind-only, as their provenance says. AROME covers only part of its
+rectangle (17.18 % of cells are always missing), so it is validated per step
+inside a registered footprint, not by the global 5 % rule.
+
+Measured 2026-10-02 with `uv run scripts/probe_openmeteo.py benchmark LAYER
+--assume-gust-windows`, which includes gust under the unverified windows
+(sizes gzipped, MB decimal):
+
+| Run | Source | 10° tiles: total / largest gz / largest decoded | 5° tiles: total / largest gz / largest decoded | Peak RSS |
+|---|---|---|---|---|
+| AROME 2026-10-02T03Z | 55.7 MB | 11 tiles, 74.2 / 19.6 / 99.8 MB | 28 tiles, 73.9 / 5.2 / 25.0 MB | 1.3 GB |
+| ICON-EU 2026-10-02T06Z | 121.7 MB | 60 tiles, 170.3 / 6.6 / 28.6 MB | 180 tiles, 162.1 / 1.8 / 7.1 MB | 2.7 GB |
+
+Wind-only dry runs of AROME 09Z and ICON-EU 06Z wrote 48.4 MB (28 tiles) and
+105.6 MB (60 tiles).
 
 ## Dispatcher
 
@@ -341,10 +379,18 @@ blended-current contract remains separate.
 
 ## Data licensing
 
+The code in this repository is MIT-licensed ([LICENSE](LICENSE)). The
+optional `openmeteo` extra installs `omfiles`, which is GPL-2.0-only; it is a
+dependency, not vendored or redistributed here.
+
 - NOAA data: US Government work, public reuse permitted.
 - Copernicus Marine data: free with attribution — this pipeline records product
   ids in run manifests and Passage displays attribution in its UI.
 - ECMWF open data: CC BY 4.0.
+- Regional models via Open-Meteo's bulk files: CC BY 4.0 as the catalogue
+  declares, attributed to the originating service (Météo-France AROME, DWD
+  ICON-EU) and to Open-Meteo in every regional run's provenance. UKV's
+  upstream CC BY-SA terms are unresolved, so it is not registered.
 - GSHHG shoreline: LGPL-3.0-or-later, with permission to use, copy, modify and
   distribute given attribution — Wessel, P., and W. H. F. Smith (1996), *A
   global, self-consistent, hierarchical, high-resolution shoreline database*,

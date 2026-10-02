@@ -1,4 +1,5 @@
-"""Account for every object under forecast-runs/ against the pointers.
+"""Account for every object under forecast-runs/ against both pointers
+(latest.json and latest-regional.json).
 
 Each run found by listing is one of: referenced (a pointer names it as some
 layer's current or previous run), superseded (complete, named by nothing),
@@ -21,9 +22,8 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
-from ingest.publish import LATEST_KEY, referenced_run_ids
+from ingest.publish import POINTER_KEYS, referenced_run_ids
 
-POINTER_KEYS = (LATEST_KEY,)
 DEFAULT_MIN_AGE_HOURS = 24
 
 _RUN_RE = re.compile(r"^forecast-runs/([a-z0-9-]+-\d{8}T\d{2}Z)/")

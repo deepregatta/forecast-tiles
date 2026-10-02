@@ -1,0 +1,43 @@
+{
+ "layer": "weather-icon-eu",
+ "domain": "dwd_icon_eu",
+ "cycle": "2026-10-02T06Z",
+ "crop": {
+  "rows": [
+   504,
+   525
+  ],
+  "cols": [
+   499,
+   520
+  ],
+  "lat0": 61.0,
+  "lon0": 7.6875
+ },
+ "attribution": "Deutscher Wetterdienst ICON-EU via Open-Meteo (CC BY 4.0)",
+ "licence": "CC BY 4.0 (Open-Meteo bulk catalogue); DWD open data",
+ "note": "Cropped from the source files below; values unchanged (0.1 m/s precision)",
+ "files": {
+  "wind_u_component_10m.om": {
+   "key": "data_run/dwd_icon_eu/2026/10/02/0600Z/wind_u_component_10m.om",
+   "etag": "\"83343d832cec9d2fe6a1cf02ca3c5c87-5\"",
+   "bytes": 39484688
+  },
+  "wind_v_component_10m.om": {
+   "key": "data_run/dwd_icon_eu/2026/10/02/0600Z/wind_v_component_10m.om",
+   "etag": "\"50c70025fb8bd06f011c6c18baa85fdb-5\"",
+   "bytes": 37254888
+  },
+  "wind_gusts_10m.om": {
+   "key": "data_run/dwd_icon_eu/2026/10/02/0600Z/wind_gusts_10m.om",
+   "etag": "\"fcd9292150034a2be6a6e8e95def8a27-6\"",
+   "bytes": 44910504
+  },
+  "HSURF.npy": {
+   "key": "data/dwd_icon_eu/static/HSURF.om",
+   "etag": "\"63c1af07f0d611ac9949bf619f06c1d9\"",
+   "bytes": 550624
+  }
+ },
+ "meta_etag": "\"689c1400364f51ae804a26e199632f57\""
+}

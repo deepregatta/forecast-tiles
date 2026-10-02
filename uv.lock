@@ -323,6 +323,9 @@ dependencies = [
 currents = [
     { name = "copernicusmarine" },
 ]
+openmeteo = [
+    { name = "omfiles" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -339,10 +342,11 @@ requires-dist = [
     { name = "eccodeslib", specifier = ">=2.47.3.22" },
     { name = "ecmwf-opendata", specifier = ">=0.3.19" },
     { name = "numpy", specifier = ">=2.0" },
+    { name = "omfiles", marker = "extra == 'openmeteo'", specifier = "==1.2.0" },
     { name = "orjson", specifier = ">=3.10" },
     { name = "requests", specifier = ">=2.32" },
 ]
-provides-extras = ["currents"]
+provides-extras = ["currents", "openmeteo"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -551,6 +555,24 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ee/90/e314a32b1c11a2ffe818ddad3a57b50b4b6e1b6c487192eb50cdef0415d0/numpy-2.5.1-cp313-cp313-win32.whl", hash = "sha256:4b4ff1608417eb7a59da7b967bbb798cacfe071d2caf526a24281cd562072ed9", size = 6063885, upload-time = "2026-07-04T17:07:00.14Z" },
     { url = "https://files.pythonhosted.org/packages/10/70/800b3fca480af32df9e8ea9f3d4a0c8feb4b32d7f195d174eabbda4829ad/numpy-2.5.1-cp313-cp313-win_amd64.whl", hash = "sha256:6c3fe51bc6a16453d452997053454f309e8e0ed7b42d6b361ce4ac8c32913d74", size = 12425674, upload-time = "2026-07-04T17:07:02.387Z" },
     { url = "https://files.pythonhosted.org/packages/8b/0b/196350c122f50f6ca56846f2d71efd5e0d24b7b2e07355e019b2e2c7a11e/numpy-2.5.1-cp313-cp313-win_arm64.whl", hash = "sha256:f7feb014281029e628ba2d5a007407443b06e418b6fe451d1e2adcbc8eba0107", size = 10350256, upload-time = "2026-07-04T17:07:04.878Z" },
+]
+
+[[package]]
+name = "omfiles"
+version = "1.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/df/43/a8937afc980168ff1aef7350dafac7ce460592dc4f115bc2135c60fdc001/omfiles-1.2.0.tar.gz", hash = "sha256:ca42ebb260de73e937cb4a72d1867e34e7046f19105202c01d1455c72abf6895", size = 250491, upload-time = "2026-04-23T09:01:56.587Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/96/6f7f6036718779761fa00ccc11358ed1bc03a162e9dbd2fc4fd1d3de5800/omfiles-1.2.0-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:4298616241141234c53a1815f5f07b7262d1b3261f8fd73671cb7b62a28b914d", size = 1031482, upload-time = "2026-04-23T09:01:46.052Z" },
+    { url = "https://files.pythonhosted.org/packages/86/1b/c3f65a2c6bb5f1c236af66cb77acbd185ee657181cebb19398cbcc84c9e7/omfiles-1.2.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:05a04d1d3c3530954d81e471335053fdc5331d52323c332c66b99f1855a7871d", size = 1019385, upload-time = "2026-04-23T09:01:47.838Z" },
+    { url = "https://files.pythonhosted.org/packages/8f/78/44f3f9cfc4bdd13af9992386b538ca4ad0eeb3f22e692814ace004c8924e/omfiles-1.2.0-cp310-abi3-manylinux_2_28_aarch64.whl", hash = "sha256:bb40290c7661978490ae43ec156ab0a14ccb2311f81d74ff7c5067c04094195e", size = 1297866, upload-time = "2026-04-23T09:01:49.412Z" },
+    { url = "https://files.pythonhosted.org/packages/8a/f2/d64d9f3424ccbcc94850fcaca04de05d1dd7db8d1c5bbfda63ee37159c3e/omfiles-1.2.0-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:525082edbf7d583d0215b9930debcea3addd1cb99144b610a5f00191a1191d39", size = 1089138, upload-time = "2026-04-23T09:01:50.793Z" },
+    { url = "https://files.pythonhosted.org/packages/ad/11/c9e9027fa32877f892567dc4eeffd3a4eb7e61ad24e28fd4bc5f76237827/omfiles-1.2.0-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:0d5754fdd07ce93e19e4302129963abb35257d04ed51b5fc4bfd89ee40d88b70", size = 1282944, upload-time = "2026-04-23T09:01:52.125Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/5b/2f1b892c3764e71aaf9c7d5698bb3cc630d01d79c1632bf442ad8536fb32/omfiles-1.2.0-cp310-abi3-win_amd64.whl", hash = "sha256:fa81ae39c643e80246abdcef370e89d187d64511ba6cd72d4a88a2dc4f1ecb44", size = 869558, upload-time = "2026-04-23T09:01:53.657Z" },
+    { url = "https://files.pythonhosted.org/packages/49/3e/c32b9a7214eddea39e99a1ee78af67d796b544abd4354f3296022901a037/omfiles-1.2.0-cp310-abi3-win_arm64.whl", hash = "sha256:fd242b62d18923ed338e2a59419564d5b41a28438d8dd284e3f95eb9b59824ff", size = 1066576, upload-time = "2026-04-23T09:01:55.109Z" },
 ]
 
 [[package]]

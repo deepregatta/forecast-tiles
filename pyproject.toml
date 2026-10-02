@@ -3,6 +3,8 @@ name = "forecast-tiles"
 version = "0.1.0"
 description = "Precomputed global forecast tiles for Passage: NOAA/Copernicus ingestion, PFT1 tiling, Cloudflare R2 publishing"
 requires-python = ">=3.12,<3.14"
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
     "numpy>=2.0",
     "eccodes>=2.38",
@@ -19,6 +21,13 @@ ingest = "ingest.cli:main"
 [project.optional-dependencies]
 currents = [
     "copernicusmarine>=2.0",
+]
+# Open-Meteo bulk files (docs/open-meteo-bulk-implementation-plan.md): the
+# plain local reader only. omfiles is GPL-2.0-only and stays an optional extra;
+# its fsspec/s3fs extras are not used (their botocore pins would bind the
+# lockfile every workflow shares).
+openmeteo = [
+    "omfiles==1.2.0",
 ]
 
 [dependency-groups]

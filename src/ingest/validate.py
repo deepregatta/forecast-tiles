@@ -78,11 +78,35 @@ def validate_cube(
     *,
     max_missing: float = 0.05,
     expected_axes: dict[str, list[int]] | None = None,
+    footprint: np.ndarray | None = None,
+    max_interior_missing: float | None = None,
+    allowed_missing_steps: dict[str, list[int]] | None = None,
 ) -> ValidationReport:
     """Validate step coverage, physical ranges, gust consistency and missing
     fraction. `max_missing` is the allowed missing fraction (ocean-only layers
-    pass a higher value)."""
+    pass a higher value).
+
+    A regional product passes `max_interior_missing` instead: the missing
+    fraction is then checked at every step, inside its registered `footprint`
+    (the whole grid when None), so an expected outline is accepted while a
+    hole in it or an empty step is not. Steps listed in
+    `allowed_missing_steps[name]` (forecast-hour offsets, e.g. gust at +0 h)
+    are exempt. Cells outside the footprint must carry no data at all."""
     report = ValidationReport()
+    interior = None
+    if max_interior_missing is not None:
+        interior = (
+            np.ones((cube.grid.nlat, cube.grid.nlon), dtype=bool)
+            if footprint is None
+            else np.asarray(footprint, dtype=bool)
+        )
+        if interior.shape != (cube.grid.nlat, cube.grid.nlon):
+            report.check(
+                "footprint_shape",
+                False,
+                f"footprint {interior.shape} != grid {(cube.grid.nlat, cube.grid.nlon)}",
+            )
+            return report
 
     # --- axes: monotonically increasing, and complete vs the committed axes
     for name, offs in cube.time_axes.items():
@@ -129,12 +153,23 @@ def validate_cube(
             else "no data",
         )
 
-        missing_frac = float(np.isnan(values).mean())
-        report.check(
-            f"missing_fraction[{spec.name}]",
-            missing_frac <= max_missing,
-            f"{missing_frac:.3f} > allowed {max_missing}",
-        )
+        if interior is None:
+            missing_frac = float(np.isnan(values).mean())
+            report.check(
+                f"missing_fraction[{spec.name}]",
+                missing_frac <= max_missing,
+                f"{missing_frac:.3f} > allowed {max_missing}",
+            )
+        else:
+            _check_interior(
+                report,
+                spec.name,
+                values,
+                cube.time_axes[spec.axis],
+                interior,
+                max_interior_missing,
+                set((allowed_missing_steps or {}).get(spec.name, ())),
+            )
 
         # a statistic (e.g. max over the last N h) needs a window for every
         # step that carries data, or consumers can't label the interval
@@ -174,6 +209,17 @@ def validate_cube(
 
     for u_name, v_name, g_name in _GUST_CHECKS:
         if {u_name, v_name, g_name} <= names:
+            axes = [cube.var(n).axis for n in (u_name, v_name, g_name)]
+            shapes = [tuple(cube.arrays[n].shape) for n in (u_name, v_name, g_name)]
+            if len(set(axes)) > 1 or len(set(shapes)) > 1:
+                # compared point for point, so they must share one axis
+                report.check(
+                    f"gust_ge_wind[{g_name}]",
+                    False,
+                    f"wind and gust are on different axes or shapes: "
+                    f"{dict(zip((u_name, v_name, g_name), zip(axes, shapes)))}",
+                )
+                continue
             u, v, g = (cube.decoded(n) for n in (u_name, v_name, g_name))
             check_gust(np.hypot(u, v), g, f"gust_ge_wind[{g_name}]")
     if {"wind_kt_mean", "gust_kt_mean"} <= names:  # ensemble: means are speeds already
@@ -193,3 +239,37 @@ def validate_cube(
         )
 
     return report
+
+
+def _check_interior(
+    report: ValidationReport,
+    name: str,
+    values: np.ndarray,
+    offsets: list[int],
+    interior: np.ndarray,
+    limit: float,
+    allowed: set[int],
+) -> None:
+    """Per-step missing fraction inside the footprint, and nothing outside it."""
+    if values.ndim != 3:  # per-member regional variables are not supported
+        report.check(f"interior_missing[{name}]", False, f"{values.ndim}-D array")
+        return
+    inside = np.isnan(values[:, interior]).mean(axis=1)
+    over = [
+        (off, float(frac))
+        for off, frac in zip(offsets, inside)
+        if off not in allowed and frac > limit
+    ]
+    report.check(
+        f"interior_missing[{name}]",
+        not over,
+        f"{len(over)} of {len(offsets)} steps over {limit:.2%} missing inside the footprint: "
+        + ", ".join(f"+{off} h {frac:.2%}" for off, frac in over[:5]),
+    )
+    if (~interior).any():
+        outside = int((~np.isnan(values[:, ~interior])).sum())
+        report.check(
+            f"exterior_masked[{name}]",
+            outside == 0,
+            f"{outside} values outside the footprint",
+        )

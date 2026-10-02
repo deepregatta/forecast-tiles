@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 import numpy as np
 
 from tilekit.codec import DTYPES
+from tilekit.tiles import TILE_DEG
 
 # A coordinate array is one regular axis when origin + k*step reproduces it to
 # within this, or to within a few ULPs of its dtype at 180° when that is
@@ -158,6 +159,10 @@ class ForecastCube:
     arrays: dict[str, np.ndarray]  # [member?, time, nlat, nlon]
     member_count: int = 1
     provenance: dict = field(default_factory=dict)
+    # Publication layout: 10° tiles under {layer}/z{res}/ unless a regional
+    # product registers smaller tiles and an explicit path label (grid-0p025).
+    tile_deg: int = TILE_DEG
+    path_label: str | None = None
 
     @property
     def run_id(self) -> str:

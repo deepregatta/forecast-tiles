@@ -58,6 +58,11 @@ APPLICATION_JSON = "application/json"
 DEFAULT_MAX_BUCKET_BYTES = 8_000_000_000  # 8 GB storage guard
 
 LATEST_KEY = "latest.json"
+# Regional models (src/ingest/sources/openmeteo) have a pointer of their own,
+# so root-only consumers never see them. Storage, retention and the audit
+# count both; the two layer allowlists are disjoint.
+REGIONAL_KEY = "latest-regional.json"
+POINTER_KEYS = (LATEST_KEY, REGIONAL_KEY)
 
 # Compare-and-swap attempts on the pointer before giving up, and the base of
 # the jittered exponential backoff between them (0.5, 1, 2, 4, 8 s, each
@@ -407,7 +412,7 @@ def _layer_runs(store, layer: str) -> dict[str, list[str]]:
     return dict(sorted(runs.items()))
 
 
-def referenced_run_ids(store, pointer_keys: tuple[str, ...] = (LATEST_KEY,)) -> set[str]:
+def referenced_run_ids(store, pointer_keys: tuple[str, ...] = POINTER_KEYS) -> set[str]:
     """Every current and previous run id the pointers name, read now."""
     referenced: set[str] = set()
     for key in pointer_keys:
@@ -430,18 +435,34 @@ def check_not_older(layer: str, current: dict | None, cycle: str, pointer_key: s
 # ------------------------------------------------------------ publish steps
 
 
+def cadence_hours_for(layer: str) -> int | None:
+    """`cadence_hours` for a layer's pointer entry, root or regional."""
+    if layer in CADENCE_HOURS:
+        return CADENCE_HOURS[layer]
+    from ingest.sources.openmeteo import registry
+
+    return registry.product(layer).cadence_hours if registry.is_regional(layer) else None
+
+
+def pointer_key_for(layer: str) -> str:
+    from ingest.sources.openmeteo import registry
+
+    return REGIONAL_KEY if registry.is_regional(layer) else LATEST_KEY
+
+
 def check_storage_guard(
     store, layer: str, new_run_bytes: int, max_bucket_bytes: int
 ) -> dict[str, int]:
     """Sum manifest totals of the runs that will be retained after this publish
-    plus the new run's bytes; abort before uploading anything if over budget."""
-    latest = _get_json(store, LATEST_KEY) or {"layers": {}}
+    plus the new run's bytes; abort before uploading anything if over budget.
+    Both pointers count: a separate regional pointer is not another budget."""
     retained: set[str] = set()
-    for lyr, entry in latest.get("layers", {}).items():
-        retained.add(entry["run_id"])
-        prev = entry.get("previous_run_id")
-        if lyr != layer and prev:
-            retained.add(prev)  # this layer's previous gets deleted after publish
+    for key in POINTER_KEYS:
+        for lyr, entry in (_get_json(store, key) or {}).get("layers", {}).items():
+            retained.add(entry["run_id"])
+            prev = entry.get("previous_run_id")
+            if lyr != layer and prev:
+                retained.add(prev)  # this layer's previous gets deleted after publish
     sizes: dict[str, int] = {}
     for run_id in sorted(retained):
         manifest = _get_json(store, f"forecast-runs/{run_id}/manifest.json")
@@ -477,8 +498,10 @@ def build_manifest(
         "time_axes": cube.header_time_axes(),
         "variables": [v.public() for v in cube.variables],
         "tiling": {
-            "tile_deg": 10,
-            "path_template": f"{cube.layer}/{z_res(cube.resolution_deg)}/{{tile_id}}.bin.gz",
+            "tile_deg": cube.tile_deg,
+            "path_template": (
+                f"{cube.layer}/{cube.path_label or z_res(cube.resolution_deg)}/{{tile_id}}.bin.gz"
+            ),
         },
         "tiles": tile_map,
         "totals": {
@@ -615,7 +638,7 @@ def apply_retention(
     run_id: str,
     previous: str | None,
     *,
-    pointer_keys: tuple[str, ...] = (LATEST_KEY,),
+    pointer_keys: tuple[str, ...] = POINTER_KEYS,
 ) -> tuple[list[str], list[str]]:
     """After a confirmed commit, delete this layer's complete runs older than
     the retained previous (older than the new run when there is none).
@@ -672,13 +695,22 @@ def publish_run(
     rng: random.Random | None = None,
     started_at: float | None = None,
     sleep: Callable[[float], None] = time.sleep,
+    pointer_key: str | None = None,
 ) -> PublishResult:
     """Run the full atomic publish protocol for an already-validated cube.
 
     Raises StalePublishError (before uploading anything, or at the commit if a
     newer cycle landed meanwhile) rather than move the layer back a cycle, and
     PointerConflictError when the pointer kept changing under every attempt.
-    Neither deletes anything."""
+    Neither deletes anything.
+
+    `pointer_key` defaults to the layer's own pointer (latest.json, or
+    latest-regional.json for a registered regional model); a layer is never
+    committed to the other one."""
+    expected_pointer = pointer_key_for(cube.layer)
+    pointer_key = pointer_key or expected_pointer
+    if pointer_key != expected_pointer:
+        raise PublishError(f"{cube.layer} belongs in {expected_pointer}, not {pointer_key}")
     if not report.ok:
         raise PublishError(
             f"refusing to publish a cube that failed validation:\n{report.summary()}"
@@ -694,7 +726,8 @@ def publish_run(
     )
 
     # 1. an older cycle than the pointer's, and the storage guard: before any upload
-    check_not_older(cube.layer, published_layer(store, cube.layer), cube.cycle_iso)
+    current = published_layer(store, cube.layer, pointer_key)
+    check_not_older(cube.layer, current, cube.cycle_iso, pointer_key)
     check_storage_guard(store, cube.layer, manifest["totals"]["bytes"], max_bucket_bytes)
 
     # 2. tiles under the immutable run id
@@ -724,9 +757,11 @@ def publish_run(
         "cycle": cube.cycle_iso,
         "member_count": cube.member_count,
         "published_at": published_at,
-        "cadence_hours": CADENCE_HOURS.get(cube.layer),
+        "cadence_hours": cadence_hours_for(cube.layer),
     }
-    commit = commit_layer_entry(store, cube.layer, entry, sleep=sleep, rng=rng)
+    commit = commit_layer_entry(
+        store, cube.layer, entry, pointer_key=pointer_key, sleep=sleep, rng=rng
+    )
     previous = commit.previous_run_id
 
     # 6. retention, only now that the commit is confirmed

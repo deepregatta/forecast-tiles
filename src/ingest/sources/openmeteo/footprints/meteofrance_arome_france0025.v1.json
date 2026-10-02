@@ -1,0 +1,16 @@
+{
+ "name": "meteofrance_arome_france0025.v1",
+ "shape": [
+  717,
+  1121
+ ],
+ "sha256": "ad74c408e154c8139f28dad8ed5e74ccf1312b5d3c995e7f1269f4ae1d9c0920",
+ "derived_from": "data/meteofrance_arome_france0025/static/HSURF.om (etag \"ca0be2c1b08000f899b984d004163f0f\") NaN mask",
+ "derived_at": "2026-10-02T15:07Z",
+ "rows": "row 0 = southernmost latitude, ascending",
+ "checked_against": [
+  "data_run/meteofrance_arome_france0025/2026/10/02/0900Z/wind_v_component_10m.om (etag \"0af9e8a2c00c40c240b8a30de1c59bbf-3\")",
+  "data_run/meteofrance_arome_france0025/2026/10/02/0300Z/wind_v_component_10m.om (etag \"a96ccdfb25ef4f68bf6967a24401ef19-3\")",
+  "data_run/meteofrance_arome_france0025/2026/10/01/2100Z/wind_v_component_10m.om (etag \"7e94fa87c1eed81690e36fb6be996111-3\")"
+ ]
+}

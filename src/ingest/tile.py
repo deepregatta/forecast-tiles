@@ -1,4 +1,5 @@
-"""Cube -> gzipped PFT1 tiles (10°x10°, deterministic gzip level 9, mtime 0).
+"""Cube -> gzipped PFT1 tiles (cube.tile_deg, 10° unless a regional product
+chooses 5°; deterministic gzip level 9, mtime 0).
 
 Fully-missing tiles (all-land) are skipped — the pipeline never publishes
 them (spec: Tiling)."""
@@ -16,14 +17,16 @@ from tilekit.tiles import TILE_DEG, tile_id, tiles_for_grid
 GZIP_LEVEL = 9
 
 
-def tile_index_ranges(grid: GridMeta) -> list[tuple[int, int, slice, slice]]:
+def tile_index_ranges(
+    grid: GridMeta, tile_deg: int = TILE_DEG
+) -> list[tuple[int, int, slice, slice]]:
     """(tile_lat0, tile_lon0, lat_slice, lon_slice) for tiles intersecting the grid."""
     lats = grid.lats()
     lons = grid.lons()
     out = []
-    for t_lat0, t_lon0 in tiles_for_grid(lats[0], lats[-1], lons[0], lons[-1]):
-        li = np.where((lats >= t_lat0) & (lats < t_lat0 + TILE_DEG))[0]
-        lj = np.where((lons >= t_lon0) & (lons < t_lon0 + TILE_DEG))[0]
+    for t_lat0, t_lon0 in tiles_for_grid(lats[0], lats[-1], lons[0], lons[-1], tile_deg):
+        li = np.where((lats >= t_lat0) & (lats < t_lat0 + tile_deg))[0]
+        lj = np.where((lons >= t_lon0) & (lons < t_lon0 + tile_deg))[0]
         if len(li) and len(lj):
             out.append((t_lat0, t_lon0, slice(li[0], li[-1] + 1), slice(lj[0], lj[-1] + 1)))
     return out
@@ -56,7 +59,7 @@ def build_tiles(cube: ForecastCube, *, generated_at: str | None = None) -> list[
     variables = [v.public() for v in cube.variables]
 
     tiles: list[tuple[str, bytes]] = []
-    for t_lat0, t_lon0, li, lj in tile_index_ranges(cube.grid):
+    for t_lat0, t_lon0, li, lj in tile_index_ranges(cube.grid, cube.tile_deg):
         tile_arrays: dict[str, np.ndarray] = {}
         any_data = False
         for spec in cube.variables:

@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Audit forecast runs on R2 (or a --dry-run directory) against latest.json.
+"""Audit forecast runs on R2 (or a --dry-run directory) against the pointers.
 
 Reports every run under forecast-runs/ as referenced, superseded or
 incomplete with its bytes, and lists damage first: a pointer naming a run
 whose manifest is gone, or a referenced manifest listing a tile that is
-missing. Read-only unless --delete-unreferenced is given, which removes runs
-nothing names whose newest object is older than --min-age-hours (default 24),
-re-checking the pointer just before each deletion. See ingest.audit.
+missing. Both latest.json and latest-regional.json count as references.
+Read-only unless --delete-unreferenced is given, which removes runs nothing
+names whose newest object is older than --min-age-hours (default 24),
+re-checking the pointers just before each deletion. See ingest.audit.
 
 Usage:
   uv run scripts/audit_runs.py                      # R2 from R2_* env vars
