@@ -713,6 +713,13 @@ reference points independently of production transformation code.
 **Exit:** numeric/footprint/browser gates pass, current capacity fits and UKV
 passes its seven-day canary. Release 1 is complete only after all three models.
 
+**Discovery started 2026-10-02, no registered product.** A live primary probe
+confirmed exact projected axes and +0 h gust, but found a bulk/native CRS
+discrepancy of up to 4.681 km at sampled corners and no gust interval in the
+sampled NetCDF attributes. Evidence and reproducible commands are in
+[ukv-discovery.md](ukv-discovery.md). Do not freeze a grid or infer maximum
+windows from the hourly output axis before those questions are resolved.
+
 ### Phase 5 — Expansion after a capacity decision
 
 Re-budget before ICON-D2/HRRR/HRDPS. Reuse the reader and projection code but

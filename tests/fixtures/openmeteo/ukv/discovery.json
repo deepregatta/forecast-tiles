@@ -1,0 +1,475 @@
+{
+ "checked_at": "2026-10-02T17:18:07.994071+00:00",
+ "attribution": "British Crown copyright, Met Office UKV via Open-Meteo",
+ "native_data_licence": "CC BY-SA 4.0",
+ "native_licence_source": "https://registry.opendata.aws/met-office-uk-deterministic/",
+ "bulk_catalogue_licence": "CC BY 4.0; upstream ShareAlike question remains separate",
+ "meta_url": "https://openmeteo.s3.amazonaws.com/data_run/ukmo_uk_deterministic_2km/2026/10/02/1200Z/meta.json",
+ "meta_etag": "\"303cceca9bc60693b27af729548a80c5\"",
+ "bulk_meta": {
+  "created_at": "2026-10-02T16:21:52Z",
+  "crs_wkt": "PROJCRS[\"Lambert Azimuthal Equal-Area\",\n    BASEGEOGCRS[\"GCS_Sphere\",\n        DATUM[\"D_Sphere\",\n            ELLIPSOID[\"Sphere\",6371229.0,0.0]]],\n    CONVERSION[\"Lambert Azimuthal Equal-Area\",\n        METHOD[\"Lambert Azimuthal Equal-Area\"],\n        PARAMETER[\"Latitude of natural origin\", 54.9],\n        PARAMETER[\"Longitude of natural origin\", -2.5],\n        PARAMETER[\"False easting\", 0.0],\n        PARAMETER[\"False northing\", 0.0]],\n    CS[Cartesian,2],\n        AXIS[\"easting\",east],\n        AXIS[\"northing\",north],\n        LENGTHUNIT[\"metre\",1.0],\n    USAGE[\n        SCOPE[\"grid\"],\n        BBOX[44.508755,-17.152863,61.92511,15.352753]]]",
+  "reference_time": "2026-10-02T12:00:00Z",
+  "temporal_resolution_seconds": 3600,
+  "valid_times": [
+   "2026-10-02T12:00Z",
+   "2026-10-02T13:00Z",
+   "2026-10-02T14:00Z",
+   "2026-10-02T15:00Z",
+   "2026-10-02T16:00Z",
+   "2026-10-02T17:00Z",
+   "2026-10-02T18:00Z",
+   "2026-10-02T19:00Z",
+   "2026-10-02T20:00Z",
+   "2026-10-02T21:00Z",
+   "2026-10-02T22:00Z",
+   "2026-10-02T23:00Z",
+   "2026-10-03T00:00Z",
+   "2026-10-03T01:00Z",
+   "2026-10-03T02:00Z",
+   "2026-10-03T03:00Z",
+   "2026-10-03T04:00Z",
+   "2026-10-03T05:00Z",
+   "2026-10-03T06:00Z",
+   "2026-10-03T07:00Z",
+   "2026-10-03T08:00Z",
+   "2026-10-03T09:00Z",
+   "2026-10-03T10:00Z",
+   "2026-10-03T11:00Z",
+   "2026-10-03T12:00Z",
+   "2026-10-03T13:00Z",
+   "2026-10-03T14:00Z",
+   "2026-10-03T15:00Z",
+   "2026-10-03T16:00Z",
+   "2026-10-03T17:00Z",
+   "2026-10-03T18:00Z",
+   "2026-10-03T19:00Z",
+   "2026-10-03T20:00Z",
+   "2026-10-03T21:00Z",
+   "2026-10-03T22:00Z",
+   "2026-10-03T23:00Z",
+   "2026-10-04T00:00Z",
+   "2026-10-04T01:00Z",
+   "2026-10-04T02:00Z",
+   "2026-10-04T03:00Z",
+   "2026-10-04T04:00Z",
+   "2026-10-04T05:00Z",
+   "2026-10-04T06:00Z",
+   "2026-10-04T07:00Z",
+   "2026-10-04T08:00Z",
+   "2026-10-04T09:00Z",
+   "2026-10-04T10:00Z",
+   "2026-10-04T11:00Z",
+   "2026-10-04T12:00Z",
+   "2026-10-04T13:00Z",
+   "2026-10-04T14:00Z",
+   "2026-10-04T15:00Z",
+   "2026-10-04T16:00Z",
+   "2026-10-04T17:00Z",
+   "2026-10-04T18:00Z"
+  ],
+  "variables": [
+   "geopotential_height_150hPa",
+   "temperature_100hPa",
+   "geopotential_height_925hPa",
+   "relative_humidity_600hPa",
+   "temperature_200m",
+   "temperature_75m",
+   "wind_direction_100hPa",
+   "temperature_150m",
+   "temperature_1000hPa",
+   "wind_gusts_10m",
+   "wind_direction_200hPa",
+   "geopotential_height_700hPa",
+   "temperature_250hPa",
+   "cloud_cover_low",
+   "wind_direction_500hPa",
+   "cloud_cover",
+   "wind_direction_75m",
+   "temperature_300hPa",
+   "temperature_600hPa",
+   "wind_speed_1000hPa",
+   "geopotential_height_400hPa",
+   "wind_speed_75m",
+   "wind_speed_60m",
+   "cloud_cover_high",
+   "relative_humidity_925hPa",
+   "cloud_cover_10m",
+   "cape",
+   "direct_radiation",
+   "wind_direction_20m",
+   "relative_humidity_500hPa",
+   "wind_direction_1000hPa",
+   "temperature_175m",
+   "snow_depth_water_equivalent",
+   "wind_speed_125m",
+   "wind_direction_30m",
+   "wind_speed_100m",
+   "pressure_msl",
+   "wind_speed_925hPa",
+   "rain",
+   "wind_speed_600hPa",
+   "wind_speed_20m",
+   "wind_speed_30m",
+   "precipitation",
+   "relative_humidity_700hPa",
+   "surface_temperature",
+   "wind_speed_300hPa",
+   "wind_speed_175m",
+   "wind_direction_150hPa",
+   "relative_humidity_200hPa",
+   "wind_speed_700hPa",
+   "cloud_cover_200m",
+   "geopotential_height_500hPa",
+   "geopotential_height_250hPa",
+   "wind_direction_250hPa",
+   "geopotential_height_1000hPa",
+   "wind_speed_200hPa",
+   "visibility",
+   "wind_direction_60m",
+   "wind_speed_850hPa",
+   "wind_speed_200m",
+   "cloud_cover_150m",
+   "geopotential_height_50hPa",
+   "hail",
+   "temperature_20m",
+   "wind_speed_150hPa",
+   "cloud_base",
+   "wind_speed_150m",
+   "relative_humidity_250hPa",
+   "cloud_cover_75m",
+   "shortwave_radiation",
+   "wind_direction_700hPa",
+   "wind_speed_50m",
+   "wind_direction_100m",
+   "wind_direction_300hPa",
+   "temperature_850hPa",
+   "wind_direction_925hPa",
+   "uv_index",
+   "relative_humidity_400hPa",
+   "cloud_cover_2m",
+   "wind_speed_50hPa",
+   "temperature_30m",
+   "relative_humidity_150hPa",
+   "temperature_100m",
+   "wind_direction_125m",
+   "temperature_2m",
+   "temperature_10m",
+   "temperature_125m",
+   "cloud_cover_20m",
+   "temperature_40m",
+   "wind_direction_150m",
+   "wind_direction_850hPa",
+   "snowfall_water_equivalent",
+   "cloud_cover_mid",
+   "geopotential_height_100hPa",
+   "wind_direction_600hPa",
+   "geopotential_height_300hPa",
+   "temperature_925hPa",
+   "temperature_50m",
+   "relative_humidity_1000hPa",
+   "temperature_150hPa",
+   "wind_direction_40m",
+   "wind_direction_175m",
+   "relative_humidity_300hPa",
+   "wind_speed_500hPa",
+   "wind_direction_10m",
+   "wind_speed_400hPa",
+   "temperature_700hPa",
+   "cloud_cover_100m",
+   "temperature_500hPa",
+   "geopotential_height_600hPa",
+   "wind_speed_10m",
+   "temperature_50hPa",
+   "geopotential_height_200hPa",
+   "temperature_200hPa",
+   "relative_humidity_2m",
+   "wind_direction_200m",
+   "relative_humidity_50hPa",
+   "freezing_level_height",
+   "wind_speed_250hPa",
+   "temperature_400hPa",
+   "relative_humidity_850hPa",
+   "wind_direction_50hPa",
+   "cloud_cover_30m",
+   "wind_direction_400hPa",
+   "wind_speed_100hPa",
+   "cloud_cover_50m",
+   "temperature_60m",
+   "wind_direction_50m",
+   "relative_humidity_100hPa",
+   "wind_speed_40m",
+   "geopotential_height_850hPa"
+  ]
+ },
+ "native_records": [
+  {
+   "url": "https://met-office-atmospheric-model-data.s3.eu-west-2.amazonaws.com/uk-deterministic-2km/20261002T1200Z/20261002T1200Z-PT0000H00M-wind_direction_at_10m.nc",
+   "etag": "\"2ff685cab4a4c4c9173429136146307e\"",
+   "bytes": 989459,
+   "lead_h": 0,
+   "shape": [
+    970,
+    1042
+   ],
+   "attributes": {
+    "least_significant_digit": [
+     0
+    ],
+    "standard_name": "wind_from_direction",
+    "long_name": "wind_direction_adjusted_by_model_surface_scheme",
+    "units": "degrees",
+    "grid_mapping": "lambert_azimuthal_equal_area",
+    "coordinates": "forecast_period forecast_reference_time height time"
+   },
+   "projection": {
+    "grid_mapping_name": "lambert_azimuthal_equal_area",
+    "longitude_of_prime_meridian": [
+     0.0
+    ],
+    "semi_major_axis": [
+     6378137.0
+    ],
+    "semi_minor_axis": [
+     6356752.314140356
+    ],
+    "longitude_of_projection_origin": [
+     -2.5
+    ],
+    "latitude_of_projection_origin": [
+     54.9
+    ],
+    "false_easting": [
+     0.0
+    ],
+    "false_northing": [
+     0.0
+    ]
+   },
+   "x0_m": -1158000.0,
+   "y0_m": -1036000.0,
+   "dx_m": 2000.0,
+   "dy_m": 2000.0,
+   "has_time_bounds": false
+  },
+  {
+   "url": "https://met-office-atmospheric-model-data.s3.eu-west-2.amazonaws.com/uk-deterministic-2km/20261002T1200Z/20261002T1200Z-PT0000H00M-wind_gust_at_10m.nc",
+   "etag": "\"a7a57e7e04dfe8188efff85489be2b9a\"",
+   "bytes": 1188949,
+   "lead_h": 0,
+   "shape": [
+    970,
+    1042
+   ],
+   "attributes": {
+    "least_significant_digit": [
+     1
+    ],
+    "standard_name": "wind_speed_of_gust",
+    "units": "m s-1",
+    "grid_mapping": "lambert_azimuthal_equal_area",
+    "coordinates": "forecast_period forecast_reference_time height time"
+   },
+   "projection": {
+    "grid_mapping_name": "lambert_azimuthal_equal_area",
+    "longitude_of_prime_meridian": [
+     0.0
+    ],
+    "semi_major_axis": [
+     6378137.0
+    ],
+    "semi_minor_axis": [
+     6356752.314140356
+    ],
+    "longitude_of_projection_origin": [
+     -2.5
+    ],
+    "latitude_of_projection_origin": [
+     54.9
+    ],
+    "false_easting": [
+     0.0
+    ],
+    "false_northing": [
+     0.0
+    ]
+   },
+   "x0_m": -1158000.0,
+   "y0_m": -1036000.0,
+   "dx_m": 2000.0,
+   "dy_m": 2000.0,
+   "has_time_bounds": false
+  },
+  {
+   "url": "https://met-office-atmospheric-model-data.s3.eu-west-2.amazonaws.com/uk-deterministic-2km/20261002T1200Z/20261002T1300Z-PT0001H00M-wind_gust_at_10m.nc",
+   "etag": "\"54a44b3a5ffd780729af86643f8541d0\"",
+   "bytes": 1183985,
+   "lead_h": 1,
+   "shape": [
+    970,
+    1042
+   ],
+   "attributes": {
+    "least_significant_digit": [
+     1
+    ],
+    "standard_name": "wind_speed_of_gust",
+    "units": "m s-1",
+    "grid_mapping": "lambert_azimuthal_equal_area",
+    "coordinates": "forecast_period forecast_reference_time height time"
+   },
+   "projection": {
+    "grid_mapping_name": "lambert_azimuthal_equal_area",
+    "longitude_of_prime_meridian": [
+     0.0
+    ],
+    "semi_major_axis": [
+     6378137.0
+    ],
+    "semi_minor_axis": [
+     6356752.314140356
+    ],
+    "longitude_of_projection_origin": [
+     -2.5
+    ],
+    "latitude_of_projection_origin": [
+     54.9
+    ],
+    "false_easting": [
+     0.0
+    ],
+    "false_northing": [
+     0.0
+    ]
+   },
+   "x0_m": -1158000.0,
+   "y0_m": -1036000.0,
+   "dx_m": 2000.0,
+   "dy_m": 2000.0,
+   "has_time_bounds": false
+  },
+  {
+   "url": "https://met-office-atmospheric-model-data.s3.eu-west-2.amazonaws.com/uk-deterministic-2km/20261002T1200Z/20261004T1800Z-PT0054H00M-wind_gust_at_10m.nc",
+   "etag": "\"da73e55a999d2a7c485909d6354b2aa7\"",
+   "bytes": 1139448,
+   "lead_h": 54,
+   "shape": [
+    970,
+    1042
+   ],
+   "attributes": {
+    "least_significant_digit": [
+     1
+    ],
+    "standard_name": "wind_speed_of_gust",
+    "units": "m s-1",
+    "grid_mapping": "lambert_azimuthal_equal_area",
+    "coordinates": "forecast_period forecast_reference_time height time"
+   },
+   "projection": {
+    "grid_mapping_name": "lambert_azimuthal_equal_area",
+    "longitude_of_prime_meridian": [
+     0.0
+    ],
+    "semi_major_axis": [
+     6378137.0
+    ],
+    "semi_minor_axis": [
+     6356752.314140356
+    ],
+    "longitude_of_projection_origin": [
+     -2.5
+    ],
+    "latitude_of_projection_origin": [
+     54.9
+    ],
+    "false_easting": [
+     0.0
+    ],
+    "false_northing": [
+     0.0
+    ]
+   },
+   "x0_m": -1158000.0,
+   "y0_m": -1036000.0,
+   "dx_m": 2000.0,
+   "dy_m": 2000.0,
+   "has_time_bounds": false
+  }
+ ],
+ "reference_coordinates": [
+  {
+   "row": 0,
+   "column": 0,
+   "native_lon_lat": [
+    -17.117129281713446,
+    44.51715281686621
+   ],
+   "bulk_lon_lat": [
+    -17.152866024838875,
+    44.50875409877963
+   ],
+   "difference_m": 2990.8413082833113
+  },
+  {
+   "row": 0,
+   "column": 1041,
+   "native_lon_lat": [
+    9.212559331904911,
+    44.89987300897526
+   ],
+   "bulk_lon_lat": [
+    9.241655809278914,
+    44.89313471013518
+   ],
+   "difference_m": 2417.2057196636397
+  },
+  {
+   "row": 969,
+   "column": 0,
+   "native_lon_lat": [
+    -24.50992470029973,
+    61.318858860497365
+   ],
+   "bulk_lon_lat": [
+    -24.597316995649333,
+    61.318446944983144
+   ],
+   "difference_m": 4681.359372951703
+  },
+  {
+   "row": 969,
+   "column": 1041,
+   "native_lon_lat": [
+    15.279769222349213,
+    61.92068680395195
+   ],
+   "bulk_lon_lat": [
+    15.352753129813255,
+    61.92511706630478
+   ],
+   "difference_m": 3865.549051725835
+  },
+  {
+   "row": 485,
+   "column": 521,
+   "native_lon_lat": [
+    -4.281727240774126,
+    54.29389121487898
+   ],
+   "bulk_lon_lat": [
+    -4.287559626248916,
+    54.29317625622521
+   ],
+   "difference_m": 388.01637601688924
+  }
+ ],
+ "pyproj_version": "3.8.0",
+ "production_enabled": false,
+ "unresolved": [
+  "bulk/native projection discrepancy",
+  "gust interval or instantaneous semantics",
+  "native/bulk field identity and missing footprint",
+  "redistribution notice"
+ ]
+}
