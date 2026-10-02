@@ -13,7 +13,9 @@ changes needed to support them.
 [Open-Meteo bulk integration plan](docs/open-meteo-bulk-implementation-plan.md)
 sets out the implementation of new regional models through public AWS files,
 starting with AROME, ICON-EU and UKV while preserving every existing source.
-It covers contracts and consumers, validation, storage budgets and staged rollout.
+It covers whole-file ingestion, a separate regional catalogue, mask validation,
+browser and storage budgets, and staged rollout. The current publisher race is
+the first standalone fix in the revised plan.
 
 ```
 NOAA GFS / GEFS / GFS-Wave · Copernicus GLO12 / IBI · ECMWF open data

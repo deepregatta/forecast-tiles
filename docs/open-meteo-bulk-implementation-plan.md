@@ -1,657 +1,675 @@
 # Open-Meteo bulk integration implementation plan
 
-Status: proposed implementation; no runtime changes or model activation.
-Prepared 2026-10-02 against forecast-tiles commit `12a7fb5`.
+Status: revised proposal; no runtime changes or model activation.
+Revised 2026-10-02 against forecast-tiles commit `f5e0414`, incorporating the
+implementation review and its reported 24 September–1 October measurements.
 
-Add new deterministic weather models by reading Open-Meteo's public AWS bulk
-files and converting them into the existing PFT1 tiles. Keep every existing
-forecast layer on its current provider, with its current variables, grids,
-cycles, forecast horizon, retention and fallback behavior. The first release
-adds AROME, ICON-EU and UKV in stages. Later releases reuse the adapter for
-other verified models.
+Add new deterministic weather models from Open-Meteo's public AWS files while
+keeping every existing layer on its current provider, with its current fields,
+grid, cycles, horizon, tile layout, retention and fallback behavior. Release 1
+adds AROME, ICON-EU and UKV in stages. The publication race affecting existing
+layers is a separate, immediate first fix.
 
-This plan supersedes the direct-provider implementation order in the earlier
-[regional model access assessment](regional-model-access.md). That assessment
-remains the reference for provider alternatives and models absent from the
-Open-Meteo bulk catalogue.
+This supersedes the direct-provider order in the
+[regional model access assessment](regional-model-access.md), which remains
+the reference for alternatives and models absent from bulk.
 
-## Decisions and boundaries
+## Decisions
 
-- Read public S3 objects anonymously. No hosted Open-Meteo API calls, API key,
-  paid subscription, self-hosted Open-Meteo server or permanent database mirror.
-- Use complete, individual forecast runs from `data_run/` by default. Evaluate
-  `data_spatial/` during the pilot, but do not implement two production readers
-  unless the measurements justify it. Do not use rolling `data/` files for
-  immutable forecast runs: they can contain updates from different cycles.
-- Publish each new model as a distinct layer. Do not replace GFS, relabel a
-  regional model as GFS, or silently blend models at a domain boundary.
-- Start with surface wind u/v and gust where its definition is verified.
-  Additional hazard variables are a later extension with a separate size and
-  semantics assessment. New models are deterministic, not ensemble members.
-- Preserve the PFT1 binary layout and existing tile URLs. Extend JSON schemas
-  and consumer registries additively before publishing new layers.
-- Retain current plus previous run for each new layer. Store converted tiles
-  in the existing project bucket; keep raw OM files and interpolation caches
-  on the ingestion runner only. A second Cloudflare account is not required.
-- Keep existing model sources and schedules unchanged. Shared publisher and
-  scheduler improvements below must pass compatibility tests for those layers.
-- A listed model is a candidate, not proof that every required variable and
-  run is available. Live metadata and decoded samples are release gates.
+- Fetch three required whole `.om` files from a complete `data_run/` cycle
+  using existing `requests`; decode locally with plain `omfiles`. No range
+  reader, fsspec, s3fs, aiobotocore, block cache or spatial-layout comparison.
+- No hosted Open-Meteo API, paid subscription, self-hosted server or permanent
+  raw-data mirror. Temporary source files stay on the ingestion runner.
+- Publish all new layers in **`latest-regional.json`**, keeping that pointer
+  separate after Passage integration. Root `latest.json` retains its seven
+  existing layers. Opted-in consumers combine the catalogues.
+- Start with surface u/v and verified gust. Do not blend models, replace
+  existing sources or treat deterministic models as ensemble members.
+- Mask-aware validation is required in the first AROME dry run: regular
+  coordinates do not imply an unmasked rectangular footprint.
+- Use one GitHub concurrency group per layer across all triggers, conditional
+  immutable-object creation and conditional pointer updates. No claim/lease
+  protocol or new coordination service.
+- Preserve PFT1 encoding and existing URLs. Propose smaller tiles only for new
+  regional layers that exceed browser budgets, with coordinated schema and
+  consumer changes before activation.
+- Retain current plus previous run in the existing project bucket. Release 1
+  is a conditional fit against the historical projection; Release 2 is blocked
+  under the current 8 GB allocation until re-budgeted.
+- Keep the five current cron expressions and extend their hours. Do not switch
+  to `*/5` in this release or remove the existing missed-slot alarm.
 
 ### Existing layers to preserve
 
 | Layer | Source and behavior retained |
 |---|---|
-| `weather` | NOAA GFS 0.25°, current wind/gust and hazard variables, current axes to 240 h, four cycles/day |
-| `weather-ecmwf` | ECMWF open data, 00/12Z to 240 h, existing gust interval metadata |
-| `weather-ecmwf-short` | ECMWF open data, 06/18Z to 144 h, existing gust interval metadata |
-| `ensemble` | NOAA GEFS, all 31 members, existing mean/anomaly encoding and axes to 384 h |
-| `waves` | NOAA GFS-Wave, existing wave/wind-wave/swell variables and horizons |
-| `currents` | Copernicus GLO12, current six-hourly surface currents and existing RTOFS outage fallback |
+| `weather` | NOAA GFS 0.25°, current wind/gust and hazard fields, axes through 240 h, four cycles/day |
+| `weather-ecmwf` | ECMWF open data, 00/12Z through 240 h, current gust intervals |
+| `weather-ecmwf-short` | ECMWF open data, 06/18Z through 144 h, current gust intervals |
+| `ensemble` | NOAA GEFS, all 31 members, current mean/anomaly encoding and axes through 384 h |
+| `waves` | NOAA GFS-Wave, current wave/wind-wave/swell fields and horizons |
+| `currents` | Copernicus GLO12, current six-hourly currents and RTOFS outage fallback |
 | `currents-ibi` | Copernicus IBI, current regional hourly means through 120 h |
 
-The shoreline/bathymetry routing-index pipeline is outside this change.
-Open-Meteo does not publish the GEFS ensemble in this bulk distribution, and
-its catalogue is not a like-for-like replacement for our two current layers.
+The routing-index pipeline is outside this change. Existing model coverage
+and retention are not reduced to fund the additions.
 
-## Model order and product definitions
+## Evidence already available
 
-These are proposed layer IDs and initial publication policies. Horizons and
-grids below are expectations from the catalogue and implementation references,
-not results of a live download. Freeze the validated definition in the model
-registry before the first production run.
+The review reports 160 complete runs checked between 24 September and
+1 October. Adopt those findings instead of repeating a broad discovery phase.
+These are **review-supplied measurements**, not trials rerun during this
+revision. Capture source keys, metadata/ETags, benchmark commands and small
+attributed fixtures during implementation to make them reproducible.
 
-| Stage | Model and proposed layer | Open-Meteo domain | Initial output and run policy |
+| Product | Observed time axis | Required whole-file downloads per run |
+|---|---|---:|
+| AROME 0.025° | 52 steps, 0–51 h on every cycle | 57 MB for u, v, gust |
+| ICON-EU | 93 steps: hourly 0–78 h, then 81–120 h every 3 h | 122 MB |
+| UKV | 55 steps, 0–54 h on every three-hourly cycle | 90 MB for speed, direction, gust |
+| HRRR CONUS | 49 steps at 06Z; verify other selected extended cycles before activation | 160 MB |
+
+The review confirms `data_run/<domain>/YYYY/MM/DD/HHMMZ/meta.json` and
+`data_run/<domain>/latest.json`, metadata written after the run's files, and
+at most one retained run every three hours. Arrays are `[lat, lon, time]`,
+requiring transpose to `[time, lat, lon]`. Latitude appears south-to-north;
+confirm with a known-point fixture.
+
+Reported conversion results use this repo's current **10° tiles** on
+1 October 2026. MB/GB are rounded decimal figures as reported, not MiB/GiB.
+
+| Metric | AROME 00Z | ICON-EU 06Z |
+|---|---:|---:|
+| Tiles | 11 | 60 |
+| One run, gzipped | 76 MB | 171 MB |
+| Two retained runs, gzipped | 152 MB | 341 MB |
+| Earlier two-run raw-field estimate | 502 MB | 1,010 MB |
+| Largest tile, gzip / decoded Float32 arrays | 20.2 MB / 100 MB | 6.5 MB / 29 MB |
+| Encode time / peak memory | 27 s / 1.7 GB | 64 s / 3.6 GB |
+| Gust ≥ wind check | Passes, 99.99% | Passes |
+
+The 171/341 MB rounding is retained as reported. Each AROME source file
+reportedly decodes in about one second. These sizes do not justify a range-read
+stack. Re-measure totals and tile counts after any tile-size change; this table
+does not establish the size of the proposed new delivery layout.
+
+### Remaining discovery
+
+- UKV wind-direction reference frame and gust interval, including step 0.
+- AROME gust windows and ICON-EU windows after +78 h; output step spacing is
+  not evidence of the maximum's accumulation interval.
+- UKV gzip size and footprint after geographic remapping.
+- UKV redistribution terms and the repository licence before the GPL reader.
+- Live R2 conditional-write behavior. The installed boto3 1.43.46 was checked
+  during this revision: `PutObject` accepts `IfMatch` and `IfNoneMatch` already.
+- Known-point/mask fixtures, browser budgets and current combined storage
+  headroom. Source completeness alone does not establish these.
+
+## Model order and definitions
+
+Layer IDs and policies below are proposed. First-release axes have review
+measurements; later products still need independent samples. Freeze verified
+definitions in the registry before production.
+
+| Stage | Model / layer | Open-Meteo domain | Initial product |
 |---|---|---|---|
-| Pilot | AROME, `weather-arome` | `meteofrance_arome_france0025` | Preserve regular 0.025° grid; expected 0–51 h; select 00/06/12/18Z |
-| Release 1 | ICON-EU, `weather-icon-eu` | `dwd_icon_eu` | Preserve regular 0.0625° grid; main cycles to 120 h with native time spacing; 00/06/12/18Z |
-| Release 1 | UKV, `weather-ukv` | `ukmo_uk_deterministic_2km` | Remap projected 2 km grid to proposed 0.025° geographic grid; expected 0–54 h; 00/06/12/18Z |
-| Release 2 | ICON-D2, `weather-icon-d2` | `dwd_icon_d2` | Preserve regular 0.02° grid; expected 0–48 h; initially four cycles/day |
-| Release 2 | HRRR CONUS, `weather-hrrr` | `ncep_hrrr_conus` | Remap Lambert grid to proposed 0.025°; select extended 00/06/12/18Z runs, expected through 48 h |
-| Release 2 | HRDPS, `weather-hrdps` | `cmc_gem_hrdps` | Remap rotated grid to proposed 0.025°; expected 0–48 h; four cycles/day |
-| Optional expansion | AROME HD, `weather-arome-hd` | `meteofrance_arome_france_hd` | Preserve 0.01° distribution grid; bounded coverage first because of size; separate product from standard AROME |
-| Optional expansion | ARPEGE Europe, `weather-arpege-eu` | `meteofrance_arpege_europe` | Preserve 0.1° grid; validate cycle-dependent horizon |
-| Optional expansion | ARPEGE global, ICON global, ACCESS-G | `meteofrance_arpege_world025`, `dwd_icon`, `bom_access_global` | Separate global additions only if useful and budgeted; no replacement of current globals |
-| Optional expansion | DMI/KNMI HARMONIE, Nordic and Swiss products | Catalogue-specific domains | Add per geography after verifying grid, variables, member/product identity and access |
+| Pilot | AROME / `weather-arome` | `meteofrance_arome_france0025` | Preserve 0.025° grid/mask, 0–51 h; prefer 03/09/15/21Z; proposed 5° tiles |
+| Release 1 | ICON-EU / `weather-icon-eu` | `dwd_icon_eu` | Preserve 0.0625° grid, 93 steps through 120 h; 00/06/12/18Z; 10° tiles if browser gates pass |
+| Release 1 | UKV / `weather-ukv` | `ukmo_uk_deterministic_2km` | Remap projected 2 km grid to proposed 0.025°; 0–54 h; 00/06/12/18Z; proposed 5° tiles |
+| Release 2 | ICON-D2 / `weather-icon-d2` | `dwd_icon_d2` | Preserve 0.02° grid; expected 0–48 h; initially four cycles/day |
+| Release 2 | HRRR CONUS / `weather-hrrr` | `ncep_hrrr_conus` | Remap Lambert grid to proposed 0.025°; extended 00/06/12/18Z cycles, expected 0–48 h |
+| Release 2 | HRDPS / `weather-hrdps` | `cmc_gem_hrdps` | Remap rotated grid to proposed 0.025°; expected 0–48 h; four cycles/day |
+| Optional | AROME HD / `weather-arome-hd` | `meteofrance_arome_france_hd` | 0.01° distribution grid; separate coverage/tile-size and budget decision |
+| Optional | ARPEGE Europe / `weather-arpege-eu` | `meteofrance_arpege_europe` | Preserve 0.1° grid; verify cycle-dependent horizon |
+| Optional | ARPEGE global, ICON global, ACCESS-G | `meteofrance_arpege_world025`, `dwd_icon`, `bom_access_global` | Separate additions if useful and budgeted; no replacement of current globals |
+| Optional | DMI/KNMI HARMONIE, Nordic, Swiss products | Product-specific domains | Add by geography after sample, identity and capacity checks |
 
-The four-cycle policy is an initial operating choice, not a claim that these
-providers update only four times daily. After measuring costs and publication
-lag, AROME, ICON-D2 and UKV can move to three-hourly ingestion without retaining
-more runs. Do not infer that every hourly model run is retained in `data_run/`:
-the public run archive retains at most one run every three hours.
+Four daily publications are an operating choice, not native update frequency.
+Later three-hourly ingestion increases downloads/writes without retaining more
+runs. Do not promise every hourly run through `data_run/`. UKV's 120 h direct
+product is outside this implementation; HRRR Alaska is not the CONUS layer.
 
-UKV's direct provider also describes longer products, but this plan does not
-promise a 120 h UKV forecast through Open-Meteo. Enable only horizons present
-and verified in the chosen bulk feed. HRRR Alaska is a separate product, not
-part of the CONUS layer.
+NEMS, national ALADIN and ACCESS-C remain uncommitted because suitable bulk
+entries have not been established. NAM is deferred: the NOAA registry announces
+retirement on 2026-10-14. Recheck that transition and RRFS bulk access before
+adding a successor. Do not substitute ACCESS-G for ACCESS-C or a generic
+HARMONIE product for a named ALADIN model.
 
-NEMS, national ALADIN products and ACCESS-C are not committed additions through
-this route: suitable bulk entries have not been established. NAM is deferred
-because the NOAA registry announces its retirement on 2026-10-14; reassess the
-transition and any RRFS bulk availability before choosing a successor. Do not
-substitute ACCESS-G for ACCESS-C or generic HARMONIE for a named ALADIN product.
+## Immediate standalone publication fix
 
-## Data flow
+This is **Phase 0**, independent of Open-Meteo, and should ship first as a
+separate change to `publish.py`, its stores and focused tests. The race exists
+now: ensemble and ECMWF-short dispatch together at 00:15/12:15, and all seven
+fallback crons fire at :37. These are overlapping jobs, not proof of a collision
+on every run.
 
-```mermaid
-flowchart TD
-    A[Existing NOAA ECMWF Copernicus adapters] --> C[ForecastCube]
-    B[Open-Meteo AWS complete run] --> D[OM reader and model registry]
-    D --> E[Units vectors grid and time normalization]
-    E --> C
-    C --> F[Validation and PFT1 tiles]
-    F --> G[Budget checks and conditional publication]
-    G --> H[Existing R2 bucket]
-    H --> I[Passage model comparison and explicit model selection]
-```
+Two unconditional pointer updates can lose a layer's new entry. Its cleanup
+still executes, potentially deleting the previous run referenced by the winning
+document and orphaning its new run outside manifest-based storage accounting.
 
-The ingestion runner handles downloads and conversion. The Cloudflare Worker
-continues to dispatch GitHub Actions; it does not download weather arrays.
-Browsers continue reading our tiles, with no runtime Open-Meteo dependency.
+1. Add reads returning body plus ETag and conditional pointer writes. Create
+   with `If-None-Match: *`; update with `If-Match`.
+2. On conflict, reread and merge only the publishing layer, then retry with
+   bounded backoff. Never retry a stale whole document.
+3. At each commit attempt reject a cycle older than the layer's current one.
+   Same-cycle operations must preserve the existing previous pointer. Recover
+   an uncertain write result by rereading before cleanup.
+4. Cleanup follows only confirmed pointer success. Normal retention removes
+   completed runs older than the retained previous; it must not delete newer
+   or incomplete uploads encountered by listing. Recheck references before
+   deletion. Failed/stale publishers must not prune runs.
+5. Test controlled interleavings: different-layer updates, pointer creation,
+   stale same-layer completion, retry exhaustion and uncertain success. Assert
+   both updates survive and all referenced manifests remain. Provide equivalent
+   dry-run store behavior and test R2 using an isolated object prefix.
 
-### Bulk discovery and complete-run selection
+No SDK upgrade is needed for the headers. A real R2 trial remains required;
+this document does not claim the fix has shipped. Audit referenced runs and
+abandoned objects afterward so existing damage, if any, is accounted for.
 
-Implement the following algorithm in a new source adapter:
+## Reader and model registry
 
-1. Resolve a registered model and its allowed cycle hours. For an explicit
-   `--cycle`, request exactly that cycle. Otherwise select the newest complete
-   allowed cycle, with bounded lookback to an older complete cycle.
-2. Read the run catalogue metadata. The inspected implementation writes
-   `data_run/<domain>/latest.json` and
-   `data_run/<domain>/YYYY/MM/DD/hhmmZ/meta.json`. Verify those live paths in
-   Phase 0. Construct allowed run candidates rather than listing the bucket.
-3. Check reference time, required variable names, valid times and grid
-   identity. Presence of `meta.json` is the upstream completion signal, but
-   still confirm that required objects exist and cover the intended product.
-4. Capture the run metadata and source object identities: key, ETag, length
-   and modification time. Decode each variable's own reference time, units,
-   dimensions and timestamps. Do not assume all variables have the same axis
-   or that their first element is lead zero.
-5. Read only required variables, spatial ranges and forecast times. Pin object
-   identity with conditional range reads where supported; otherwise verify
-   identities before and after the read. Reject a run that changes during
-   ingestion. Do not publish mixed object versions.
-6. Require the registered wind time axis and domain to be complete. Missing
-   files, unexpected timestamps or a changed grid fail the run; an explicitly
-   documented missing analysis gust can remain missing. A truncated download
-   must never masquerade as a shorter valid forecast.
-7. Normalize, validate and publish. An explicit cycle that is not available
-   waits within `--wait-minutes` and then fails with a useful status. Automatic
-   selection may retain the previous forecast, recording that it is stale.
+### Whole-file ingestion
 
-Run-based files remain public for three months; spatial files for seven days.
-Those upstream retention windows do not change our two-run R2 policy. Do not
-use `in-progress.json` to publish a partial regional forecast.
+1. Resolve an allowlisted model/cycle. Explicit `--cycle` means exactly that
+   cycle; automatic selection uses bounded lookback over allowed cycles. Read
+   the configured pointer and skip already-published runs before array downloads.
+2. GET the run's `meta.json`, recording ETag, reference time, variables and
+   valid times; require the registered files and intended horizon.
+3. Download only required whole variable files anonymously over HTTPS with
+   `requests`, streaming to temporary files. Record response ETags, lengths
+   and source keys; reject truncated responses. Start with three sequential
+   GETs, finite timeouts and bounded retries for transient errors/429/5xx.
+4. Decode locally with `omfiles==1.2.0` as the initially tested candidate.
+   Verify embedded run time, units, dimensions and timestamps; transpose the
+   axes and release each source array when its converted output is ready.
+5. Re-read `meta.json` and compare its ETag before publication; reject a changed
+   run. If source files can be rewritten before the completion marker changes,
+   add final HEAD checks of their ETags. A stable marker is not proof of
+   transactional updates under an undocumented rewrite process.
+6. Align times, normalize vectors/grids, apply the registered mask, validate,
+   tile and publish. Unexpected missing files/steps or grid changes abort;
+   only explicitly documented analysis-step omissions are allowed.
 
-Use bounded retries with jitter for transient connection errors, throttling
-and 5xx responses; honor `Retry-After`. Treat 404 as potentially pending only
-within the expected publication window. Treat unknown formats, changed grids
-and invalid values as validation failures. Start with four download workers,
-bounded block caching and finite request/read timeouts; tune from measurements.
+Use `data_run/` only. Its three-month archive is distinct from our two-run
+retention. Do not use rolling `data/` or an in-progress marker for immutable
+runs. An unavailable explicit cycle waits within its configured window, then
+records failure and preserves the prior good forecast.
 
-### Reader and dependency choice
+### Dependencies and licensing
 
-Evaluate the official Python `omfiles` reader, which supports NumPy slicing,
-hierarchical spatial files and anonymous S3 through fsspec. Its inspected
-version advertises Python 3.13 wheels, matching the current workflows. Add a
-separate `openmeteo` extra in `pyproject.toml` so existing ingestion workflows
-do not install new dependencies. Pin compatible versions through `uv.lock`.
+Add plain `omfiles` to an `openmeteo` optional dependency group, using existing
+NumPy/requests. Add `pyproj` when UKV work starts. The review confirms 1.2.0
+wheels work on Python 3.13. Do not add `omfiles[fsspec]`, s3fs or aiobotocore:
+their botocore constraints affect the single lockfile even when other workflows
+do not install the extra. Preserve existing boto3/botocore pins.
 
-Candidate dependencies are `omfiles[fsspec,grids]` and `pyproj`; avoid a full
-xarray/Dask stack unless the pilot demonstrates a need. Check s3fs/aiobotocore
-compatibility with the project's boto3 constraints before selecting versions.
-Anonymous source reads and authenticated destination R2 writes must use
-separate clients; do not send R2 credentials to the public source bucket.
+The repo currently has **no LICENSE file**. Before adding or distributing
+GPL-2.0-only `omfiles`, the owner must choose an appropriate repository licence
+and resolve dependency obligations; this plan does not choose on their behalf.
+Data licensing is separate: the bulk catalogue declares CC BY 4.0, while the
+UKV upstream listing specifies CC BY-SA. Resolve its redistribution notice
+before activation. Do not copy AGPL server code; consuming files does not
+require running that server.
 
-Software and data licences are separate. The inspected Python reader declares
-GPL-2.0-only, the full Open-Meteo server declares AGPLv3, and the bulk catalogue
-declares CC BY 4.0. Record the chosen reader's licence and distribution
-obligations before shipping it; do not copy server implementation code or
-silently change this repository's licence. Record model-specific attribution
-and upstream terms as well, particularly the Met Office's CC BY-SA listing.
-Resolve the applicable redistribution notice for UKV before enabling it.
+### Registry and files
 
-### Model registry and source modules
+Register model/layer IDs, domain, cycle-specific axes/lag, cadence, polling and
+readiness policy, variables/units, vector frame, gust windows, expected masks,
+exact grid, tile size, resource caps, attribution and production enablement.
 
-Keep the existing source modules and dispatch branches intact. A registry for
-the new models should carry the following explicit fields:
+`LAYERS`, `MAX_MISSING`, `POLL_SECONDS`, `CADENCE_HOURS` and
+`SKIP_WHEN_NOT_AVAILABLE` must all obtain new-layer settings through registry
+accessors. Adding only a CLI name leaves `MAX_MISSING[layer]` and
+`POLL_SECONDS[layer]` raising `KeyError`; missing cadence/skip entries cause
+incorrect metadata or handling. Preserve all existing configured values and
+test every new entry through every accessor and the CLI dry-run path.
 
-- Layer ID, stable model/product ID, display name, Open-Meteo domain and an
-  adapter/configuration version.
-- Allowed cycles, actual scheduled cadence, expected time axes by cycle,
-  maximum lookback, expected publication lag and stale threshold.
-- Required input variables, units, vector reference frame, conversion rules,
-  gust definition/windows and output variable specifications.
-- Accepted source grid/CRS fingerprint, served grid, coverage/mask policy and
-  any fixed geographic crop. Reject unreviewed grid changes.
-- Per-run byte limit, runtime and memory limits, production enablement flag,
-  attribution and source-document references.
-
-| File or area | Proposed responsibility |
+| Planned file/area | Responsibility |
 |---|---|
-| `src/ingest/sources/openmeteo/registry.py` | New model definitions and production allowlist |
-| `src/ingest/sources/openmeteo/catalog.py` | Metadata parsing, cycle selection, readiness and object identity |
-| `src/ingest/sources/openmeteo/reader.py` | Range reads, OM dimensions/metadata, bounded local cache |
-| `src/ingest/sources/openmeteo/grids.py` | Geographic normalization, projection transforms, cached interpolation weights and masks |
-| `src/ingest/sources/openmeteo/adapter.py` | Model-aware variable conversion and `ForecastCube` construction |
-| `src/ingest/cli.py` | Route new layer IDs to the adapter; preserve existing command behavior |
-| `scripts/probe_openmeteo.py` | Read-only live sample, geometry/time audit and benchmark report |
-| `tests/fixtures/openmeteo/` | Small redistributable samples with source identity and attribution |
-| `tests/test_openmeteo_*.py` | Reader, semantics, grids, completeness and integration checks |
-| `.github/workflows/ingest-openmeteo.yml` | One reusable workflow taking an allowlisted new-model layer input |
+| `src/ingest/sources/openmeteo/registry.py` | Product definitions and per-layer settings |
+| `src/ingest/sources/openmeteo/catalog.py` | Complete-run metadata, cycle selection, object identity |
+| `src/ingest/sources/openmeteo/reader.py` | Whole-file GETs and local decoding |
+| `src/ingest/sources/openmeteo/grids.py` | Exact geometry, masks, projection and interpolation weights |
+| `src/ingest/sources/openmeteo/adapter.py` | Variable conversion and `ForecastCube` construction |
+| `src/ingest/cli.py`, `validate.py`, `publish.py` | Registry integration, masks, chosen pointer and combined accounting |
+| `src/ingest/tile.py`, `src/tilekit/tiles.py` | Per-product tile size, defaulting to existing 10° |
+| `scripts/probe_openmeteo.py` | Remaining focused checks and reproducible benchmarks |
+| `tests/fixtures/openmeteo/`, `tests/test_openmeteo_*.py` | Small attributed samples and meaningful behavior tests |
+| `.github/workflows/ingest-openmeteo.yml` | Single-model dispatch and scheduled matrix catch-up |
 
-These are planned files and commands; they do not exist as part of this
-documentation change. Expected local pilot command after implementation:
+Planned command, not implemented by this documentation change:
 
 ```sh
 uv run --extra openmeteo ingest weather-arome --cycle YYYYMMDDTHH --dry-run /tmp/arome-tiles
 ```
 
-Keep credentials out of reports and public workflow artifacts. Record useful
-benchmark summaries, rather than uploading complete raw model files as Actions
-artifacts or caches.
-
-## Numerical conversion and validation
-
-### Wind and gust
-
-Output the existing `wind_u_kt`, `wind_v_kt` and, where supported, `gust_kt`
-variables. Keep the existing int16 scales of 0.01 kt for wind components and
-0.1 kt for gust. The upstream compression may be coarser; these output scales
-do not create additional forecast precision. Quantize only after any vector
-rotation and spatial interpolation.
-
-AROME and ICON adapters should validate the expected stored u/v fields. UKV
-needs a different mapping: the inspected source stores `wind_speed_10m`,
-`wind_direction_10m` and `wind_gusts_10m`. For a verified meteorological
-direction measured clockwise from true north, convert speed `s` and direction
-`theta` with `u = -s * sin(theta)` and `v = -s * cos(theta)`, then convert m/s
-to knots. Verify that reference frame from metadata/provider definitions.
-
-Align the first release's wind and gust arrays by actual valid timestamp onto
-the registered output axis, with missing values only at documented unavailable
-steps. Never align them by array position. If their sampling cannot satisfy
-that product, keep gust disabled until a separate-axis definition and matching-
-timestamp validation are implemented; do not interpolate interval maxima into
-instantaneous gust values.
-
-Do not interpolate angles across 359°/1°. Convert to vectors first. Rotate
-grid-relative components into earth-relative east/north once where necessary;
-do not apply a second rotation to fields Open-Meteo already rotated. Add
-cardinal-direction and nonzero projection-angle fixtures.
-
-Document whether each gust is instantaneous or a maximum over an interval.
-Use the existing `Statistic("max", window_h)` representation for verified
-integer-hour windows. Do not infer gust windows from output timestep spacing,
-equate missing gust with sustained wind, or publish an unknown definition as
-instantaneous. A model with unresolved gust semantics remains wind-only and
-must be displayed with that reduced capability; it does not pass a wind-plus-
-gust release gate. Keep subhourly products outside this first implementation.
-
-### Geometry and coverage
-
-AROME and ICON-EU are the first adapters because their distributed geographic
-grids fit `GridMeta`. Preserve the documented origin and spacing after
-normalizing latitude orientation and longitude convention. Do not infer a
-grid from a nominal kilometre resolution or two noisy float32 coordinates.
-
-For UKV, HRRR and HRDPS, map the source grid to a fixed regular geographic
-grid, initially proposing 0.025° latitude and longitude spacing. This is a
-served grid, not a claim of native 0.025° model resolution. Approve its exact
-origin, extent and point count from live geometry and size measurements before
-activation. Preserve those choices across cycles and record native and served
-geometry in provenance.
-
-Compute interpolation weights in source grid coordinates using the verified
-CRS and axis order. Use bilinear interpolation for earth-relative u/v and
-scalar gust, with explicit missing-neighbor rules; reject or mask unsupported
-locations rather than extrapolating. Account for the source halo needed to
-interpolate the requested footprint. Cache weights by source and destination
-grid fingerprints and interpolation version.
-
-Projected domains have corners outside their actual footprint. Preserve a
-domain-validity mask, skip wholly empty tiles and keep missing cells missing.
-Validate missingness inside the expected valid domain separately from the
-fraction outside it. Do not raise the existing global-weather missing-data
-threshold to accommodate regional masks. Test partial 10° edge tiles and
-cross-tile interpolation against interior tiles.
-
-Use the current cube/tile pipeline for the first models. Read and quantize in
-bounded slabs, using temporary arrays or memory maps where helpful. Measure
-the existing validator's decoded copies and the encoder's retained gzip
-buffers, not only source-array size. If later full domains exceed the runner
-budget, add blockwise validation/encoding as a measured follow-up before
-enabling them; do not introduce a second tile format.
-
-### Provenance
-
-Each new run must identify the originating weather service and numerical
-model separately from the distributor, Open-Meteo. Include source domain,
-reference time, metadata/object identity digest, source update time, adapter
-version, variable conversions, upstream precision, source/served geometry,
-interpolation method and licence/attribution links. Store a full object
-inventory once per run if needed; tile headers carry a compact reference or
-digest rather than a repeated large inventory. Count that inventory in storage.
-
-## Contracts and consumers
-
-The canonical forecast schemas are in Passage and vendored here. Update them
-together; do not change only forecast-tiles' copies.
-
-1. Add the new layer IDs to the three forecast schemas. Permit digits in the
-   layer portion of run IDs so `weather-icon-d2-YYYYMMDDTHHZ` is valid while
-   retaining the existing cycle suffix and all existing IDs.
-2. Add optional manifest metadata for geographic coverage, model display
-   identity, native/served resolution, available capabilities and attribution.
-   Decide the exact fields in the canonical contract and exercise old and new
-   manifests in both repositories. Keep `time_axes.offsets_h` as integer hours.
-3. Use explicit model definitions in the consumer; an unknown layer must not
-   automatically become an independent model in a comparison. Test that older
-   consumers tolerate additional layer entries before publishing to root
-   `latest.json`. If not, deploy compatible consumers first.
-4. Extend Passage's `engine/src/forecast/tileStore.ts`: its current
-   `getHazardForecasts()` explicitly selects GFS and ECMWF. Add eligible regional
-   models based on spatial/time coverage and available fields. Preserve the
-   existing `modelRuns.ts` ECMWF combination behavior.
-5. Preserve the default GFS forecast and routing behavior. Expose new models
-   first through comparison and explicit selection. A separate routing/grid
-   selector can request a named regional layer with coverage checks; do not
-   silently change `getWindGrid()` from its current GFS source.
-6. At a regional boundary or after its last forecast hour, return unavailable
-   for that model. The normal GFS forecast remains available separately.
-   Distinguish unsupported coverage, missing gust, stale data and source outage
-   in the UI. Do not fill a regional comparison with unlabeled GFS data.
-7. Update model selectors, comparison labels, provenance and export registries
-   in Passage. Audit Tactician and any other consumers before exposing new
-   models there. GRIB export must preserve the selected model's cycle, grid,
-   forecast times and gust intervals; incomplete regional route coverage must
-   be explicit. Export support is a separate acceptance item, not implied by
-   successful PFT1 decoding.
-
-New regional outputs may supply only wind/gust. Missing temperature, visibility,
-precipitation and CAPE remain unavailable. Do not invent those fields or treat
-their absence as zero. Do not count AROME/AROME-HD as independent evidence
-without an explicit model-family policy, or count Open-Meteo as another model
-alongside the same originating model.
-
-## Publication, retention and capacity
-
-### Prevent lost latest updates
-
-`_update_latest()` currently reads, modifies and overwrites one shared
-`latest.json`. Two different layers can lose each other's updates. Before
-activating any new scheduled publisher:
-
-- Add versioned reads and conditional writes to the store abstraction.
-  Cloudflare documents `If-Match` and `If-None-Match` for S3 `PutObject`;
-  validate the installed boto3 interface and a real R2 round trip.
-- Read the document plus ETag, merge only this layer's entry and write with
-  `If-Match`. Use `If-None-Match: *` to create a missing document. On a
-  precondition conflict, reread, merge and retry with a bounded backoff.
-- Reject a cycle older than the layer's current cycle at commit time, even
-  if it passed the CLI's earlier duplicate check. Recover an uncertain write
-  outcome by reading the pointer before retrying or deleting anything.
-- Keep one active workflow per layer. All current and new publishers must use
-  the conditional update path; a remaining unconditional writer defeats it.
-- Protect a layer/run from overlapping manual and scheduled invocations too:
-  conditionally claim an in-progress record before writing objects, record an
-  owner and job lifetime, and refuse another owner. Abandoned claims require
-  verified job termination before takeover. An existing completed run is an
-  idempotent success or a content conflict, never an ordinary overwrite.
-- Upload and validate all immutable tiles, then the complete manifest, then
-  advance the pointer. Run retention only after a successful pointer update.
-  Delete only this layer's unreferenced, completed older runs. Check references
-  again before cleanup and exclude in-progress uploads.
-
-Do not use a single GitHub concurrency group as a durable queue for every
-model: pending jobs can be replaced and long ingestion jobs would delay current
-providers. Per-layer concurrency plus conditional catalogue updates preserves
-independent scheduling.
-
-Keep published run IDs immutable. A source correction or adapter change must
-not overwrite a cycle already served with immutable caching. Normally publish
-the next cycle; if a same-cycle revision is required, design an explicit
-revision contract first. Do not use `--force` as the routine migration method.
-
-### Storage admission
-
-The current default `MAX_BUCKET_BYTES` is 8,000,000,000 bytes. Its guard counts
-forecast manifest tile totals retained after publication. It does not measure
-the whole bucket, upload overlap, orphaned objects, metadata, the routing index
-or other buckets in the same account. Do not describe it as an account billing
-cap or simply disable it to make the new models fit.
-
-Before production, measure and configure:
-
-- A protected capacity allowance for existing layers, based on their measured
-  retained and upload-peak sizes plus headroom. New models must not consume the
-  allowance that existing scheduled runs need.
-- A separate regional retained-byte allocation and a maximum compressed run
-  size for each enabled regional model. Every model must fit its fixed share;
-  borrowing spare capacity between models is deferred.
-- Peak capacity for current + previous + uploading run, and metadata/staging
-  bytes. Use the sum of all simultaneously allowed model peaks, not only the
-  largest new model. Count orphaned objects until cleanup actually succeeds.
-
-For per-model compressed run caps `b_i`, allocate at least `2 * sum(b_i)` for
-steady regional tiles and `3 * sum(b_i)` for worst-case overlapping uploads,
-then add non-tile bytes and headroom. Enforce one active run per regional model
-and refuse a run exceeding its cap before uploading. Fixed allocations avoid
-two regional publishers both assuming they own the same remaining capacity;
-the existing read-then-check global guard alone does not solve that race.
-
-Reconcile actual project object sizes periodically and after failed cleanup.
-Fail regional admission on unknown or exhausted capacity, retaining the prior
-good runs. Protect the existing allowance when changing the aggregate guard.
-Do not shrink existing model coverage or retention to fund a new layer.
-Treat these limits as project capacity controls: account-wide billing still
-requires account usage monitoring, and a measured allowance is not a guarantee
-against unlimited future growth elsewhere.
-
-Cleanup must distinguish abandoned uploads from active work using run activity
-and a grace period longer than the maximum job lifetime. Never delete a run
-referenced by current/previous pointers. Budget for both retained runs and
-client refresh behavior before choosing any additional rollback grace period.
-
-### Initial sizing and expense
-
-The following figures are planning arithmetic for **two runs, three int16
-fields, before gzip**, using inspected source-grid dimensions and expected
-time counts. They exclude headers and upload overlap. They are not measured R2
-sizes or download volumes, and projected-model destination grids can contain
-a different number of points.
-
-| Model | Points × forecast times | Two-run raw field size, decimal GB |
-|---|---|---:|
-| AROME 0.025° | 1121 × 717 × 52 | 0.502 |
-| ICON-EU | 1377 × 657 × 93 | 1.010 |
-| UKV source-grid proxy | 1042 × 970 × 55 | 0.667 |
-| ICON-D2 | 1215 × 746 × 49 | 0.533 |
-| AROME HD | 2801 × 1791 × 52 | 3.130 |
-| HRRR source-grid proxy | 1799 × 1059 × 49 | 1.120 |
-| HRDPS source-grid proxy | 2540 × 1290 × 49 | 1.927 |
-
-Formula: `nx * ny * time_count * 3 variables * 2 bytes * 2 runs`.
-The first three sum to about 2.18 GB on those assumptions. Replace these
-estimates with measured gzip totals on the approved served grids before
-setting budgets. Reducing publication frequency reduces downloads and writes,
-but does not halve storage when retention remains two runs.
-
-At the documented R2 Standard rate, each additional billable GB-month costs
-about $0.015 before rounding/tax. The account's 10 GB-month free storage,
-1 million Class A and 10 million Class B operations are shared across its
-buckets. Storage billing uses average daily peaks, so temporary third runs
-matter. Calculate costs from account totals outside the public repository;
-do not copy private account screenshots, bucket inventories or identifiers
-into this plan.
-
-For each trial, report downloaded bytes and request count, compressed run
-bytes, steady/peak R2 bytes, expected monthly PUT/LIST/GET operations, runtime,
-CPU time, peak RAM and temporary disk use. Include failed/retried downloads,
-metadata polls, readback checks and cleanup traffic. Current public-repository
-standard GitHub-hosted runners may cover compute, but verify runner eligibility,
-limits and artifact storage rather than promising every resource is free.
-
-Open-Meteo publishes no numerical bulk-download quota in the inspected
-documentation; that is not a throughput or availability guarantee. There is
-no paid Open-Meteo API subscription in this design. A zero incremental R2 bill
-cannot be promised without the measured additions and current account usage.
-
-If capacity is insufficient, leave the affected new model disabled, then
-consider a declared geographic crop, fewer new models, a shorter documented
-forecast horizon or coarser served grid. Benchmark the revised product before
-activation and preserve its identity in metadata. Do not change existing
-layers, invent compression ratios or move accounts to claim a free solution.
-
-## Scheduling and operations
-
-Use a single `*/5 * * * *` Worker cron with timetable entries for both existing
-and new layers. The current five cron expressions consume the account's free
-trigger allowance; their existing dispatch minutes are all on five-minute
-boundaries. Replay a full UTC day and month/year rollover cases to demonstrate
-that the seven existing layers receive exactly the same cycle requests and
-wait windows after this scheduler-only change.
-
-Add an explicit workflow/model field to new timetable entries. Existing
-entries keep their workflow names. New entries dispatch `ingest-openmeteo.yml`
-with an allowlisted layer and explicit cycle. Validate inputs again in the
-workflow/CLI and use a concurrency key per layer with cancellation disabled.
-Add a scheduled catch-up path that enumerates only enabled models, skips
-already-published cycles before array downloads and bounds parallel jobs.
-
-Derive dispatch offsets from observed Open-Meteo completion times, not raw
-provider publication times. Start each model with manual dry runs, then
-00/12Z canary ingestion, then the proposed four-cycle schedule. Give the new
-workflow a bounded wait and job timeout below GitHub's job limit. Stagger large
-models to avoid starving current workflows. Worker deployments remain a
-maintainer operation as documented in the repository.
-
-Extend per-layer status with last attempt, last successful cycle, source lag,
-failure category, chosen layout, source bytes/requests, gzip bytes and timings.
-A failed attempt must not replace the last successful catalogue entry.
-Flag stale data after two missed scheduled publication opportunities, allowing
-for the measured source lag. Provide a manual retry and a per-model disable
-switch. Use workflow summaries and existing operational surfaces; external
-notifications are not part of this implementation.
-
-## Delivery phases and acceptance criteria
-
-### Phase 0 — Verify the feed and measure the pilot
-
-Build the read-only probe and gather at least two complete cycles for AROME,
-ICON-EU and UKV, including all required surface variables. Compare `data_run/`
-with spatial reads on the same cycle and geographic footprint. Start with a
-Channel/Biscay sample and UK/Ireland points, then measure the approved full
-served domains. This sample crop is a benchmark, not a silent product limit.
-
-Record paths, reference/valid times, per-variable axes, grid fingerprints,
-units, vector reference frame, gust windows, object stability, attribution,
-reader dependency versions and licence decisions. Pin the chosen metadata
-schema in fixtures and detect future incompatible changes.
-
-**Exit:** reproducible offline samples and a measured size/resource report;
-each intended variable has a verified definition. A missing essential field,
-unresolved licence or incompatible grid leaves that model disabled. No R2
-production writes are needed for this phase.
-
-### Phase 1 — Implement the reusable reader and AROME adapter
-
-Add the dependency extra, registry, resolver, bounded reader and regular-grid
-normalization. Implement AROME dry runs with complete wind/gust semantics and
-per-run provenance. Add model-aware mask/axis validation without changing
-existing model thresholds. Add fixture-based tests and a local PFT1 round trip.
-
-**Exit:** two different AROME cycles decode and tile correctly; intentional
-missing analysis values, corrupt data, incomplete runs and source mutations
-are handled correctly. Peak RAM targets less than 6 GiB and temporary disk less
-than half the measured runner free space. Otherwise reduce working-set size
-before production; do not silently reduce the forecast product.
-
-### Phase 2 — Make contracts and publication ready
-
-Coordinate additive schema changes with Passage. Implement conditional latest
-updates for every publisher, cycle monotonicity, safe retention and regional
-capacity allocations. Keep new production enablement false. Validate the R2
-conditional-write behavior in an isolated test prefix before using it for
-root `latest.json`; a local fake alone is insufficient.
-
-**Exit:** concurrent different-layer publications preserve both updates;
-same-layer stale completion cannot roll back latest; upload/manifest/pointer
-failures keep the prior good forecast; capacity exhaustion rejects new models
-without evicting current layers. Existing fixture output and schedules pass
-regression checks. Old and new consumer schema compatibility is demonstrated.
-
-### Phase 3 — Integrate the consumer and activate AROME
-
-Add regional model comparison, explicit selection, coverage/staleness labels
-and attribution in Passage. Keep existing default forecast and routing
-selection. Verify exports if included in the release; otherwise leave the new
-export option unavailable. Test local tiles in the real consumer before R2.
-
-Run the AROME canary through at least seven consecutive days, including a run
-replacement, an unavailable-source scenario, a retry and a disabled-model
-rollback. Use local failure injection for outages that do not occur naturally.
-Observe existing workflows during the same period.
-
-**Exit:** numerical/coverage checks pass, at least 95% of scheduled canary cycles
-publish within the configured completion-plus-ingestion window, every missed
-cycle has a recorded cause, and measured resources fit the configured budget.
-No validation failure may publish. Existing model outputs and delivery remain
-unaffected. Expand to four daily cycles only after this gate.
-
-### Phase 4 — Add ICON-EU and UKV
-
-ICON-EU reuses the regular-grid path; test its change from hourly to three-hourly
-forecast steps. UKV adds speed/direction conversion, projection/masking and
-cached interpolation weights. Validate UKV's actual bulk horizon and gust
-windows rather than borrowing assumptions from direct-provider products.
-
-**Exit:** each model passes its own Phase 0 measurements, offline numerical
-tests, consumer coverage tests and seven-day canary. Size the combined upload
-peak before enabling all three. The first release is complete when AROME,
-ICON-EU and UKV are available as distinct, correctly attributed model choices.
-
-### Phase 5 — Expand selectively
-
-Add ICON-D2, HRRR CONUS and HRDPS using the same acceptance gates. Projected
-grids need independent reference samples even when the transformation code is
-shared. Evaluate AROME HD and ARPEGE next if their coverage justifies the bytes;
-enable other catalogue models by geography. Unsupported feeds remain an
-explicit backlog rather than being approximated by another model.
-
-Do not automatically ingest all domains listed by Open-Meteo. Every activation
-requires a registered product, numerical fixtures, a measured budget and
-consumer support. Automatic model blending and replacement of current sources
-remain outside this plan.
-
-## Verification matrix
+## Numerical conversion and masks
+
+### AROME masks are part of Phase 1
+
+AROME is reported missing at 17.2% of grid cells at every wind step, and about
+18.8% overall for gust because gust also lacks lead zero. ICON-EU had no spatial
+holes in the checked runs. The existing 5% global-weather limit rejects valid
+AROME and must not be reused unchanged.
+
+Define a versioned expected footprint from checked reference cycles and
+geometry, with a fingerprint verified across independent runs. Do not infer an
+allowed mask afresh from each field; that could hide a failed download. Validate
+missingness **inside** the footprint at every required time, with explicit
+allowed missing times for gust. Track external masking separately and detect
+footprint changes. Start with a proposed 0.5% interior-missing limit per field/
+time and calibrate from fixtures, not an arbitrary 20% aggregate allowance.
+Keep existing-layer thresholds unchanged.
+
+Validation must report mismatched wind/gust axes or shapes instead of throwing
+a broadcasting exception. Test an unexpected interior hole and an all-missing
+required timestep. Fully masked edge tiles remain omitted; partial masks remain
+missing values in delivered tiles.
+
+### Time, wind and precision
+
+Keep u/v/gust on the **same wind time axis** in this implementation. Align by
+actual timestamp, never array position. Add an all-missing +0 h gust slice for
+AROME/ICON-EU, whose gust begins at +1 h. Preserve UKV's provided step-0 gust
+subject to verifying its interval definition. Separate gust axes are outside
+scope because the current check compares arrays directly.
+
+Output existing `wind_u_kt`, `wind_v_kt`, `gust_kt` at int16 scales 0.01, 0.01,
+0.1 kt. Upstream u/v, speed and gust are reported at 0.1 m/s precision; UKV
+direction uses whole degrees. Half-degree rounding at 30 kt can contribute
+about 0.26 kt crosswind error. Record source precision separately from output
+encoding: finer scales cannot recover lost information.
+
+UKV stores speed/direction. After verifying a meteorological direction measured
+clockwise from true north, use `u = -speed * sin(theta)` and
+`v = -speed * cos(theta)` with theta in radians, then m/s to knots. Convert
+before interpolation across 359°/1°. Rotate grid-relative vectors once where
+required; never rotate already earth-relative fields twice. Test cardinal and
+nonzero projection-angle cases.
+
+Establish gust windows independently of timestep spacing, especially AROME
+and ICON-EU after +78 h. Use `Statistic("max", window_h)` for verified
+integer-hour windows. Unknown semantics block wind-plus-gust activation; any
+deliberate wind-only product must advertise that capability. Do not synthesize
+gust or clamp data to pass validation. Subhourly data and other hazards are
+later extensions.
+
+### Geometry
+
+Keep AROME/ICON-EU's documented geographic grid origin/spacing and AROME's
+mask. Verify orientation/longitude convention at known points. Do not infer
+spacing from two noisy coordinates.
+
+Register exact UKV geometry: `nx=1042`, `ny=970`, `x0=-1158000 m`,
+`y0=-1036000 m`, `dx=dy=2000 m`; Lambert azimuthal equal area centred on
+longitude −2.5°, latitude 54.9°, spherical radius 6371229 m. Bulk metadata
+provides projection and a six-decimal geographic bounding box, not these exact
+origins. The review reports a derived origin within 0.8 m. Use the derivation
+as a cross-check with documented rounding tolerance, not as authoritative.
+
+Approve a fixed served geographic grid for projected models, initially
+proposing 0.025°, and record both native and served geometry. Bilinearly
+interpolate earth-relative vectors and gust in verified source coordinates,
+cache weights by grid fingerprint, include the required halo, and mask invalid
+neighbors/corners rather than extrapolating. Changed geometry requires review.
+HRRR/HRDPS need independent fixtures despite shared transformation code.
+
+Use the existing cube pipeline initially: reported AROME/ICON-EU working sets
+fit standard runners. Target peak RAM below 6 GiB and temporary disk below half
+the runner's measured free space. Do not build a streaming framework without
+a measured requirement.
+
+## Browser budgets and tile layout
+
+Passage's 64 MiB decoded cache cannot retain a reported 100 MB AROME tile.
+A route crossing three tiles can download about 45 MB. The current 10° AROME
+layout must therefore not be included automatically in normal briefings.
+
+Use these **proposed release gates**, measured with the actual consumer:
+
+| Resource | Initial gate |
+|---|---|
+| Each compressed regional tile | At most 8 MiB |
+| Each tile's decoded Float32 arrays | At most 32 MiB; retain existing 64 MiB shared cache |
+| Automatic regional transfer per analysis | At most 20 MiB across all enabled regionals, preflighted from manifests |
+| Explicit larger request | Display transfer estimate and require opt-in; initial 50 MiB cap or a smaller requested region |
+| Added browser working set from regional loading | Target at most 128 MiB above the same root-only workload, including regional retained, in-flight and decompression buffers |
+| Repeated reads | Reuse retained tiles without repeated decoding; initially allow one regional decode at a time |
+
+These are product limits, not measured passes. Keep new regional comparison
+opt-in by default. If an automatic request exceeds its budget, retain the global
+briefing and offer an explicit regional request. Do not silently coarsen data.
+Measure cold/warm transfer, requests, decode CPU time, repeated decodes and both
+total and additional peak memory on a representative phone and desktop. Enforce
+regional working-set admission against that baseline;
+an LRU retention limit alone does not cap transient memory.
+
+**Preferred AROME remedy: 5° tiles at the same 0.025° forecast resolution.**
+A full 200 × 200 tile with 52 times and three Float32 fields is about 25 MB
+decoded versus about 100 MB at 10°. Compression and route totals still need
+measurement. Provisionally use 5° for UKV too; ICON-EU can stay at 10° if it
+passes the gates. Never change layout under a published immutable run ID.
+
+This requires coordinated work: the manifest schema fixes `tile_deg` at 10,
+and producer/Passage tile math hardcodes 10°. Permit supported 5°/10° layouts
+and pass manifest tile size through enumeration, point lookup, edge-neighbor
+probes, mosaics and export. Existing products default to 10°, preserving their
+bytes and URLs. Test both sizes together. PFT1 encoding and coordinate-bearing
+headers remain compatible, but smaller tiles cannot ship before consumer support.
+
+## Regional catalogue and consumers
+
+Deployed Passage reads every root-listed manifest in `initOnce()` and passes
+`describe()` into next-run estimates for any layer with `cadence_hours`.
+It does not ignore unknown layers: publishing AROME to root would change
+briefings before model support ships.
+
+Use `latest-regional.json` from the first regional publish. Thread an explicit
+catalogue key through publication, duplicate checks, previous-run lookup,
+status and rollback; default every existing command to `latest.json`. Keep
+immutable runs under distinct layer IDs in `forecast-runs/`. Root and regional
+allowlists are disjoint; reject duplicate layer ownership.
+
+Both pointers need CAS since regionals still share a pointer. Separation
+isolates consumers and rollback; it does not fix the existing root race.
+Storage accounting/reconciliation must include **both** catalogues, their
+current/previous runs, metadata and abandoned uploads. A separate pointer is
+not another storage allowance.
+
+Coordinate canonical Passage schemas and vendored forecast-tiles copies:
+
+1. Add new layer IDs and permit digits in run-ID prefixes for ICON-D2. Define
+   a regional-pointer schema with the existing entry structure and regional
+   allowlist; keep root's seven-layer contract. Support 5°/10° explicitly.
+2. Add optional coverage, source/served geometry, capabilities, attribution and
+   schedule fields. Regional next-run estimates must use cycle-specific delay
+   windows; six-hour cycle cadence does not predict AROME file arrival. Omit
+   these estimates until supported rather than display invented times.
+3. Make regional catalogue fetching optional under explicit feature/model
+   allowlists. Root remains required; regional 404/outage is nonfatal. Disabled
+   models must not appear in ordinary briefings. Cache refresh/eviction uses
+   the union of active runs from both pointers.
+4. Extend `getHazardForecasts()` for selected regionals meeting coverage, time,
+   capability and transfer budgets; preserve ECMWF's `modelRuns.ts` behavior.
+   Unprovided hazard fields stay unavailable, not zero-filled.
+5. Keep default `getWindGrid()` and routing on GFS. Named regional selection
+   validates route/time coverage and returns unavailable outside its domain/
+   horizon. Never insert unlabeled GFS values. Do not count the distributor as
+   another model or treat related AROME products as independent evidence.
+6. Update selectors, provenance and GRIB/export registries. Verify model cycle,
+   grid, times and gust intervals before enabling export. Audit Tactician and
+   other consumers separately; decoding tiles alone does not prove export support.
+
+`z_res()` labels 0.025° as `z002` and 0.0625° as `z006`. Keep old URLs unchanged
+but give new products explicit labels such as `grid-0p025` and `grid-0p0625`.
+Consumers must follow `path_template`, not infer resolution from its label.
+
+Provenance separates originating weather service/model from Open-Meteo. Record
+run, source identity digest, adapter version, precision, conversions, masks,
+native/served geometry and attribution. Store large inventories once per run,
+not in every tile header.
+
+## Concurrency and immutable publication
+
+The regional path uses three controls:
+
+1. **Same per-layer GitHub group for every trigger.** Normalize dispatched and
+   scheduled work into a job matrix and use job-level
+   `group: ingest-${{ matrix.layer }}` with `cancel-in-progress: false`.
+   A catch-up job spanning several layers must not bypass those groups. Bound
+   matrix parallelism; the next latest-cycle catch-up recovers replaced pending
+   work. GitHub concurrency is not a durable queue for every historic cycle.
+2. **`If-None-Match: *` on every immutable tile and manifest.** A second writer
+   fails rather than overwrites. Manifest is last; skip already-published
+   complete cycles before upload. A partial-upload conflict does not authorize
+   overwrite: inspect and clean an unreferenced abandoned prefix after active
+   writers stop, then retry. No automated lease takeover or routine `--force`.
+3. **CAS plus the older-cycle check on the chosen pointer.** Reuse the
+   standalone fix. Validate the complete run before discovery, and only clean
+   retention after confirmed pointer success.
+
+GitHub groups do not coordinate arbitrary CLI processes. Conditional object
+creation prevents same-run corruption, CAS prevents lost/older updates, and
+cleanup must skip newer/incomplete prefixes so a slower writer cannot delete
+a newer upload. Orphan cleanup is separate, age-gated and reference-aware
+across both pointers. Count failed uploads until actually deleted. ETags are
+concurrency tokens, not substitutes for our tile content hashes.
+
+Changed data/adapter behavior uses a new cycle, or a separately designed
+revision ID if a same-cycle correction is indispensable. Do not mutate a served
+immutable run as part of normal migration.
+
+## Storage decision and costs
+
+The current 8,000,000,000-byte guard counts retained manifest tile totals after
+replacement, not the physical/account peak. It excludes third-run overlap,
+metadata, routing-index data and orphans. Include both catalogues in accounting
+before any regional R2 publication; root-only accounting would undercount.
+
+Use compressed measurements instead of the earlier raw estimates:
+
+| Release 1 component | Two retained runs | Three runs during upload |
+|---|---:|---:|
+| AROME, measured with 10° tiles | 0.152 GB | about 0.228 GB |
+| ICON-EU, rounded measurements | 0.341 GB | about 0.512 GB |
+| UKV, **unmeasured estimate**, 90–110 MB/run | 0.180–0.220 GB | 0.270–0.330 GB |
+| Combined regional addition | **0.673–0.713 GB** | **about 1.010–1.070 GB** |
+
+Passage's published 1 October **6.66 GB projection** gives about 7.33–7.37 GB
+retained or 7.67–7.73 GB with regional third-run overlap. This is a **conditional
+fit**, not a live inventory or a whole-bucket worst-case peak: existing-model
+uploads, non-tile objects, abandoned uploads, daily variation and 5°-tile
+overhead remain to be counted. Even a rough 7.7–7.9 GB projection has little
+headroom. Reconcile current manifest totals and physical objects; do not mix
+a historical projection with a current dashboard counter.
+
+**Release 1 decision:** keep the 8 GB guard initially and enable only models
+whose measured combined retained/peak allocations fit with headroom. Otherwise
+leave that new model disabled or explicitly raise the budget. All three are
+not guaranteed to fit on the current live bucket.
+
+**Release 2 decision:** do not enable ICON-D2, HRRR or HRDPS using the remaining
+Release 1 allocation. Re-budget first. The review expects the full set to exceed
+8 GB; exact compressed sizes remain unmeasured. Prefer a deliberate guard
+increase if the small expense is acceptable; otherwise choose fewer new models
+or an explicitly smaller product. Keep existing products intact.
+
+Reserve measured existing-layer peak capacity plus headroom. Give each new
+model a fixed compressed run cap `b_i`; allocate `2 * sum(b_i)` for retained
+regional tiles and `3 * sum(b_i)` for simultaneous uploads, plus all other
+bytes. Refuse oversized runs before upload. Fixed allocations and one active
+job per layer avoid competing for the same spare capacity; the current guard
+is not an atomic global reservation. Reconcile after failed cleanup and refuse
+regional admission on unknown/exhausted capacity. No lease service is needed.
+
+Raising a software guard does not itself incur charges: actual R2 usage does.
+Standard storage is $0.015 per billable GB-month beyond the account's shared
+10 GB-month allowance, before rounding/tax. Free Class A (1 million) and
+Class B (10 million) operations are also account-wide; storage billing averages
+daily peaks. A new bucket/pointer adds no allowance. A separate account is not
+required. Keep private account figures outside this public document.
+
+Measure source bytes/requests, gzip totals, largest tile, writes, retained and
+upload peak, runtime/RAM/disk, metadata polls, readback and cleanup. Verify
+GitHub runner eligibility and artifact limits. Fewer updates reduce processing/
+writes, not two-run storage. No numerical bulk quota is documented, but neither
+throughput nor uninterrupted access is guaranteed. No paid API is required;
+zero infrastructure expense is not promised.
+
+## Scheduling and observability
+
+The review's eight-day `meta.json` sample reports these completion delays:
+
+| Product/cycle | Cycle to complete files |
+|---|---|
+| ICON-EU | 3.6–3.75 h |
+| UKV | About 4.4 h; one run at 5.6 h |
+| AROME 00 / 03 / 06 / 09Z | About 2.9 / 2.8 / 5.3 / 4.3 h |
+| AROME 12 / 15 / 18 / 21Z | About 4.1 / 3.9 / 5.1 / 4.2 h |
+
+These are observations, not an SLA or p95 guarantee. Give AROME a separate
+entry for each selected cycle. Prefer 03/09/15/21Z: 03Z arrives around
+05:45–05:50 UTC, fresher than 00Z well before 06Z lands around 11:20.
+
+Proposed first four-cycle timetable, refined later from canary logs:
+
+| Model cycle | Dispatch UTC | Lag / wait |
+|---|---|---|
+| AROME 03Z | 05:45 | 2 h 45 / 90 min |
+| AROME 09Z | 13:15 | 4 h 15 / 90 min |
+| AROME 15Z | 18:45 | 3 h 45 / 90 min |
+| AROME 21Z | 01:15 next day | 4 h 15 / 90 min |
+| ICON-EU 00/06/12/18Z | 03:25 / 09:25 / 15:25 / 21:25 | 3 h 25 / 45 min |
+| UKV 00/06/12/18Z | 04:15 / 10:15 / 16:15 / 22:15 | 4 h 15 / 120 min |
+
+All new slots align to five-minute boundaries and reuse existing :15/:25/:45
+cron minutes. Extend hours on those three expressions; leave :00/:20 and
+existing timetable entries unchanged. Dispatch all entries sharing a slot.
+Replay a full UTC day, late fires and date rollovers to prove current cycle
+requests and wait windows are identical.
+
+Do not switch casually to `*/5`: `dispatch.ts` suppresses `MISSED SLOT` for
+those ticks and `slotAt()` selects only one slot per five-minute window. A future
+switch needs explicit missed-dispatch monitoring and coverage tests. This
+release preserves the current alarm without adding a Cron Trigger.
+
+Add explicit workflow/layer routing, allowlist inputs in dispatcher and CLI,
+and run catch-up as the same per-layer matrix. Start canaries with AROME 03/15Z
+and ICON/UKV 00/12Z. Bound timeouts/parallelism so new jobs do not starve existing
+jobs. Worker deployment remains a maintainer operation under current repo rules.
+
+Track attempts separately from last success: failure category, source lag,
+ETags/bytes, output/large-tile sizes, decode/encode time and chosen pointer.
+Failures do not replace good forecasts. Flag stale data after two missed
+publication opportunities plus measured source lag. Keep manual retry and a
+per-model disable switch; no new notification service is needed.
+
+## Implementation order and gates
+
+### Phase 0 — Standalone current-publisher fix
+
+Implement the CAS/older-cycle/cleanup fix and interleaving tests above. Check
+R2 using isolated objects, then release independently. No GPL dependency is
+involved; this must not wait for UKV or the repository licence decision.
+
+**Exit:** both layer updates survive; stale jobs cannot roll back or prune
+references; retries are bounded; existing publisher behavior/tests pass.
+
+### Phase 1 — AROME dry run
+
+Resolve the repository licence prerequisite, add plain `omfiles`, registry and
+whole-file reader. Capture source fixtures; close AROME gust semantics and
+known-point orientation. Implement footprint/time validation, gust padding,
+transpose and all CLI settings. Produce local PFT1 tiles and a benchmark.
+
+**Exit:** expected mask/+0 h gust are accepted; unexpected interior holes,
+missing wind steps and changed geometry fail clearly; no new-layer `KeyError`;
+numerics and reported resources are reproducible. No production writes yet.
+
+### Phase 2 — ICON-EU dry run
+
+Reuse the adapter; verify the 93-step axis, gust windows after +78 h and the
+unmasked grid. Capture references and repeat the benchmark. Add no reader
+abstraction without a demonstrated incompatibility.
+
+**Exit:** timestamp-aligned wind/gust through 120 h; unexpected missing data
+rejected without weakening current model thresholds.
+
+### Phase 3 — Regional pointer, browser delivery and Passage
+
+Implement separate-pointer publication, both-catalogue capacity accounting,
+immutable object creation and shared matrix groups. Coordinate layer/digit-ID
+and 5°/10° schemas, model-aware tile math, optional catalogue fetch, comparison/
+selection, cache behavior, attribution and transfer admission. Preserve GFS
+defaults and root-only clients. Re-measure AROME with 5° tiles and combined
+storage/writes before regional activation.
+
+**Exit:** root-only briefing behavior is unchanged, regional absence is harmless,
+browser gates pass, conflicts cannot overwrite immutable data and rollback is
+regional-only. Activate AROME and ICON-EU individually through seven-day canaries.
+
+### Phase 4 — UKV
+
+Resolve direction frame, gust and licence; implement exact registered geometry,
+vector conversion, remapping/masks and smaller tiles. Measure post-remap storage
+and browser behavior, replacing the 90–110 MB/run estimate. Check geographic
+reference points independently of production transformation code.
+
+**Exit:** numeric/footprint/browser gates pass, current capacity fits and UKV
+passes its seven-day canary. Release 1 is complete only after all three models.
+
+### Phase 5 — Expansion after a capacity decision
+
+Re-budget before ICON-D2/HRRR/HRDPS. Reuse the reader and projection code but
+require per-product masks, time/variable fixtures, resource and consumer checks.
+AROME HD, ARPEGE and other models remain explicit later choices. Do not discover
+and activate every catalogue domain automatically.
+
+Each canary requires at least 95% of scheduled cycles within the configured
+source-completion-plus-ingestion window, every miss explained, no invalid run
+published, replacement/retry and disable/rollback exercised. Inject an outage
+locally if needed. Distinguish upstream delay from our failures and verify
+existing delivery stays unaffected. Seven-day observation can overlap later work.
+
+## Verification and rollback
 
 | Concern | Required evidence |
 |---|---|
-| OM access | Local/remote slice equivalence, compressed/missing values, array ordering, metadata changes, bounded retries and caches |
-| Time | Explicit cycle matching, no mixed runs, native irregular spacing, missing gust at analysis, different per-variable time axes |
-| Wind | m/s to knots, speed/direction cardinal cases and 359°/1°, rotation once, source quantization acknowledged |
-| Geography | Known points on each grid, axis orientation, projection round trip, source/target mask, corners and partial tiles |
-| Regridding | Constant-vector preservation, analytic linear-field interpolation, independent geographic reference points and no extrapolation |
-| Numerical parity | Regular-grid source values agree within upstream decode plus half-output-quantum tolerance; projected values agree with an independent interpolation calculation plus quantization tolerance |
-| Validation | Missing required field/time, wrong units, excessive interior holes and implausible values all abort before publication |
-| Publishing | ETag conflict/retry, uncertain write outcome, stale cycle, same-layer concurrency, failed upload/readback and safe retention |
-| Capacity | Oversized new run, simultaneous model peaks, old runs/orphans, metadata overhead and protected existing allowance |
-| Consumers | Existing-only and expanded catalogues, out-of-domain and out-of-horizon points, null gust, stale model, corrupt/missing tile and cache refresh |
-| Existing behavior | Existing Python/golden fixtures, consumer regressions and full dispatcher-day replay unchanged in meaning |
-| Operations | Manual retry, failed-cycle visibility, model disable switch, previous-run fallback and no routine immutable overwrite |
+| Reader | Length/ETag records, truncated GET, transient retries, changed final metadata, exact cycle |
+| Arrays/masks | Transpose, known latitude point, stable AROME outline, interior-hole and missing-step failures |
+| Gust | Shared axis; AROME/ICON +0 h missing; UKV +0 h preserved; verified windows |
+| Wind | Units/precision, cardinal/359°–1° cases, one rotation, independent values within quantization/conversion tolerance |
+| Grid | Exact UKV origin versus rounded metadata, fingerprints, no extrapolation, corner/edge masks |
+| Browser | Both tile sizes and boundary lookup/mosaic, cold/warm route transfer, decoded/transient memory, retention |
+| Pointers | Competing writers, creation/conflicts, stale cycles, uncertain success, no cleanup after failed commit |
+| Immutability | Duplicate objects refuse overwrite, partial retry fails safely, manual writer cannot corrupt a run |
+| Consumers | Root-only behavior, regional outage, opt-in allowlist, next-run estimates, missing coverage and exports |
+| Capacity | Both-pointer union, caps, existing upload headroom, failed uploads and post-retiling totals |
+| Scheduler | Shared layer group across triggers, unchanged current dispatches, aligned/grouped slots and missed-slot alarm |
 
-Do not validate forecasts by requiring agreement with a different numerical
-model or the Open-Meteo API's default best-match response. Compare the exact
-model/run/grid and account for declared conversions. Test the current shared
-gust-consistency check on new models; if provider semantics need a different
-criterion, make it model-specific and evidence-based without weakening existing
-checks or clamping data to make it pass.
+Keep unit tests offline with small attributed fixtures. Implementation changes
+run relevant Python tests/ruff, dispatcher typecheck/tests and Passage schema,
+store, tile-math, UI/export tests. Live R2 and source benchmarks are explicit
+integration checks. Agreement with another model or a default best-match API
+response does not validate an exact source run.
 
-For implementation changes run the appropriate Python tests and repository
-ruff checks, `dispatcher` typecheck/tests, and relevant Passage contract,
-forecast-store and UI/export tests. Keep routine CI offline using small
-attributed fixtures. Live AWS/R2 checks are explicit integration jobs, not a
-network dependency of every unit test. This documentation-only change does
-not itself claim those future implementation checks have passed.
+Rollback disables model dispatch and consumer selection, stops in-flight work,
+then conditionally removes/restores only its `latest-regional.json` entry.
+Never restore an old whole root catalogue. An intentional operator rollback
+is distinct from normal monotonic publication; keep faulty versions disabled
+so catch-up cannot republish them. Retain referenced good runs through the
+normal fallback/cache window and clean abandoned objects separately.
 
-## Rollback and completion
+## Effort and outstanding evidence
 
-Disable a new model's dispatch and consumer feature first. Stop or finish its
-in-flight job, then conditionally remove or restore only that layer's latest
-entry after verifying the target manifest. Never restore an old whole
-`latest.json`, which would roll back unrelated models. Keep retained good runs
-through the normal cache/fallback window; remove them with reference-aware
-cleanup. Preserve monotonic publication and existing models during rollback.
+Revised estimate: **8–12 engineering days** for the standalone fix, registry/
+reader, adapters, regional catalogue, scheduling and selection, plus **2–4 days**
+for smaller tiles and browser-budget enforcement if that preferred remedy is
+required: roughly **10–16 days for Release 1**, with seven-day canaries
+overlapping subsequent work where possible. This replaces 12–20 days: dropping
+range/lease work saves effort, but browser work cannot be omitted. Licence
+decisions and access to an R2 trial can add calendar delay. These are estimates,
+not delivery commitments.
 
-The monotonic-cycle rule applies to normal ingestion. An intentional operator
-restore to a previous run is a separate recorded rollback action; keep that
-model disabled until the faulty version/cycle is excluded so a catch-up job
-cannot immediately republish it.
+This revision checked code for the race, settings, consumer discovery/cache,
+fixed tile geometry, SDK header support and absence of a repository licence.
+Run counts, masks, sizes and timings come from the supplied review; no live
+bulk or R2 trial was rerun here. Preserve that evidence and close the named
+gaps in their implementation phases, without claiming the measurements were
+newly reproduced.
 
-Release 1 is done when the three initial models have passed their canaries,
-the actual retained/upload peaks fit the configured allocation, provenance
-and attribution are visible, the rollback has been exercised, and all seven
-original forecast layers still use their original sources and definitions.
-There must be no hosted Open-Meteo API dependency or paid API subscription.
+Release 1 is complete only when all three models meet their numerical,
+browser, capacity and canary gates; existing seven-layer sources and behavior
+remain intact; attribution is visible; and regional rollback has been exercised.
+No hosted Open-Meteo API dependency or paid API subscription may be introduced.
 
-Planning estimate: roughly 12–20 engineering days for discovery, the reusable
-adapter, shared publication/contract work, consumer integration and the first
-three models, plus seven-day observation periods that can overlap engineering
-work. This is an estimate, not a delivery commitment; grid/metadata surprises
-or unresolved redistribution terms can extend an individual model's work.
-Regular-grid follow-on models should require less work than new projected
-products, but each still needs its own measured release gate.
+## References
 
-## Evidence and items still to verify
-
-Repository inspection established the current implementation and the proposed
-integration points. Official bulk documentation and upstream source code were
-read. No live Open-Meteo AWS arrays or R2 conditional-write trial were executed
-for this plan. Phase 0 and Phase 2 close those specific gaps.
-
+- [Passage's recorded capacity projection](https://github.com/deepregatta/passage/blob/main/docs/grib-export-plan.md): Phase 5C projects 6.66 GB after adding the short ECMWF runs; this is not a current inventory.
 - [Open-Meteo bulk catalogue and layouts](https://github.com/open-meteo/open-data/blob/4fd52ad16c417c49bff45fab4bf175e5ea5760f2/README.md): models, completion metadata, retention, exclusions and dataset licence.
-- [Python OM reader](https://github.com/open-meteo/python-omfiles/blob/8082fd0dac4fdbe89b8e9c16d79a622d2ba4ceab/README.md) and [dependency/licence metadata](https://github.com/open-meteo/python-omfiles/blob/8082fd0dac4fdbe89b8e9c16d79a622d2ba4ceab/pyproject.toml): slices, anonymous S3, Python support and GPL-2.0-only declaration.
+- [Python OM reader](https://github.com/open-meteo/python-omfiles/blob/8082fd0dac4fdbe89b8e9c16d79a622d2ba4ceab/README.md) and [dependency/licence metadata](https://github.com/open-meteo/python-omfiles/blob/8082fd0dac4fdbe89b8e9c16d79a622d2ba4ceab/pyproject.toml): local decoding and Python support, with GPL-2.0-only declaration; remote-reader extras are not selected.
 - [Full-run metadata](https://github.com/open-meteo/open-meteo/blob/b06f4760fd1f997e5559bb380f64c5e496b4a509/Sources/App/Helper/File/FullRunMetaJson.swift) and [run-file writer](https://github.com/open-meteo/open-meteo/blob/b06f4760fd1f997e5559bb380f64c5e496b4a509/Sources/App/Helper/Writer/GenericVariableHandle.swift): reference time, CRS, units and variable timestamps.
 - [UKV domain](https://github.com/open-meteo/open-meteo/blob/b06f4760fd1f997e5559bb380f64c5e496b4a509/Sources/App/UKMO/UkmoDomain.swift) and [variables](https://github.com/open-meteo/open-meteo/blob/b06f4760fd1f997e5559bb380f64c5e496b4a509/Sources/App/UKMO/UkmoVariable.swift): projected grid, cycle-dependent horizon and stored speed/direction. Source-code evidence is not a live inventory guarantee.
 - [Met Office UK deterministic registry](https://github.com/awslabs/open-data-registry/blob/00462862e4c1926cd35809ed2ac1c7b5b67b5bdd/datasets/met-office-uk-deterministic.yaml): direct-product horizons and upstream licence.
