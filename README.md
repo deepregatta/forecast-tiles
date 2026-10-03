@@ -256,14 +256,14 @@ in about a minute.
 **Existing-layer timetable** (UTC; `dispatcher/src/timetable.ts`, crons in
 `dispatcher/wrangler.toml`):
 
-| Provider slots | Layer | Cycle dispatched | Provider ready (measured) | `wait_minutes` |
+| Provider slots | Layer | Cycle dispatched | Provider ready (measured; 1–3 Oct, live) | `wait_minutes` |
 |---|---|---|---|---|
-| `25 4,10,16,22 * * *` | `weather` | fire time − 4 h 25 | cycle + 4 h 37–4 h 41 | 90 |
-| `0 5,11,17,23 * * *` | `waves` | fire time − 5 h | + 5 h 10–5 h 25 | 90 |
-| `15 0,6,12,18 * * *` | `ensemble` | fire time − 6 h 15 (00:15 → previous day 18Z) | + 6 h 29–6 h 31 | 90 |
-| the same, 00:15 and 12:15 only | `weather-ecmwf-short` | fire time − 6 h 15 (00:15 → previous day 18Z) | + 6 h 27 (the four 06Z/18Z cycles of 29–30 Sep; ECMWF releases a cycle's files at one minute) | 120 |
-| `20 7,19 * * *` | `weather-ecmwf` | fire time − 7 h 20 | + 7 h 34 | 120 |
-| `45 5,9 * * *` | 05:45 `currents`, 09:45 `currents-ibi` | that day's 00Z | GLO12 06:10–09:05 (29 Sep–1 Oct); IBI 09:54–11:36 | 240 (`currents`, whose workflow allows 300 min), 180 (`currents-ibi`) |
+| `25 4,10,16,22 * * *` | `weather` | fire time − 4 h 25 | cycle + 4 h 35–4 h 55 (9 cycles; 7 at 4 h 35–4 h 40) | 90 |
+| `0 5,11,17,23 * * *` | `waves` | fire time − 5 h | + 5 h 09–5 h 27 (9 cycles) | 90 |
+| `15 0,6,12,18 * * *` | `ensemble` | fire time − 6 h 15 (00:15 → previous day 18Z) | + 6 h 28–6 h 36; 18Z of 2 Oct + 7 h 03 (8 cycles) | 90 |
+| the same, 00:15 and 12:15 only | `weather-ecmwf-short` | fire time − 6 h 15 (00:15 → previous day 18Z) | + 6 h 27 (the four 06Z/18Z cycles of 29–30 Sep and four of 1–2 Oct; ECMWF releases a cycle's files at one minute) | 120 |
+| `20 7,19 * * *` | `weather-ecmwf` | fire time − 7 h 20 | + 7 h 34 (5 cycles, 1–3 Oct) | 120 |
+| `45 5,9 * * *` | 05:45 `currents`, 09:45 `currents-ibi` | that day's 00Z | GLO12 06:10–09:05 (29 Sep–3 Oct: 06:26, 06:10, 09:05, 06:49, 06:12); IBI 09:54–11:36 (24 Sep–3 Oct; 1–3 Oct 10:14, 10:04, 09:56) | 240 (`currents`, whose workflow allows 300 min), 180 (`currents-ibi`) |
 
 The existing layers keep 18 dispatches from 16 provider slots per day. Two
 layers share the 00:15 and 12:15 fires; each is dispatched independently.
@@ -316,7 +316,11 @@ committed and never passed through anything but `wrangler secret put`.
 **Status:** deployed 2026-09-29 21:24 UTC in dry-run, with the token set.
 The dry run logged all 16 slots of 2026-09-30, each for the timetable's
 cycle, 27–48 s after the minute. Dispatching is live since 2026-10-01
-(Passage plan, Phase 5B).
+(Passage plan, Phase 5B). Verified on 2026-10-03 over the first two
+days: every slot dispatched its cycle, no wait ran out, and no fallback run
+had to publish. NOAA and ECMWF times are when the ingest saw the cycle (it
+checks every 60 s, ECMWF every 120 s); Copernicus times are the STAC
+`admp_updated_data` recorded as `provider_updated_at`.
 
 **Setup** (once, by a maintainer):
 
