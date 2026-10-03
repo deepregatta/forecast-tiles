@@ -116,6 +116,54 @@ def test_wait_polls_ecmwf_and_copernicus_every_two_minutes(monkeypatch):
     assert cli.POLL_SECONDS["currents"] == cli.POLL_SECONDS["currents-ibi"] == 120
 
 
+def test_regional_waits_for_required_variables_after_metadata_appears(monkeypatch):
+    from ingest.sources.openmeteo import catalog, registry
+    from ingest.sources.openmeteo.reader import ObjectRecord
+
+    product = registry.ICON_EU
+    cycle = make_weather_cube().cycle.replace(hour=0)
+    complete = catalog.RunMeta(
+        cycle=cycle,
+        record=ObjectRecord("meta.json", '"complete"', 1),
+        reference_time=cycle,
+        valid_times=tuple(catalog.lead_times(product, cycle)),
+        variables=frozenset(product.files.values()),
+        created_at="",
+    )
+    partial = replace(complete, variables=frozenset({"temperature_2m"}))
+    checks = []
+
+    def fetch(product, requested, **kwargs):
+        checks.append(requested)
+        return partial if len(checks) < 3 else complete
+
+    monkeypatch.setattr(catalog, "fetch_meta", fetch)
+    fake = FakeClock()
+    assert cli.wait_for_cycle(product.layer, cycle, 45, clock=fake.clock, sleep=fake.sleep) == cycle
+    assert len(checks) == 3 and fake.sleeps == [120, 120]
+
+
+def test_incomplete_regional_metadata_still_obeys_wait_deadline(monkeypatch):
+    from ingest.sources.openmeteo import catalog, registry
+    from ingest.sources.openmeteo.reader import ObjectRecord
+
+    product = registry.ICON_EU
+    cycle = make_weather_cube().cycle.replace(hour=0)
+    partial = catalog.RunMeta(
+        cycle=cycle,
+        record=ObjectRecord("meta.json", '"partial"', 1),
+        reference_time=cycle,
+        valid_times=tuple(catalog.lead_times(product, cycle)),
+        variables=frozenset({"temperature_2m"}),
+        created_at="",
+    )
+    monkeypatch.setattr(catalog, "fetch_meta", lambda *a, **kw: partial)
+    fake = FakeClock()
+    with pytest.raises(cli.CycleWaitExpired, match="wind_u_component_10m"):
+        cli.wait_for_cycle(product.layer, cycle, 1, clock=fake.clock, sleep=fake.sleep)
+    assert fake.sleeps == [60]
+
+
 def test_wait_then_exits_already_published_before_building(tmp_path, monkeypatch, capsys):
     cube, built = make_weather_cube(), []
     _gfs_ready_after(monkeypatch, cube, 0, built)

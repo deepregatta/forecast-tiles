@@ -180,6 +180,33 @@ def test_lookback_is_bounded():
     assert len(session.calls) == AROME.lookback_cycles
 
 
+def test_explicit_cycle_with_early_metadata_is_not_ready():
+    session = FakeSession(
+        {"0300Z/meta.json": [FakeResponse(body=meta_doc(variables=["temperature_2m"]))]}
+    )
+    with pytest.raises(CycleNotAvailableError, match="wind_u_component_10m"):
+        catalog.resolve(AROME, CYCLE, session=session)
+
+
+def test_automatic_selection_skips_incomplete_newer_metadata():
+    newer = CYCLE.replace(hour=9)
+    session = FakeSession(
+        {
+            "0900Z/meta.json": [FakeResponse(body=meta_doc(newer, leads=range(48)))],
+            "0300Z/meta.json": [FakeResponse(body=meta_doc())],
+        }
+    )
+    assert catalog.resolve(AROME, now=newer.replace(hour=10), session=session) == CYCLE
+
+
+def test_resolver_does_not_wait_on_wrong_reference_time():
+    session = FakeSession(
+        {"0300Z/meta.json": [FakeResponse(body=meta_doc(cycle=CYCLE.replace(hour=0)))]}
+    )
+    with pytest.raises(SourceError, match="reference_time"):
+        catalog.resolve(AROME, CYCLE, session=session)
+
+
 def test_a_complete_run_needs_its_files_and_the_whole_axis():
     def meta(**kwargs):
         session = FakeSession({"meta.json": [FakeResponse(body=meta_doc(**kwargs))]})

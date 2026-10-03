@@ -1,5 +1,5 @@
 {
-  "status": "observing; Release 1 acceptance incomplete",
+  "status": "observing; original ICON-EU window cannot meet 95% after its first scheduled miss",
   "started_on": "2026-10-02",
   "observation_days": 7,
   "minimum_on_time_fraction": 0.95,
@@ -101,7 +101,7 @@
     "Refresh capacity across representative cycles; both catalogues and whole-bucket overlap must still fit the approved guard.",
     "Repeat current production consumer/attribution checks before full-cadence promotion."
   ],
-  "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37066523436",
+  "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37107528945",
   "root_readback": {
     "verified_at": "2026-10-02T21:28:02.618139+00:00",
     "catalogue_updated_at": "2026-10-02T19:38:17Z",
@@ -120,5 +120,74 @@
     "cadence": "twice daily Codex heartbeat at 09:45 and 22:45 Europe/Paris",
     "status": "active",
     "policy": "quiet while healthy or unchanged; report failures, required action and acceptance completion"
-  }
+  },
+  "reviews": [
+    {
+      "reviewed_at": "2026-10-03T07:54:37.598241+00:00",
+      "models": {
+        "weather-arome": {
+          "counts": {
+            "on_time": 1,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 13,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-icon-eu": {
+          "counts": {
+            "on_time": 0,
+            "late": 0,
+            "failed": 1,
+            "unknown": 0,
+            "pending": 13,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-ukv": {
+          "counts": {
+            "on_time": 1,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 13,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        }
+      },
+      "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37107528945",
+      "capacity_result": "calculated overlap fits the approved guard; retained existing reservation remains conservative",
+      "existing_delivery": "all seven root layers retained; six advanced since activation; IBI next dispatcher slot has not arrived",
+      "scheduled_replacement": "AROME and UKV retained their bootstrap runs as previous; ICON-EU prior good run preserved"
+    }
+  ],
+  "incidents": [
+    {
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-03T00:00Z",
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37093177955",
+      "outcome": "source_rejected before any downloads/uploads",
+      "cause": "metadata appeared without required u/v/gust variables; resolver treated existence as readiness",
+      "first_metadata_created_at": "2026-10-03T03:24:37Z",
+      "complete_metadata_created_at": "2026-10-03T03:41:38Z",
+      "deadline": "2026-10-03T04:20:00Z",
+      "invalid_run_published": false,
+      "fix": "wait on incomplete variable inventory or registered axis during cycle resolution; preserve fatal identity checks",
+      "recovery_status": "pending post-fix production retry",
+      "acceptance_impact": "even thirteen further on-time cycles give 13/14, below 95%; preserve original window and miss"
+    }
+  ]
 }

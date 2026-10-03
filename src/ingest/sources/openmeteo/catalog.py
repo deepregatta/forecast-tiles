@@ -1,9 +1,10 @@
 """Complete-run metadata, cycle selection and source identity.
 
-A run is complete when `data_run/<domain>/YYYY/MM/DD/HHMMZ/meta.json` exists:
-Open-Meteo writes it after the run's variable files (AROME 2026-10-02T03Z:
-files 05:48:03-05:48:12, meta.json 05:48:25). Only `data_run/` is used; the
-rolling `data/` tree is rewritten in place and has no immutable runs.
+A run is ready when `data_run/<domain>/YYYY/MM/DD/HHMMZ/meta.json` lists its
+required variables and full registered time axis. The marker can appear early
+and be extended: ICON-EU 2026-10-03T00Z first omitted wind fields at 03:24,
+then listed them at 03:41. Only `data_run/` is used; the rolling `data/` tree
+is rewritten in place and has no immutable runs.
 
 An explicit cycle means exactly that cycle. Without one, the newest complete
 cycle among the product's registered hours within `lookback_cycles` is
@@ -27,6 +28,10 @@ from ingest.sources.openmeteo.reader import NotFound, ObjectRecord, SourceError
 
 class CycleNotRegistered(SourceError):
     """An explicit --cycle at an hour the product does not publish."""
+
+
+class RunIncomplete(SourceError):
+    """Required variables/times have not all appeared in the run metadata."""
 
 
 @dataclass(frozen=True)
@@ -88,14 +93,26 @@ def require_complete(product: Product, meta: RunMeta, roles: list[str]) -> None:
         )
     missing = [product.files[r] for r in roles if product.files[r] not in meta.variables]
     if missing:
-        raise SourceError(f"{meta.record.key}: no {missing} in this run")
+        raise RunIncomplete(f"{meta.record.key}: no {missing} in this run")
     absent = sorted(set(lead_times(product, cycle)) - set(meta.valid_times))
     if absent:
         leads = [int((t - cycle).total_seconds() // 3600) for t in absent]
-        raise SourceError(
+        raise RunIncomplete(
             f"{meta.record.key}: valid_times lack +{leads[:5]} h of the registered "
             f"{len(product.axes[cycle.hour])}-step axis"
         )
+
+
+def _require_ready(product: Product, meta: RunMeta) -> None:
+    roles = ["speed", "direction"] if product.wind_encoding == "speed_direction" else ["u", "v"]
+    if product.gust_windows.verified:
+        roles.append("gust")
+    try:
+        require_complete(product, meta, roles)
+    except RunIncomplete as exc:
+        # Only incomplete inventory/axis is retryable. Wrong reference time,
+        # geometry or later file identity still fails immediately.
+        raise CycleNotAvailableError(str(exc)) from exc
 
 
 def resolve(
@@ -111,7 +128,7 @@ def resolve(
             raise CycleNotRegistered(
                 f"{product.layer} publishes {product.cycles} UTC cycles, not {requested:%H}Z"
             )
-        fetch_meta(product, requested, session=session)
+        _require_ready(product, fetch_meta(product, requested, session=session))
         return requested
     now = now or datetime.now(timezone.utc)
     t = now.replace(minute=0, second=0, microsecond=0)
@@ -120,7 +137,7 @@ def resolve(
         if t.hour in product.cycles:
             tried.append(t)
             try:
-                fetch_meta(product, t, session=session)
+                _require_ready(product, fetch_meta(product, t, session=session))
                 return t
             except CycleNotAvailableError:
                 pass

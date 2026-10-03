@@ -84,7 +84,10 @@ attributed fixtures during implementation to make them reproducible.
 
 The review confirms `data_run/<domain>/YYYY/MM/DD/HHMMZ/meta.json` and
 `data_run/<domain>/latest.json`, metadata written after the run's files, and
-at most one retained run every three hours. Arrays are `[lat, lon, time]`,
+at most one retained run every three hours. That metadata ordering was supplied
+by the original review; live ICON-EU on 3 October exposed an early metadata
+revision before required wind variables appeared. Readiness now checks the
+registered variable inventory and full axis, rather than marker existence. Arrays are `[lat, lon, time]`,
 requiring transpose to `[time, lat, lon]`. Latitude appears south-to-north;
 confirm with a known-point fixture.
 

@@ -447,3 +447,41 @@ Dispatcher typecheck and all **60 tests** passed. The real R2 workflow separatel
 passed those four tests. The canary scorer's regression rejects an invalid
 extra-cycle publication even when all fourteen scheduled receipts are on time,
 and refuses confirmed publications whose finish timing is missing.
+
+
+## Morning observation incident, 2026-10-03
+
+AROME 03Z and UKV 00Z delivered on time in their first scheduled canary slots:
+[AROME](https://github.com/deepregatta/forecast-tiles/actions/runs/37100880530)
+finished at 05:50:40 UTC and
+[UKV](https://github.com/deepregatta/forecast-tiles/actions/runs/37095967210)
+at 04:30:43 UTC. Both pointers retained their bootstrap runs as previous.
+
+[ICON-EU 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37093177955)
+failed at 03:26 UTC before downloads or uploads: its 03:24:37 metadata revision
+omitted the required surface u/v/gust variables. A later metadata revision,
+created at 03:41:38, listed them and the complete 93-step axis. The resolver
+had treated marker existence as readiness, so the job stopped instead of
+using its configured 45-minute wait. The prior valid ICON-EU pointer remained
+served; no invalid forecast was published.
+
+The repair makes incomplete metadata inventory/axis retryable during cycle
+resolution. Explicit-cycle waits remain bounded; automatic catch-up selects
+the newest genuinely complete registered cycle. Wrong reference time, geometry,
+file metadata and final identity changes remain fatal. Five new regressions
+failed before the repair, covering early metadata, incomplete-axis lookback,
+wrong reference time, wait-until-complete and bounded timeout.
+
+This is a delivery miss, not a timely success. The original observation starts
+are unchanged. Even thirteen later timely ICON-EU cycles would give 13/14,
+below 95%, so its initial window cannot pass. Recovery delivery is scored by its
+actual finish timestamp and cannot erase the failed attempt. Full cadence
+remains off; a new acceptance window requires an explicit recorded decision.
+
+The [morning read-only audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37107528945)
+passed, with no incomplete/superseded runs or damaged referenced manifests/tiles.
+Its overlap envelope fits the approved guard. The existing-layer reservation
+was kept at its higher reviewed value. All seven root entries remain intact;
+six have advanced since activation, while IBI's next dispatch is still due.
+GitHub and Worker full-cadence flags were read back as false, and Passage still
+enables all three regional models.
