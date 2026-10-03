@@ -22,7 +22,10 @@ usual publication time.
 Regional models from Open-Meteo's bulk files (weather-arome,
 weather-icon-eu, weather-ukv: src/ingest/sources/openmeteo, `uv sync --extra openmeteo`)
 take their settings from that registry and publish to latest-regional.json.
-Until a model's production gate opens they run with --dry-run only."""
+All three have enabled production gates for reduced-cadence canaries; publication
+also requires the runtime allowlist and capacity controls. --dry-run writes
+scratch tiles regardless of activation. See docs/regional-delivery.md for dated
+delivery evidence and the remaining full-cadence gates."""
 
 from __future__ import annotations
 
@@ -87,7 +90,7 @@ MAX_MISSING = {
 
 # Layers whose provider publishes late or rewrites in place: "not available
 # yet" is a normal outcome for a scheduled run, so it exits 0 and a later
-# trigger picks the cycle up. For GLO12 it must not fall back to RTOFS either.
+# trigger picks the cycle up. A provider outage remains a failure.
 SKIP_WHEN_NOT_AVAILABLE = {"weather-ecmwf", "weather-ecmwf-short", "currents", "currents-ibi"}
 
 # Seconds between readiness checks while --wait-minutes runs. ECMWF answers
@@ -172,7 +175,7 @@ def _resolve(layer: str, requested: datetime | None) -> datetime:
     raise ValueError(f"unknown layer {layer}")
 
 
-def _build(args: argparse.Namespace, cycle: datetime, requested: datetime | None) -> ForecastCube:
+def _build(args: argparse.Namespace, cycle: datetime) -> ForecastCube:
     layer = args.layer
     if layer == "weather":
         from ingest.sources import gfs
@@ -195,17 +198,18 @@ def _build(args: argparse.Namespace, cycle: datetime, requested: datetime | None
 
         return ecmwf_open.build_short_cube(cycle)
     if layer == "currents":
-        from ingest.sources import cmems, rtofs
+        from ingest.sources import cmems
 
         try:
             return cmems.build_cube(cycle)
         except CycleNotAvailableError:
-            raise  # GLO12 not written yet: skip or wait, never publish RTOFS for the day
-        except Exception as exc:  # CMEMS outage: fall back to RTOFS
-            print(f"ingest: CMEMS failed ({type(exc).__name__}: {exc}); trying RTOFS fallback")
-            cube = rtofs.build_cube(rtofs.resolve(requested))
-            cube.provenance["fallback"] = f"CMEMS unavailable: {type(exc).__name__}: {exc}"
-            return cube
+            raise  # GLO12 not written yet: preserve the normal skip/wait outcome
+        except Exception as exc:
+            exc.add_note(
+                f"ingest currents: CMEMS GLO12 build failed for cycle {cycle_iso(cycle)}; "
+                "no alternate currents provider is supported"
+            )
+            raise
     if layer == "currents-ibi":
         from ingest.sources import ibi
 
@@ -487,7 +491,7 @@ def _run_forecast(args, parser, *, clock, sleep) -> int:
                 args.layer, f"{args.layer}:{cycle_iso(cycle)}", args.paid_seconds
             )
         _observe(args, "build")
-        cube = _build(args, cycle, requested)
+        cube = _build(args, cycle)
     except SourceError as exc:  # a regional run's files are not what the registry expects
         _outcome(args, "source_rejected", "source_check", exc)
         print(f"ingest {args.layer}: source check failed: {exc}")

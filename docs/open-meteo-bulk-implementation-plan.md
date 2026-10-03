@@ -18,7 +18,7 @@ below remain attributed to the earlier review.
 
 Add new deterministic weather models from Open-Meteo's public AWS files while
 keeping every existing layer on its current provider, with its current fields,
-grid, cycles, horizon, tile layout, retention and fallback behavior. Release 1
+grid, cycles, horizon, tile layout, retention and readiness/catch-up behavior. Release 1
 adds AROME, ICON-EU and UKV in stages. The publication race affecting existing
 layers is a separate, immediate first fix.
 
@@ -61,7 +61,7 @@ the reference for alternatives and models absent from bulk.
 | `weather-ecmwf-short` | ECMWF open data, 06/18Z through 144 h, current gust intervals |
 | `ensemble` | NOAA GEFS, all 31 members, current mean/anomaly encoding and axes through 384 h |
 | `waves` | NOAA GFS-Wave, current wave/wind-wave/swell fields and horizons |
-| `currents` | Copernicus GLO12, current six-hourly currents and RTOFS outage fallback |
+| `currents` | Copernicus GLO12 only, current six-hourly currents; not-ready cycles wait/skip, other failures preserve the provider cause |
 | `currents-ibi` | Copernicus IBI, current regional hourly means through 120 h |
 
 The routing-index pipeline is outside this change. Existing model coverage

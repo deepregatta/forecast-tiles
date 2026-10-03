@@ -1,11 +1,11 @@
 """`ingest --wait-minutes`: a dispatched run waits for its provider's cycle.
 
 The clock and sleep are injected, so these tests take no time and touch no
-network; the currents tests also cover GLO12 readiness against the RTOFS
-fallback."""
+network; the currents tests also cover GLO12 readiness and outage handling."""
 
 from dataclasses import replace
 from datetime import timedelta
+from types import SimpleNamespace
 
 import pytest
 from conftest import make_ibi_cube, make_weather_cube
@@ -189,7 +189,7 @@ def test_wait_minutes_zero_is_a_single_check(tmp_path, monkeypatch, capsys):
     assert "no complete cycle available" in capsys.readouterr().out
 
 
-# ------------------------------------------------ GLO12 readiness vs RTOFS
+# ------------------------------------------------ GLO12 readiness and outages
 
 
 def _currents_cube():
@@ -198,24 +198,7 @@ def _currents_cube():
     return replace(ibi_cube, layer="currents", model="cmems_glo12")
 
 
-def _stub_rtofs(monkeypatch, calls: list, cube=None):
-    from ingest.sources import rtofs
-
-    def resolve(requested=None):
-        calls.append(("resolve", requested))
-        return requested or _currents_cube().cycle
-
-    def build(cycle):
-        calls.append(("build", cycle))
-        if cube is None:
-            raise NotImplementedError("RTOFS fallback is a fetch skeleton")
-        return cube
-
-    monkeypatch.setattr(rtofs, "resolve", resolve)
-    monkeypatch.setattr(rtofs, "build_cube", build)
-
-
-def test_glo12_not_ready_skips_without_publishing_rtofs(tmp_path, monkeypatch, capsys):
+def test_glo12_not_ready_skips_without_publishing(tmp_path, monkeypatch, capsys):
     from ingest.sources import cmems
 
     cycle = _currents_cube().cycle
@@ -225,16 +208,12 @@ def test_glo12_not_ready_skips_without_publishing_rtofs(tmp_path, monkeypatch, c
         raise CycleNotAvailableError("GLO12: last update finished before cycle")
 
     monkeypatch.setattr(cmems, "build_cube", not_yet)
-    rtofs_calls: list = []
-    _stub_rtofs(monkeypatch, rtofs_calls, cube=_currents_cube())
-
     assert cli.main(["currents", "--dry-run", str(tmp_path)]) == 0
     assert "cycle not available yet, skipping" in capsys.readouterr().out
-    assert rtofs_calls == []
     assert not (tmp_path / "latest.json").exists()
 
 
-def test_glo12_waits_on_its_readiness_check_not_rtofs(tmp_path, monkeypatch):
+def test_glo12_waits_on_its_readiness_check(tmp_path, monkeypatch):
     from ingest.sources import cmems
 
     cube, fake, checks = _currents_cube(), FakeClock(), []
@@ -247,8 +226,6 @@ def test_glo12_waits_on_its_readiness_check_not_rtofs(tmp_path, monkeypatch):
 
     monkeypatch.setattr(cmems, "resolve", resolve)
     monkeypatch.setattr(cmems, "build_cube", lambda cycle: cube)
-    rtofs_calls: list = []
-    _stub_rtofs(monkeypatch, rtofs_calls)
     rc = cli.main(
         _wait_args(tmp_path, minutes="180", layer="currents", cycle="20260713T00"),
         clock=fake.clock,
@@ -256,43 +233,47 @@ def test_glo12_waits_on_its_readiness_check_not_rtofs(tmp_path, monkeypatch):
     )
     assert rc == 0
     assert fake.sleeps == [120, 120]
-    assert rtofs_calls == []
     assert (tmp_path / "forecast-runs" / "currents-20260713T00Z" / "manifest.json").exists()
 
 
-def test_a_real_cmems_failure_still_falls_back_to_rtofs(tmp_path, monkeypatch, capsys):
-    from ingest.sources import cmems
+@pytest.mark.parametrize("error_type", [RuntimeError, OSError])
+def test_cmems_outage_preserves_cause_and_published_forecast(tmp_path, monkeypatch, error_type):
+    from ingest.sources import base, cmems
 
-    cycle = _currents_cube().cycle
-    monkeypatch.setattr(cmems, "resolve", lambda requested=None: requested or cycle)
+    cube = _currents_cube()
+    monkeypatch.setattr(cmems, "resolve", lambda requested=None: requested or cube.cycle)
+    monkeypatch.setattr(cmems, "build_cube", lambda cycle: cube)
+    assert cli.main(["currents", "--dry-run", str(tmp_path)]) == 0
+    before = {p.relative_to(tmp_path): p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()}
 
-    def broken(c):
-        raise RuntimeError("GLO12 missing 3/41 requested instants")
+    requests = []
+
+    def request(method, url, **kwargs):
+        requests.append((method, url))
+        return SimpleNamespace(status_code=200)
+
+    monkeypatch.setattr(base.SESSION, "request", request)
+    primary_error = error_type("Copernicus service unavailable")
+
+    def broken(cycle):
+        raise primary_error
 
     monkeypatch.setattr(cmems, "build_cube", broken)
-    fallback = replace(_currents_cube(), model="rtofs_global", provenance={"source": "rtofs"})
-    rtofs_calls: list = []
-    _stub_rtofs(monkeypatch, rtofs_calls, cube=fallback)
+    next_cycle = cube.cycle + timedelta(days=1)
+    with pytest.raises(error_type, match="Copernicus service unavailable") as raised:
+        cli.main(
+            ["currents", "--cycle", next_cycle.strftime("%Y%m%dT%H"), "--dry-run", str(tmp_path)]
+        )
 
-    assert cli.main(["currents", "--dry-run", str(tmp_path)]) == 0
-    assert "CMEMS failed (RuntimeError" in capsys.readouterr().out
-    assert rtofs_calls == [("resolve", None), ("build", cycle)]
-    assert fallback.provenance["fallback"].startswith("CMEMS unavailable: RuntimeError")
-
-
-def test_the_rtofs_skeleton_still_fails_loudly(tmp_path, monkeypatch):
-    from ingest.sources import cmems
-
-    cycle = _currents_cube().cycle
-    monkeypatch.setattr(cmems, "resolve", lambda requested=None: requested or cycle)
-    monkeypatch.setattr(
-        cmems, "build_cube", lambda c: (_ for _ in ()).throw(RuntimeError("catalogue down"))
+    assert raised.value is primary_error
+    assert any(
+        "CMEMS GLO12" in note and next_cycle.strftime("%Y-%m-%dT%H:00Z") in note
+        for note in raised.value.__notes__
     )
-    rtofs_calls: list = []
-    _stub_rtofs(monkeypatch, rtofs_calls)
-    with pytest.raises(NotImplementedError):
-        cli.main(["currents", "--dry-run", str(tmp_path)])
-    assert ("build", cycle) in rtofs_calls
+    assert requests == []
+    assert before == {
+        p.relative_to(tmp_path): p.read_bytes() for p in tmp_path.rglob("*") if p.is_file()
+    }
 
 
 def test_a_cycle_one_day_on_is_not_ready_before_its_update(monkeypatch):

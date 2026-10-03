@@ -656,14 +656,6 @@ def test_ibi_arco_update_state_needs_the_catalogue_unless_overridden(monkeypatch
     assert ibi.arco_update_state(Down, ibi.DEFAULT_DATASET_ID) == (None, None)
 
 
-def test_rtofs_is_marked_skeleton():
-    from ingest.sources import rtofs
-
-    assert rtofs.STEP_AXIS == cmems.STEP_AXIS  # same cube shape as the primary path
-    with pytest.raises(NotImplementedError, match="skeleton"):
-        rtofs.build_cube(CYCLE)
-
-
 def test_ecmwf_axis_and_gust_params():
     assert ecmwf_open.STEP_AXIS[:2] == [0, 3]
     assert 144 in ecmwf_open.STEP_AXIS and 147 not in ecmwf_open.STEP_AXIS

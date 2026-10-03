@@ -16,7 +16,8 @@ starting with AROME, ICON-EU and UKV while preserving every existing source.
 It covers whole-file ingestion, a separate regional catalogue, mask validation,
 browser and storage budgets, and staged rollout. Its first, standalone step,
 the fix for concurrent publishers sharing `latest.json`, is in place (below);
-the live R2 check of conditional writes is still to run.
+the isolated live R2 conditional-write check passed on 2026-10-02, as recorded
+in [regional delivery evidence](docs/regional-delivery.md#reproduced-evidence-2026-10-02).
 
 ```
 NOAA GFS / GEFS / GFS-Wave · Copernicus GLO12 / IBI · ECMWF open data
@@ -42,6 +43,54 @@ so that "no land crossing" means a coastline rather than a test polygon. It is
 **routing legality only** — not a chart, not a navigation product, and not a
 display basemap.
 
+## Operational status and verification
+
+Configuration and delivery evidence answer different questions:
+
+| Capability | Checked-in configuration | Available operational evidence |
+|---|---|---|
+| Seven root forecast layers | Dedicated workflows; dispatcher `DRY_RUN="false"`; six-hourly :37 fallback crons | Dated 1–3 October dispatcher checkpoint below; current live operation requires fresh logs and publication read-back |
+| AROME, ICON-EU, UKV | Registry production gates enabled; Worker allowlist includes all three; full cadence off; manual workflow dry run defaults on; :47 catch-up cron | [2–3 October publication receipts and read-back](docs/regional-canary-status.json); seven-day acceptance remains open |
+| Current layers | `currents`: CMEMS GLO12, six-hourly samples to 240 h; `currents-ibi`: CMEMS IBI, hourly means to 120 h | Dated provider timings in the dispatcher table; no alternate provider is supported |
+| Routing index | One-shot `ingest land`, manual workflow only | [Versioned index and reproducibility evidence](docs/land-index-format.md) |
+
+For regionals, **enabled** means the registry gate is open; production also
+needs matching GitHub `OPENMETEO_ENABLED_LAYERS`, runtime
+`REGIONAL_ENABLED_LAYERS`, and capacity controls. **Dry run** means the exact
+forecast layout is written to a scratch directory. **Disabled** means a closed
+production gate or omitted activation allowlist; it does not disable scratch
+validation. The GitHub and deployment flags in the dated record are evidence
+at that checkpoint, not a read-back of current settings. Current provider,
+Worker and publication health are **unverified** until checked; neither config
+nor a successful job alone proves that a new forecast was published. Seven-day
+acceptance and any full-cadence promotion are separate from local/hosted CI.
+
+After installing the lockfile-managed dependencies (`uv sync --all-extras`
+and `(cd dispatcher && npm ci)`), run the same gates used by CI:
+
+```sh
+bash scripts/verify.sh
+```
+
+The wrapper prints the commit, tool versions and exact commands, then runs
+Python tests, Ruff lint/format, dispatcher TypeScript checks and Vitest in
+sequence. It uses the installed environment without syncing dependencies.
+`python` and `dispatcher` select those existing gate groups; the default is
+both. It unsets `R2_TEST_PREFIX` and deliberately excludes
+`tests/test_r2_conditional.py`, the provider-write suite. Its isolated live
+proof is a separate operator gate, not part of offline CI. No ingestion,
+deployment or provider writes are performed by the wrapper.
+
+Maintained documentation: [regional operations and evidence](docs/regional-delivery.md),
+[canary status](docs/regional-canary-status.json),
+[regional implementation plan](docs/open-meteo-bulk-implementation-plan.md),
+[IBI geometry and horizon](docs/ibi-currents.md),
+[spending controls](docs/paid-work.md),
+[routing index](docs/land-index-format.md). The
+[regional access assessment](docs/regional-model-access.md) and
+[Phase 0 measurements](docs/phase0-results.md) retain their dated evidence;
+use the operational records above for deployment/acceptance status.
+
 ## Running the pipeline
 
 [Optional production spending control](docs/paid-work.md) documents the
@@ -53,13 +102,15 @@ uv sync
 uv run ingest weather                        # latest complete GFS cycle -> R2
 uv run ingest weather --cycle 20260713T06    # explicit cycle
 uv run ingest weather --dry-run /tmp/tiles   # write the R2 layout locally instead
-uv run ingest ensemble|waves|currents|weather-ecmwf
+uv run ingest ensemble                      # other root weather layers: waves, weather-ecmwf
 uv run ingest weather-ecmwf-short             # ECMWF's 06Z/18Z runs, to 144 h
+uv sync --extra currents                    # required for either CMEMS current layer
+uv run ingest currents                      # six-hourly global current field
 uv run ingest currents-ibi                   # hourly regional current field
 uv run ingest weather --force                # re-publish the cycle latest.json already has (repairs only)
 uv run ingest weather --cycle 20260930T06 --wait-minutes 90   # wait for the provider, then publish
 uv run ingest land --domain nweu             # rebuild the routing index (one-shot)
-uv sync --extra openmeteo                    # regional models (dry runs only so far)
+uv sync --extra openmeteo                    # regional dependency; activation is separate
 uv run ingest weather-arome --cycle 20261002T09 --dry-run /tmp/arome
 uv run ingest weather-icon-eu --dry-run /tmp/icon-eu
 uv run ingest weather-ukv --dry-run /tmp/ukv
@@ -95,17 +146,21 @@ uv run scripts/audit_runs.py                  # referenced / superseded / incomp
 uv run scripts/audit_runs.py --delete-unreferenced --min-age-hours 24
 ```
 
-Since 2026-10-01 the [dispatcher](#dispatcher) starts each layer's workflow
+The deployment recorded on 2026-10-01 configured the [dispatcher](#dispatcher)
+to start each layer's workflow
 at its provider's usual publication time, for every provider cycle, and the
-run waits for its cycle. Each workflow also keeps a fallback `schedule`
+run waits for its cycle. Each root workflow also keeps a fallback `schedule`
 (`37 2,8,14,20 * * *`) for a missed dispatch; GitHub starts those hours late,
 and a cycle already published exits in about a minute. See
 `.github/workflows/ingest-*.yml`. `ingest weather-ecmwf` exits 0 with a log
 line when ECMWF hasn't published a full-horizon cycle yet, `ingest
 weather-ecmwf-short` likewise for a 06Z/18Z cycle to 144 h, and `ingest
 currents` and `ingest currents-ibi` do the same until Copernicus has finished
-writing the bulletin (the public STAC item of the dataset says so; GLO12
-never falls back to RTOFS for that).
+writing the bulletin (the public STAC item of the dataset says so).
+`currents` build failures propagate their original error with layer/cycle context;
+there is no RTOFS outage fallback or additional provider-resolution attempt.
+An outage leaves the published pointer unchanged. The current layers' declared
+land/ice masks and supported axes remain unchanged.
 
 `--wait-minutes N` (workflow input `wait_minutes`, default 0) lets a run
 start before the provider has finished its cycle. With an explicit
@@ -162,14 +217,14 @@ change the PFT1 encoding, checksums, or JSON schemas.
 
 ## Layers
 
-| Layer | Source | Resolution | Cadence (since 2026-10-01) |
+| Layer | Source | Resolution | Configured cadence |
 |---|---|---|---|
 | `weather` | NOAA GFS (wind u/v, gust hourly; vis/CAPE/temp/dew-point/precip 3-hourly) | 0.25° | every cycle (00/06/12/18Z) |
 | `weather-ecmwf` | ECMWF open data (wind u/v; gust = the maximum over the 1, 3 or 6 h before each step, published with its per-step window as the variable's `statistic`) | 0.25° | 00Z and 12Z (the full 240 h cycles) |
 | `weather-ecmwf-short` | the same ECMWF open data, 06Z and 18Z cycles, which stop at 144 h: 3-hourly to 144 h (49 steps, the first part of `weather-ecmwf`'s axis; gust windows 1 h to +90 h, 3 h to +144 h) | 0.25° | 06Z and 18Z (since Passage plan Phase 5C) |
 | `ensemble` | NOAA GEFS, 31 members (wind + gust, mean + int8 anomalies; 3-hourly to 144 h, 6-hourly to 384 h) | 0.5° | every cycle |
 | `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | every cycle |
-| `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; NOAA RTOFS fallback) | 1/12° | 1×/day, soon after Copernicus |
+| `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; sole provider) | 1/12° | 1×/day, soon after Copernicus |
 | `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 120 h; 72 h before 2026-09-29; IBI domain only) | ≈1/36° (0.02777863°) | 1×/day, soon after Copernicus |
 
 Every layer was ingested once a day until the [dispatcher](#dispatcher)
@@ -195,14 +250,15 @@ column at the end of the western tile. IBI keeps the provider's own regular
 0.02777863° lattice, which sits up to 0.0013° off the 1/36° lines
 ([docs/ibi-currents.md](docs/ibi-currents.md)).
 
-### Regional layers (dry runs only)
+### Regional layers (reduced-cadence production canaries)
 
 Phases 1–4 of the [Open-Meteo bulk plan](docs/open-meteo-bulk-implementation-plan.md)
 add regional deterministic models from Open-Meteo's public AWS files
 (`src/ingest/sources/openmeteo/`). Each run is three whole `.om` files from a
 complete `data_run/` cycle, decoded locally with `omfiles` (the optional
-`openmeteo` extra). The registry defines each layer; none is enabled for R2
-yet, so the CLI accepts them only with `--dry-run`. They publish to their own
+`openmeteo` extra). The registry production gates are enabled for all three;
+runtime allowlists and capacity controls must also admit an R2 publication.
+`--dry-run` remains available for scratch validation. They publish to their own
 `latest-regional.json`, never to the root `latest.json`.
 
 | Layer | Source | Grid / tiles | Cycles and axis |
@@ -235,7 +291,7 @@ and 105.6 MB (60 tiles). Fresh verified-gust AROME 09Z / ICON-EU 12Z runs wrote
 73.3 / 169.8 MB in 28 / 60 tiles. Coordinated Passage support, browser
 admission, immutable regional creation, capacity reservations, scheduling and
 regional-only disable/rollback are implemented. Reduced-cadence production
-canaries are active for AROME, ICON-EU and UKV:
+canaries were activated for AROME, ICON-EU and UKV on 2026-10-02:
 see [regional delivery evidence and activation gates](docs/regional-delivery.md).
 
 The `ingest-openmeteo` workflow normalizes manual and scheduled catch-up jobs
@@ -244,8 +300,10 @@ AROME/ICON-EU/UKV entries with all three in `REGIONAL_MODELS`. Canary profiles
 select AROME 03/15Z and ICON-EU/UKV 00/12Z. Existing-layer timetable entries
 remain unchanged. Full cadence needs both the GitHub
 `OPENMETEO_FULL_CADENCE` variable and Worker `REGIONAL_FULL_CADENCE` setting.
-Production deployment is complete; both full-cadence settings remain false
-until the plan's seven-day gates pass.
+Deployment and publications are recorded in the dated evidence; this does
+not establish current live health. Worker full cadence is false in checked-in
+config and the GitHub setting was false at the latest recorded checkpoint.
+Both must remain off until the plan's seven-day gates pass.
 
 Regional jobs save a separate attempt JSON artifact for 30 days, including
 failure category, prior successful run, source identities/bytes and metadata
@@ -328,7 +386,7 @@ can start, cancel and re-run workflows, delete run logs, and enable or
 disable workflows; it cannot read secrets or change code. It is never
 committed and never passed through anything but `wrangler secret put`.
 
-**Status:** deployed 2026-09-29 21:24 UTC in dry-run, with the token set.
+**Dated deployment/delivery checkpoint:** deployed 2026-09-29 21:24 UTC in dry-run, with the token set.
 The dry run logged all 16 slots of 2026-09-30, each for the timetable's
 cycle, 27–48 s after the minute. Dispatching is live since 2026-10-01
 (Passage plan, Phase 5B). Verified on 2026-10-03 over the first two
@@ -336,6 +394,8 @@ days: every slot dispatched its cycle, no wait ran out, and no fallback run
 had to publish. NOAA and ECMWF times are when the ingest saw the cycle (it
 checks every 60 s, ECMWF every 120 s); Copernicus times are the STAC
 `admp_updated_data` recorded as `provider_updated_at`.
+This checkpoint does not prove current operation; fresh Worker logs, workflow
+outcomes and publication receipts/read-back are required for that claim.
 
 **Setup** (once, by a maintainer):
 
@@ -362,7 +422,7 @@ checks every 60 s, ECMWF every 120 s); Copernicus times are the STAC
    dashboard (kept 3 days on the free plan) or `npx wrangler tail`.
 
 **Switched on** 2026-10-01 (Passage plan, Phase 5B): `DRY_RUN = "false"`,
-`CADENCE_HOURS` set to the provider cadences, and every workflow's
+`CADENCE_HOURS` set to the provider cadences, and every root workflow's
 `schedule` moved to the fallback `37 2,8,14,20 * * *`, away from the
 dispatch times. The fallback covers a missed dispatch; the "already
 published" exit makes it harmless when it isn't needed. To pause
@@ -381,7 +441,7 @@ dispatching, set `DRY_RUN = "true"` and `npx wrangler deploy`.
   line means Cloudflare skipped the trigger; `MISSED SLOT` means it started
   more than 4 min late; a `FAILED` line gives GitHub's answer. `gh workflow run ingest-<layer>.yml -f cycle=YYYYMMDDTHH` starts one
   by hand.
-- *Local check:* `cd dispatcher && npm ci && npm test`.
+- *Local check:* `bash scripts/verify.sh` (or `dispatcher` for the affected group).
 
 ## Routing index (`ingest land`)
 
@@ -429,6 +489,11 @@ canonical **here** and consumed by tactician's `core/land` (`docs/land-index-for
 2026-09-28) and `latest.json`'s optional `cadence_hours` (since 2026-09-29).
 No per-tile provenance/resolution extension has been made; the later
 blended-current contract remains separate.
+The vendored manifest schema's provenance description still mentions a
+historical RTOFS fallback. That descriptive text does not declare an
+implemented provider; `currents` supports CMEMS GLO12 only. Correcting the
+canonical Passage wording and syncing the vendors is a separate contract
+documentation follow-up; schema bytes remain unchanged here.
 
 ## Data licensing
 
@@ -445,7 +510,8 @@ dependency, not vendored or redistributed here.
   ICON-EU) and to Open-Meteo in every regional run's provenance.
 - Met Office UKV via Open-Meteo: CC BY-SA 4.0 for transformed tiles and
   cropped fixtures. Attribution, licence link and modifications are recorded;
-  see [DATA-LICENSES.md](DATA-LICENSES.md). Production remains gated.
+  see [DATA-LICENSES.md](DATA-LICENSES.md). Reduced-cadence production was
+  activated on 2026-10-02; full-cadence acceptance remains open.
 - GSHHG shoreline: LGPL-3.0-or-later, with permission to use, copy, modify and
   distribute given attribution — Wessel, P., and W. H. F. Smith (1996), *A
   global, self-consistent, hierarchical, high-resolution shoreline database*,

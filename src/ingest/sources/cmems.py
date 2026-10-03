@@ -1,4 +1,4 @@
-"""Currents (primary): Copernicus Marine GLO12 (GLOBAL_ANALYSISFORECAST_PHY_001_024)
+"""Currents: Copernicus Marine GLO12 (GLOBAL_ANALYSISFORECAST_PHY_001_024)
 surface uo/vo via the copernicusmarine v2 python API, 6-hourly to 240 h.
 
 Credentials come from COPERNICUSMARINE_SERVICE_USERNAME / _PASSWORD (the
@@ -9,8 +9,8 @@ predictions; the 6-hourly axis undersamples the tidal cycle (spec § Layers).
 A cycle is ready once the dataset's public STAC item says Copernicus has
 finished writing it (`provider_state`, `require_published`). Until then
 `resolve` and `build_cube` raise CycleNotAvailableError, which the CLI passes
-through the RTOFS fallback: an early trigger must wait or skip, not publish
-the fallback as the day's run.
+to its wait/skip handling. Other failures propagate with cycle context; no
+alternate provider is supported for this layer.
 """
 
 from __future__ import annotations
