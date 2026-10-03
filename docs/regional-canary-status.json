@@ -1,5 +1,5 @@
 {
-  "status": "observing; original ICON-EU window cannot meet 95% after its first scheduled miss",
+  "status": "observing original AROME/UKV windows and owner-approved separate ICON-EU recheck; original ICON-EU miss retained",
   "started_on": "2026-10-02",
   "observation_days": 7,
   "minimum_on_time_fraction": 0.95,
@@ -54,6 +54,72 @@
         ],
         "regional_transfer_bytes": 4888594,
         "attribution": "verified in live Passage"
+      },
+      "recheck_started_at": "2026-10-03T08:00:06.350599+00:00",
+      "active_acceptance_window": "post-readiness-repair",
+      "acceptance_windows": {
+        "original": {
+          "started_at": "2026-10-02T21:09:26.449084+00:00",
+          "observation_ends_at": "2026-10-09T21:09:26.449084+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 0,
+            "late": 1,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 13,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false,
+          "status": "cannot meet 95%; first scheduled cycle delivered late",
+          "missed_cycle": "2026-10-03T00:00Z",
+          "maximum_possible_on_time_fraction": "13/14"
+        },
+        "post-readiness-repair": {
+          "started_at": "2026-10-03T08:00:06.350599+00:00",
+          "observation_ends_at": "2026-10-10T08:00:06.350599+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 0,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 14,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false,
+          "status": "observing",
+          "owner_approval": "Owner explicitly approved a separate recheck on 2026-10-03; original window and miss retained",
+          "bootstrap_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37108056371",
+          "bootstrap_in_scheduled_score": false
+        }
+      },
+      "recovery_consumer_export": {
+        "verified_at": "2026-10-03T08:21:26.011661+00:00",
+        "cycle": "2026-10-03T00:00Z",
+        "filename": "passage_wind-icon-eu_20261003T00Z_N48W005_N49W004.grb2",
+        "bytes": 14246,
+        "messages": 75,
+        "gust_step_type": "max",
+        "gust_template": 8,
+        "first_gust_step_range": "7-8",
+        "gust_messages": 25,
+        "initial_cold_tile_requests": [
+          {
+            "url": "https://forecast.deepregatta.com/forecast-runs/weather-icon-eu-20261003T00Z/weather-icon-eu/grid-0p0625/N40W010.bin.gz",
+            "status": 200,
+            "bytes": 4936912
+          }
+        ],
+        "final_repeat_tile_requests": [],
+        "attribution": "Deutscher Wetterdienst ICON-EU via Open-Meteo; CC BY 4.0 verified in live Passage in both languages",
+        "independent_validation": "all GRIB2 messages date 20261003 time 00; u/v/gust parameter numbers 2/3/22; gust windows one hour"
       }
     },
     "weather-ukv": {
@@ -84,9 +150,13 @@
   },
   "consumer": {
     "production_url": "https://passage.deepregatta.com",
-    "commit": "b8108c17edba18850c73c99c96c22da30ec096c7",
-    "ci_url": "https://github.com/deepregatta/passage/actions/runs/37064077941",
-    "pages_deployment_id": "8bfc2445-9c67-4f19-b727-ad5b423c598d"
+    "commit": "5a5cc046e03c4ec36380654d1ab3789b04321b5e",
+    "ci_url": "https://github.com/deepregatta/passage/actions/runs/37108941963",
+    "pages_deployment_id": "b8e605d2-2c0e-4245-8a2c-973e8deca6b5",
+    "ci_status": "failed: existing unpatched build dependency advisory; 72 browser and 512 Python tests passed",
+    "production_deployment_status": "success",
+    "local_validation": "450 engine and 535 viewer tests; 84 targeted gust/export/i18n tests; lint and production build passed",
+    "production_copy": "model-neutral one-hour maximum gust notice verified in English and French"
   },
   "dispatcher_version_id": "d1c8d08a-ad6f-4705-b141-21307134b868",
   "operator_drill": {
@@ -95,16 +165,17 @@
     "result": "four checks passed; prefix cleaned"
   },
   "remaining_acceptance": [
-    "Observe seven elapsed days per model, explain every miss, and establish at least 95% of selected cycles on time from original confirmed publication artifacts.",
+    "Observe seven elapsed days and at least 95% on-time delivery in AROME/UKV original windows and ICON-EU approved separate recheck; keep scoring the original ICON-EU window and preserving every miss.",
     "No invalid publication; unknown evidence cannot pass.",
     "Verify actual scheduled replacement/retry, current/previous pointer integrity and unchanged existing-layer delivery.",
     "Refresh capacity across representative cycles; both catalogues and whole-bucket overlap must still fit the approved guard.",
-    "Repeat current production consumer/attribution checks before full-cadence promotion."
+    "Repeat current production consumer/attribution checks before full-cadence promotion.",
+    "Resolve the required Passage dependency audit and obtain passing hosted CI before promoting full cadence; current overall CI must not be described as passed."
   ],
-  "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37107528945",
+  "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37108440311",
   "root_readback": {
-    "verified_at": "2026-10-02T21:28:02.618139+00:00",
-    "catalogue_updated_at": "2026-10-02T19:38:17Z",
+    "verified_at": "2026-10-03T08:20:40.729681+00:00",
+    "catalogue_updated_at": "2026-10-03T07:38:29Z",
     "layers": [
       "weather",
       "ensemble",
@@ -114,7 +185,16 @@
       "currents-ibi",
       "weather-ecmwf-short"
     ],
-    "result": "all seven existing layers retained; regional entries confined to latest-regional.json"
+    "result": "all seven existing layers retained; regional entries confined to latest-regional.json",
+    "current_runs": {
+      "weather": "weather-20261003T00Z",
+      "ensemble": "ensemble-20261003T00Z",
+      "waves": "waves-20261003T00Z",
+      "weather-ecmwf": "weather-ecmwf-20261003T00Z",
+      "currents": "currents-20261003T00Z",
+      "currents-ibi": "currents-ibi-20261002T00Z",
+      "weather-ecmwf-short": "weather-ecmwf-short-20261002T18Z"
+    }
   },
   "follow_up": {
     "cadence": "twice daily Codex heartbeat at 09:45 and 22:45 Europe/Paris",
@@ -172,6 +252,83 @@
       "capacity_result": "calculated overlap fits the approved guard; retained existing reservation remains conservative",
       "existing_delivery": "all seven root layers retained; six advanced since activation; IBI next dispatcher slot has not arrived",
       "scheduled_replacement": "AROME and UKV retained their bootstrap runs as previous; ICON-EU prior good run preserved"
+    },
+    {
+      "reviewed_at": "2026-10-03T08:14:06.626463+00:00",
+      "models": {
+        "weather-arome": {
+          "started_at": "2026-10-02T20:49:47.207117+00:00",
+          "observation_ends_at": "2026-10-09T20:49:47.207117+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 1,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 13,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-icon-eu": {
+          "started_at": "2026-10-02T21:09:26.449084+00:00",
+          "observation_ends_at": "2026-10-09T21:09:26.449084+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 0,
+            "late": 1,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 13,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-ukv": {
+          "started_at": "2026-10-02T21:22:06.887353+00:00",
+          "observation_ends_at": "2026-10-09T21:22:06.887353+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 1,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 13,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        }
+      },
+      "icon_eu_approved_recheck": {
+        "started_at": "2026-10-03T08:00:06.350599+00:00",
+        "observation_ends_at": "2026-10-10T08:00:06.350599+00:00",
+        "expected_cycles": 14,
+        "counts": {
+          "on_time": 0,
+          "late": 0,
+          "failed": 0,
+          "unknown": 0,
+          "pending": 14,
+          "invalid_published": 0
+        },
+        "invalid_publications": [],
+        "unknown_publications": [],
+        "observation_complete": false,
+        "timeliness_passed": false
+      },
+      "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37108440311",
+      "capacity_result": "complete overlap fits unchanged approved guard with retained higher existing-layer reservation",
+      "existing_delivery": "seven root layers retained; six advanced since activation; IBI next dispatcher slot not yet due",
+      "scheduled_replacement": "all three current/previous pointers preserve bootstrap runs; ICON-EU explicit retry valid but late"
     }
   ],
   "incidents": [
@@ -186,8 +343,56 @@
       "deadline": "2026-10-03T04:20:00Z",
       "invalid_run_published": false,
       "fix": "wait on incomplete variable inventory or registered axis during cycle resolution; preserve fatal identity checks",
-      "recovery_status": "pending post-fix production retry",
-      "acceptance_impact": "even thirteen further on-time cycles give 13/14, below 95%; preserve original window and miss"
+      "recovery_status": "valid publication confirmed at 2026-10-03T08:00:06.350599+00:00; late for original deadline",
+      "acceptance_impact": "even thirteen further on-time cycles give 13/14, below 95%; preserve original window and miss",
+      "recovery_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37108056371",
+      "fix_commit": "f4e717c4879409cc7523b976f8d82d4196680c62",
+      "fix_ci_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37107968933",
+      "recheck_started_at": "2026-10-03T08:00:06.350599+00:00",
+      "recheck_ends_at": "2026-10-10T08:00:06.350599+00:00",
+      "owner_decision": "separate seven-day recheck approved; original window and miss preserved"
+    }
+  ],
+  "regional_readback": {
+    "verified_at": "2026-10-03T08:14:06.626463+00:00",
+    "catalogue_updated_at": "2026-10-03T07:58:47Z",
+    "layers": {
+      "weather-arome": {
+        "run_id": "weather-arome-20261003T03Z",
+        "previous_run_id": "weather-arome-20261002T15Z",
+        "cycle": "2026-10-03T03:00Z",
+        "member_count": 1,
+        "published_at": "2026-10-03T05:49:00Z",
+        "cadence_hours": 12
+      },
+      "weather-icon-eu": {
+        "run_id": "weather-icon-eu-20261003T00Z",
+        "previous_run_id": "weather-icon-eu-20261002T12Z",
+        "cycle": "2026-10-03T00:00Z",
+        "member_count": 1,
+        "published_at": "2026-10-03T07:58:47Z",
+        "cadence_hours": 12
+      },
+      "weather-ukv": {
+        "run_id": "weather-ukv-20261003T00Z",
+        "previous_run_id": "weather-ukv-20261002T12Z",
+        "cycle": "2026-10-03T00:00Z",
+        "member_count": 1,
+        "published_at": "2026-10-03T04:29:04Z",
+        "cadence_hours": 12
+      }
+    },
+    "result": "all current/previous manifests and referenced tiles valid in post-recovery read-only audit"
+  },
+  "unresolved_validation": [
+    {
+      "check": "Passage required npm audit",
+      "workflow_url": "https://github.com/deepregatta/passage/actions/runs/37108941963",
+      "advisory": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+      "dependency_path": "Tailwind CSS 3 -> braces 3.0.3 (development/build dependency)",
+      "status": "audit failed; no patched braces release available at this checkpoint",
+      "runtime_dependency_audit": "npm audit --omit=dev passed with zero vulnerabilities; full audit is still unresolved",
+      "required_before_full_cadence": true
     }
   ]
 }

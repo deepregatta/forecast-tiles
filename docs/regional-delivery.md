@@ -485,3 +485,58 @@ was kept at its higher reviewed value. All seven root entries remain intact;
 six have advanced since activation, while IBI's next dispatch is still due.
 GitHub and Worker full-cadence flags were read back as false, and Passage still
 enables all three regional models.
+
+
+### Recovery and approved separate ICON-EU recheck
+
+The [readiness repair CI](https://github.com/deepregatta/forecast-tiles/actions/runs/37107968933)
+passed for `f4e717c`. Local verification passed **326 tests**, with four gated
+live-R2 tests skipped, and Ruff lint/format. The five new readiness regressions
+failed before the fix.
+
+The [explicit ICON-EU recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37108056371)
+published the original 00Z cycle, with all 13 validation checks passing and a
+confirmed finish at **2026-10-03 08:00:06.350599 UTC**. Its pointer retained the
+October 2 12Z run as previous. Live Passage downloaded the recovered 00Z tile
+with HTTP 200 and exported 75 independently inspected GRIB2 messages: wind
+components and template-8 one-hour maximum gusts, all from the correct cycle.
+DWD ICON-EU and CC BY 4.0 attribution remained visible. This confirms recovery,
+not on-time delivery: the original cycle is now scored **late**, with both the
+failed source-check attempt and the recovered publication retained.
+
+On October 3 the owner explicitly approved a **separate seven-day ICON-EU
+recheck**, starting at that confirmed recovery finish and ending
+**2026-10-10 08:00:06.350599 UTC (10:00 Paris)**. The original October 2 start,
+original seven-day window and first miss remain in the acceptance record and
+continue to be scored separately. AROME and UKV keep their original starts.
+The recheck contains fourteen scheduled slots, starting with October 3 12Z;
+the recovered manual 00Z publication is its bootstrap and contributes no
+timely scheduled cycle. All fourteen recheck slots must arrive on time to
+reach 95%. No cadence promotion is authorized by the recheck alone: the
+consumer, root delivery, capacity and operator evidence gates still apply.
+
+The [post-recovery read-only audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37108440311)
+passed. All referenced runs and current/previous pointers are intact, and the
+complete overlap envelope still fits the unchanged approved guard with the
+higher reviewed existing-layer reservation retained. GitHub and Worker
+full-cadence flags remain false. The heartbeat remains twice daily, quiet while
+healthy, and now scores the approved recheck as well as the original window.
+
+
+Passage `5a5cc04` corrects the gust notice to describe the selected forecast's
+maximum window without attributing every model to ECMWF. Live production
+verification passed in English and French, with DWD/CC BY 4.0 attribution and
+the recovered 00Z export intact. Local validation passed **84 focused tests**,
+**450 engine + 535 viewer tests**, lint and the Pages production build. The
+Pages deployment `b8e605d2-2c0e-4245-8a2c-973e8deca6b5` succeeded.
+
+The [Passage CI run](https://github.com/deepregatta/passage/actions/runs/37108941963)
+has an **overall failed result**: its 72 browser tests and 512 Python tests
+passed, but the JavaScript job stopped at required `npm audit`, before its
+test/build steps. The [braces advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm),
+reviewed October 2, affects all published braces versions through 3.0.3 and
+currently lists no patched version. It is present through the existing
+Tailwind 3 build tooling. `npm audit --omit=dev` reports zero runtime dependency
+vulnerabilities; this does not waive the required full audit. Resolving this
+validation gate and obtaining passing hosted CI remain required before
+full-cadence promotion.
