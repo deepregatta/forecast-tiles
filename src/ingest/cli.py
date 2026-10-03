@@ -29,6 +29,7 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from contextlib import nullcontext
 from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
@@ -46,6 +47,7 @@ from ingest.publish import (
     publish_run,
     published_layer,
 )
+from ingest.paid_work import Guard, Paused, RuntimeExpired, deadline, enforced
 from ingest.regional_attempt import RegionalAttempt
 from ingest.sources.base import CycleNotAvailableError, allow_missing_files, parse_cycle_arg
 from ingest.sources.openmeteo import registry
@@ -353,8 +355,25 @@ def main(
         if args.attempt_report
         else None
     )
+    args.paid_guard = None
+    args.paid_token = None
+    # Match the existing workflow allowance: GLO12 may wait 240 minutes
+    # before its 35-46 minute build. Other jobs have at most four hours.
+    args.paid_seconds = (
+        18000 if args.layer == "currents" else 9000 if registry.is_regional(args.layer) else 14400
+    )
     try:
-        code = _run_forecast(args, parser, clock=clock, sleep=sleep)
+        if not args.dry_run and enforced():
+            args.paid_guard = Guard.from_env()
+            args.paid_guard.check()
+        with deadline(args.paid_seconds) if args.paid_guard else nullcontext():
+            code = _run_forecast(args, parser, clock=clock, sleep=sleep)
+    except (Paused, RuntimeExpired) as exc:
+        _outcome(args, "paused", "spending_control", exc)
+        print(f"ingest {args.layer}: paused: {exc}; existing forecasts remain available")
+        if args.attempt:
+            args.attempt.finish(0)
+        return 0
     except BaseException as exc:
         if args.attempt:
             args.attempt.outcome("failed", error=exc)
@@ -366,6 +385,11 @@ def main(
             args.attempt.finish(code)
         return code
     finally:
+        if args.paid_guard and args.paid_token:
+            try:
+                args.paid_guard.finish(args.layer, args.paid_token)
+            except Paused as exc:
+                print(f"ingest {args.layer}: lease retained until expiry: {exc}")
         if args.attempt:
             try:
                 args.attempt.write()
@@ -393,6 +417,8 @@ def _run_forecast(args, parser, *, clock, sleep) -> int:
     if args.layer == "land":
         from ingest.land.cli import run_land
 
+        if args.paid_guard:
+            args.paid_token = args.paid_guard.acquire("land", args.domain, args.paid_seconds)
         return run_land(args)
 
     if args.wait_minutes < 0:
@@ -454,6 +480,12 @@ def _run_forecast(args, parser, *, clock, sleep) -> int:
             except StalePublishError as exc:
                 print(f"ingest {args.layer}: --force refused: {exc}")
                 return 1
+        if args.paid_guard:
+            # Stable provider-cycle identity covers dispatcher + fallback cron,
+            # manual runs and --force; a repair needs explicit ledger recovery.
+            args.paid_token = args.paid_guard.acquire(
+                args.layer, f"{args.layer}:{cycle_iso(cycle)}", args.paid_seconds
+            )
         _observe(args, "build")
         cube = _build(args, cycle, requested)
     except SourceError as exc:  # a regional run's files are not what the registry expects

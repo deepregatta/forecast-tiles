@@ -44,6 +44,10 @@ display basemap.
 
 ## Running the pipeline
 
+[Optional production spending control](docs/paid-work.md) documents the
+persistent frequency, runtime and duplicate guard, its activation variable,
+intentional pause reports, and operator recovery. It preserves consumer reads.
+
 ```sh
 uv sync
 uv run ingest weather                        # latest complete GFS cycle -> R2

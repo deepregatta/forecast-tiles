@@ -25,6 +25,10 @@ concurrency:
 permissions:
   contents: read
 
+# Enable only after the reviewed R2 control document has been provisioned.
+env:
+  PAID_WORK_ENFORCE: ${{ vars.PAID_WORK_ENFORCE || '0' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
