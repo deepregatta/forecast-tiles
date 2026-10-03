@@ -1,10 +1,12 @@
 from dataclasses import replace
 
 import numpy as np
+import pytest
 from conftest import make_ensemble_cube, make_ibi_cube, make_weather_cube
 
 from ingest.cube import Statistic, VariableSpec
 from ingest.validate import validate_cube
+from tilekit.codec import quantize
 
 
 def failing(report, prefix):
@@ -134,3 +136,78 @@ def test_ibi_current_physical_range_is_enforced():
     cube = make_ibi_cube()
     cube.arrays["cur_v_kt"][0, 1, 1] = 20.0
     assert failing(validate_cube(cube, max_missing=0.45), "physical_range[cur_v_kt]")
+
+
+@pytest.mark.parametrize("quantized", [False, True])
+@pytest.mark.parametrize("missing_points", [8, 32])
+def test_global_required_slice_cannot_hide_in_cube_average(quantized, missing_points):
+    cube = make_weather_cube()
+    cube.time_axes["h3"] = list(range(0, 120, 3))
+    values = np.full((40, 4, 8), 10_000, np.float32)
+    values[20].flat[:missing_points] = np.nan
+    assert np.isnan(values).mean() < 0.05
+    spec = cube.var("visibility_m")
+    cube.arrays[spec.name] = quantize(values, spec.dtype, spec.scale) if quantized else values
+    report = validate_cube(cube)
+    assert failing(report, "missing_fraction[visibility_m]")
+    assert "+60 h" in report.summary()
+
+
+@pytest.mark.parametrize("whole_member", [False, True])
+def test_each_ensemble_member_requires_every_slice(whole_member):
+    cube = make_ensemble_cube(members=31)
+    cube.arrays["wind_kt_anom"][7, slice(None) if whole_member else 1] = np.nan
+    assert np.isnan(cube.arrays["wind_kt_anom"]).mean() < 0.05
+    report = validate_cube(cube)
+    assert failing(report, "missing_fraction[wind_kt_anom]")
+    assert "member 7" in report.summary()
+
+
+def test_land_mask_does_not_exempt_an_empty_ocean_time_slice():
+    cube = make_ibi_cube(missing_fraction=0.40)
+    assert validate_cube(cube, max_missing=0.45).ok
+    cube.arrays["cur_u_kt"][60] = np.nan
+    assert np.isnan(cube.arrays["cur_u_kt"]).mean() < 0.45
+    report = validate_cube(cube, max_missing=0.45)
+    assert failing(report, "missing_fraction[cur_u_kt]")
+    assert "+60 h" in report.summary()
+
+
+def test_declared_missing_offsets_are_applied_to_global_variables_only_there():
+    cube = make_weather_cube()
+    cube.arrays["visibility_m"][0] = np.nan
+    report = validate_cube(cube, allowed_missing_steps={"visibility_m": [0]})
+    assert report.ok, report.summary()
+    cube.arrays["visibility_m"][1] = np.nan
+    assert failing(
+        validate_cube(cube, allowed_missing_steps={"visibility_m": [0]}),
+        "missing_fraction[visibility_m]",
+    )
+
+
+def test_footprint_validation_checks_each_member_and_preserves_the_outline():
+    cube = make_ensemble_cube(members=31)
+    footprint = np.ones((4, 4), dtype=bool)
+    footprint[:, 0] = False
+    for arr in cube.arrays.values():
+        arr[..., ~footprint] = np.nan
+    options = {"footprint": footprint, "max_interior_missing": 0.005}
+    assert validate_cube(cube, **options).ok
+    cube.arrays["wind_kt_anom"][7, 1] = np.nan
+    report = validate_cube(cube, **options)
+    assert failing(report, "interior_missing[wind_kt_anom]")
+    assert "member 7 +3 h" in report.summary()
+    assert validate_cube(cube, allowed_missing_steps={"wind_kt_anom": [3]}, **options).ok
+
+
+def test_an_empty_expected_footprint_is_unusable():
+    report = validate_cube(
+        make_weather_cube(), footprint=np.zeros((4, 8), dtype=bool), max_interior_missing=0.005
+    )
+    assert not report.ok
+
+
+def test_a_fully_masked_required_slice_needs_data_even_with_a_permissive_limit():
+    cube = make_weather_cube()
+    cube.arrays["visibility_m"][0] = np.nan
+    assert failing(validate_cube(cube, max_missing=1), "missing_fraction[visibility_m]")

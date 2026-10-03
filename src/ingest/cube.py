@@ -163,6 +163,9 @@ class ForecastCube:
     # product registers smaller tiles and an explicit path label (grid-0p025).
     tile_deg: int = TILE_DEG
     path_label: str | None = None
+    # Validation-only source exceptions, in forecast-hour offsets. These do
+    # not change PFT1 headers or manifests; all other slices remain required.
+    allowed_missing_steps: dict[str, list[int]] = field(default_factory=dict)
 
     @property
     def run_id(self) -> str:

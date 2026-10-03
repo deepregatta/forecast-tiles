@@ -464,7 +464,9 @@ def check_storage_guard(
 ) -> dict[str, int]:
     """Sum manifest totals of the runs that will be retained after this publish
     plus the new run's bytes; abort before uploading anything if over budget.
-    Both pointers count: a separate regional pointer is not another budget."""
+    Both pointers count: a separate regional pointer is not another budget.
+    Unknown or inconsistent retained sizes refuse admission. This is a
+    post-retention tile budget, not a physical inventory or upload-peak cap."""
     retained: set[str] = set()
     for key in POINTER_KEYS:
         for lyr, entry in (_get_json(store, key) or {}).get("layers", {}).items():
@@ -474,9 +476,33 @@ def check_storage_guard(
                 retained.add(prev)  # this layer's previous gets deleted after publish
     sizes: dict[str, int] = {}
     for run_id in sorted(retained):
-        manifest = _get_json(store, f"forecast-runs/{run_id}/manifest.json")
-        if manifest is not None:
-            sizes[run_id] = int(manifest["totals"]["bytes"])
+        key = f"forecast-runs/{run_id}/manifest.json"
+        try:
+            manifest = _get_json(store, key)
+        except Exception as exc:
+            raise StorageGuardError(
+                f"storage guard: cannot read retained manifest {key}; "
+                "reconcile using verified information before publishing"
+            ) from exc
+        try:
+            size = manifest["totals"]["bytes"]
+            tiles = manifest["tiles"]
+            tile_sizes = [entry["bytes"] for entry in tiles.values()]
+            valid = (
+                type(size) is int
+                and size > 0
+                and bool(tile_sizes)
+                and all(type(n) is int and n > 0 for n in tile_sizes)
+                and size == sum(tile_sizes)
+            )
+        except (KeyError, TypeError, AttributeError):
+            valid = False
+        if not valid:
+            raise StorageGuardError(
+                f"storage guard: retained manifest {key} is missing or has invalid size "
+                "metadata; reconcile using verified information before publishing"
+            )
+        sizes[run_id] = size
     total = sum(sizes.values()) + new_run_bytes
     if total > max_bucket_bytes:
         raise StorageGuardError(

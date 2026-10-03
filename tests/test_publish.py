@@ -15,6 +15,7 @@ from ingest.publish import (
     PublishError,
     StorageGuardError,
     build_manifest,
+    check_storage_guard,
     content_etag,
     fnv64,
     publish_run,
@@ -208,6 +209,103 @@ def test_retention_deletes_only_older_runs_of_same_layer():
     assert entry["cycle"] == "2026-07-13T06:00Z"
     assert entry["member_count"] == 1
     assert latest["layers"]["weather-ecmwf"]["run_id"] == "weather-ecmwf-20260712T00Z"
+
+
+@pytest.mark.parametrize(
+    "raw",
+    [
+        None,
+        b"",
+        b"{",
+        b"null",
+        b"[]",
+        b"{}",
+        b'{"totals": {}}',
+        b'{"totals": {"bytes": null}}',
+        b'{"totals": {"bytes": "200"}}',
+        b'{"totals": {"bytes": 200.5}}',
+        b'{"totals": {"bytes": true}}',
+        b'{"totals": {"bytes": -200}}',
+        b'{"totals": {"bytes": 0}, "tiles": {}}',
+        b'{"totals": {"bytes": 0}, "tiles": {"N40W010": {"bytes": 200}}}',
+        b'{"totals": {"bytes": 200}, "tiles": {"N40W010": {"bytes": "200"}}}',
+    ],
+)
+def test_storage_guard_refuses_unknown_retained_size_before_any_mutation(raw):
+    cube, tiles, report = make_run()
+    store = FakeStore()
+    old = "weather-20260712T06Z"
+    store.objects["latest.json"] = json.dumps(
+        {"layers": {"weather": {"run_id": old, "cycle": "2026-07-12T06:00Z"}}}
+    ).encode()
+    if raw is not None:
+        store.objects[f"forecast-runs/{old}/manifest.json"] = raw
+    before = store.objects.copy()
+
+    with pytest.raises(StorageGuardError, match=old):
+        publish_run(store, cube, tiles, report)
+    assert store.objects == before
+    assert not any(op in ("put", "delete", "list") for op, _ in store.ops)
+
+
+@pytest.mark.parametrize("pointer", ["latest.json", "latest-regional.json"])
+@pytest.mark.parametrize("role", ["run_id", "previous_run_id"])
+def test_storage_guard_requires_other_layers_current_and_previous_sizes(pointer, role):
+    store = FakeStore()
+    current, previous = "waves-20260712T06Z", "waves-20260712T00Z"
+    seed_run(store, current)
+    seed_run(store, previous)
+    entry = {"run_id": current, "previous_run_id": previous}
+    store.objects[pointer] = json.dumps({"layers": {"waves": entry}}).encode()
+    del store.objects[f"forecast-runs/{entry[role]}/manifest.json"]
+    with pytest.raises(StorageGuardError, match=entry[role]):
+        check_storage_guard(store, "weather", 100, 100_000)
+
+
+def test_storage_guard_refuses_unreadable_retained_manifest_before_any_mutation():
+    cube, tiles, report = make_run()
+    store = FakeStore()
+    old = "weather-20260712T06Z"
+    store.objects["latest.json"] = json.dumps(
+        {"layers": {"weather": {"run_id": old, "cycle": "2026-07-12T06:00Z"}}}
+    ).encode()
+    get = store.get
+
+    def unreadable(key):
+        if key == f"forecast-runs/{old}/manifest.json":
+            raise OSError("read failed")
+        return get(key)
+
+    store.get = unreadable
+    with pytest.raises(StorageGuardError, match=old):
+        publish_run(store, cube, tiles, report)
+    assert not any(op in ("put", "delete", "list") for op, _ in store.ops)
+
+
+def test_storage_guard_counts_post_retention_sizes_across_both_pointers():
+    store = FakeStore()
+    expected = {}
+    for pointer, layers in (
+        ("latest.json", {"weather": (200, 10_000), "waves": (300, 400)}),
+        ("latest-regional.json", {"weather-arome": (500, 600)}),
+    ):
+        entries = {}
+        for layer, (size, prev_size) in layers.items():
+            current, previous = f"{layer}-20260712T06Z", f"{layer}-20260712T00Z"
+            seed_run(store, current, n_tiles=1, tile_bytes=size)
+            seed_run(store, previous, n_tiles=1, tile_bytes=prev_size)
+            entries[layer] = {"run_id": current, "previous_run_id": previous}
+            expected[current] = size
+            if layer != "weather":
+                expected[previous] = prev_size
+        store.objects[pointer] = json.dumps({"layers": entries}).encode()
+    # The publishing layer's old previous is excluded even if damaged; it
+    # does not survive retention. Upload overlap remains outside this guard.
+    del store.objects["forecast-runs/weather-20260712T00Z/manifest.json"]
+    assert check_storage_guard(store, "weather", 100, 2100) == expected
+    with pytest.raises(StorageGuardError, match="2100 B > 2099 B"):
+        check_storage_guard(store, "weather", 100, 2099)
+    assert not any(op in ("put", "delete", "list") for op, _ in store.ops)
 
 
 def test_manifest_fnv64_matches_stored_objects_and_schema():

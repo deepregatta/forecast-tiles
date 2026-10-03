@@ -68,8 +68,8 @@ LAYERS = (
 )
 
 # Allowed missing fraction per layer: atmospheric grids are global (only
-# quantization-time gaps like APCP@f000 or polar masks), ocean-only layers
-# are mostly land/ice-masked.
+# polar masks), ocean-only layers are mostly land/ice-masked. Applied per
+# variable/member/time slice; sources declare intentional gaps like APCP@f000.
 MAX_MISSING = {
     "weather": 0.05,
     "weather-ecmwf": 0.05,
@@ -113,7 +113,7 @@ MISSING_FILES_GRACE_MINUTES = 15
 # Open-Meteo registry for regional ones. Everything looks them up here, so a
 # regional layer never meets a KeyError in a table it is not in.
 def max_missing(layer: str) -> float:
-    """Allowed missing fraction: overall for a global layer, per step inside
+    """Allowed missing fraction: per slice for a global layer, per step inside
     the footprint for a regional one."""
     if layer in MAX_MISSING:
         return MAX_MISSING[layer]

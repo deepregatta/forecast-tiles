@@ -71,7 +71,8 @@ falling back one cycle rather than publishing a partial run) → exit 0 with
 (`--force` re-publishes the same cycle, never an older one; a live run id's
 tiles are cached forever, so only to repair a run) → download via
 byte-range subsetting → decode/orient/quantize into a `ForecastCube` →
-validate (step coverage, physical ranges, gust ≥ wind, missing fraction,
+validate (step coverage, physical ranges, gust ≥ wind, missing fraction per
+variable/member/time slice,
 a window for every step of a `statistic` variable; any failure aborts before upload) → 10°×10° gzipped PFT1 tiles → atomic publish
 (older-cycle refusal and storage guard first, tiles, `manifest.json` last,
 post-publish re-download check, compare-and-swap of this layer's `latest.json`
@@ -143,7 +144,21 @@ The Phase 0 size-measurement prototype is still runnable:
    `PutObject`, which the `latest.json` commit relies on.
 
 The storage guard refuses to publish when retained runs + the new run would
-exceed `MAX_BUCKET_BYTES` (default 8 GB).
+exceed `MAX_BUCKET_BYTES` (default 8 GB). It counts tile bytes after retention
+across both forecast pointers, and refuses before uploading if a retained
+manifest is missing, unreadable, or has invalid/inconsistent size metadata.
+Reconcile those references using verified information before retrying. This
+guard does not measure physical upload overlap, abandoned objects, or account
+usage; regional production also has a separate physical inventory and peak
+reservation check.
+
+Every required variable/member/time slice must satisfy its layer's missingness
+limit; a cube average cannot hide an empty or damaged step. Ocean layers keep
+their land/ice mask allowances, and regional layers use their registered
+footprint and interior limit. Sources declare intentional missing offsets in
+the cube's validation-only `allowed_missing_steps`: GFS precipitation at +0 h
+and ECMWF interval gust at +0 h. These exceptions do not exempt later steps or
+change the PFT1 encoding, checksums, or JSON schemas.
 
 ## Layers
 

@@ -303,6 +303,7 @@ def build_cube(cycle: datetime, *, layer: str = LAYER, axis: list[int] = STEP_AX
         variables=variables,
         arrays=arrays,
         member_count=1,
+        allowed_missing_steps={"gust_kt": [0]} if gust else {},  # no interval ends at +0 h
         provenance={
             "source": "ECMWF open data IFS 0.25deg (CC BY 4.0)",
             "gust": gust_note,

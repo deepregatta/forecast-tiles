@@ -109,6 +109,7 @@ def build_cube(cycle: datetime, workers: int = DOWNLOAD_WORKERS) -> ForecastCube
         variables=[v.public() for v in all_vars],
         arrays={name: np.stack(stack) for name, stack in stacks.items()},
         member_count=1,
+        allowed_missing_steps={"precip_mm": [0]},  # APCP has no accumulation at analysis
         provenance={
             "source": "NOAA GFS 0.25deg (noaa-gfs-bdp-pds)",
             "source_urls_digest": urls_digest([step_url(cycle, s) for s in steps]),

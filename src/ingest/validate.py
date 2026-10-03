@@ -83,15 +83,16 @@ def validate_cube(
     allowed_missing_steps: dict[str, list[int]] | None = None,
 ) -> ValidationReport:
     """Validate step coverage, physical ranges, gust consistency and missing
-    fraction. `max_missing` is the allowed missing fraction (ocean-only layers
-    pass a higher value).
+    fraction. `max_missing` applies to every variable/member/time slice over
+    the grid, preserving land/ice masks with a higher limit for ocean layers.
 
     A regional product passes `max_interior_missing` instead: the missing
     fraction is then checked at every step, inside its registered `footprint`
     (the whole grid when None), so an expected outline is accepted while a
     hole in it or an empty step is not. Steps listed in
-    `allowed_missing_steps[name]` (forecast-hour offsets, e.g. gust at +0 h)
-    are exempt. Cells outside the footprint must carry no data at all."""
+    the cube's source-declared or caller-supplied `allowed_missing_steps[name]`
+    (forecast-hour offsets, e.g. gust at +0 h) are exempt. Cells outside a
+    regional footprint must carry no data at all."""
     report = ValidationReport()
     interior = None
     if max_interior_missing is not None:
@@ -106,6 +107,9 @@ def validate_cube(
                 False,
                 f"footprint {interior.shape} != grid {(cube.grid.nlat, cube.grid.nlon)}",
             )
+            return report
+        if not interior.any():
+            report.check("footprint_nonempty", False, "footprint contains no expected cells")
             return report
 
     # --- axes: monotonically increasing, and complete vs the committed axes
@@ -153,23 +157,17 @@ def validate_cube(
             else "no data",
         )
 
-        if interior is None:
-            missing_frac = float(np.isnan(values).mean())
-            report.check(
-                f"missing_fraction[{spec.name}]",
-                missing_frac <= max_missing,
-                f"{missing_frac:.3f} > allowed {max_missing}",
-            )
-        else:
-            _check_interior(
-                report,
-                spec.name,
-                values,
-                cube.time_axes[spec.axis],
-                interior,
-                max_interior_missing,
-                set((allowed_missing_steps or {}).get(spec.name, ())),
-            )
+        allowed = set(cube.allowed_missing_steps.get(spec.name, ()))
+        allowed.update((allowed_missing_steps or {}).get(spec.name, ()))
+        _check_missing_slices(
+            report,
+            spec.name,
+            values,
+            cube.time_axes[spec.axis],
+            max_missing if interior is None else max_interior_missing,
+            allowed,
+            interior,
+        )
 
         # a statistic (e.g. max over the last N h) needs a window for every
         # step that carries data, or consumers can't label the interval
@@ -241,33 +239,40 @@ def validate_cube(
     return report
 
 
-def _check_interior(
+def _check_missing_slices(
     report: ValidationReport,
     name: str,
     values: np.ndarray,
     offsets: list[int],
-    interior: np.ndarray,
     limit: float,
     allowed: set[int],
+    interior: np.ndarray | None,
 ) -> None:
-    """Per-step missing fraction inside the footprint, and nothing outside it."""
-    if values.ndim != 3:  # per-member regional variables are not supported
-        report.check(f"interior_missing[{name}]", False, f"{values.ndim}-D array")
-        return
-    inside = np.isnan(values[:, interior]).mean(axis=1)
-    over = [
-        (off, float(frac))
-        for off, frac in zip(offsets, inside)
-        if off not in allowed and frac > limit
-    ]
-    report.check(
-        f"interior_missing[{name}]",
-        not over,
-        f"{len(over)} of {len(offsets)} steps over {limit:.2%} missing inside the footprint: "
-        + ", ".join(f"+{off} h {frac:.2%}" for off, frac in over[:5]),
+    """Each member/time must be usable within the expected spatial domain."""
+    missing = (
+        np.isnan(values).mean(axis=(-2, -1))
+        if interior is None
+        else np.isnan(values[..., interior]).mean(axis=-1)
     )
-    if (~interior).any():
-        outside = int((~np.isnan(values[:, ~interior])).sum())
+    over = [
+        (member, off, float(frac))
+        for member, fractions in enumerate(np.atleast_2d(missing))
+        for off, frac in zip(offsets, fractions)
+        if off not in allowed and (frac > limit or frac == 1)
+    ]
+    check = "missing_fraction" if interior is None else "interior_missing"
+    domain = "grid" if interior is None else "footprint"
+    report.check(
+        f"{check}[{name}]",
+        not over,
+        f"{len(over)} required slices unusable or over {limit:.2%} missing inside the {domain}: "
+        + ", ".join(
+            (f"member {member} " if values.ndim == 4 else "") + f"+{off} h {frac:.2%}"
+            for member, off, frac in over[:5]
+        ),
+    )
+    if interior is not None and (~interior).any():
+        outside = int((~np.isnan(values[..., ~interior])).sum())
         report.check(
             f"exterior_masked[{name}]",
             outside == 0,

@@ -95,6 +95,30 @@ def test_gfs_step_url():
     )
 
 
+def test_gfs_declared_apcp_analysis_gap_does_not_exempt_a_forecast_gap(monkeypatch):
+    from ingest.validate import validate_cube
+
+    grid = base.GridMeta(lat0=40, lon0=-10, dlat=2.5, dlon=2.5, nlat=4, nlon=8)
+
+    def fetch(url, wanted, optional):
+        step = int(url[-3:])
+        return {var: var for var in wanted if step != 0 or var not in optional}
+
+    def decode(var):
+        value = 280 if var[0] in ("TMP", "DPT") else 30 if var[0] == "GUST" else 10
+        return np.full((4, 8), value, np.float32), grid
+
+    monkeypatch.setattr(gfs, "fetch_fields", fetch)
+    monkeypatch.setattr(gfs, "decode_field", decode)
+    cube = gfs.build_cube(CYCLE, workers=1)
+    assert np.isnan(cube.decoded("precip_mm")[0]).all()
+    assert validate_cube(cube).ok
+    cube.arrays["precip_mm"][1] = -32768
+    report = validate_cube(cube)
+    assert not report.ok
+    assert "missing_fraction[precip_mm]" in report.summary()
+
+
 # -------------------------------------------------------------------- gefs
 
 
@@ -800,6 +824,10 @@ def test_ecmwf_build_cube_publishes_complete_gust_with_windows(monkeypatch):
     report = validate_cube(cube, expected_axes={"steps": axis})
     assert report.ok, report.summary()
     assert "statistic_windows[gust_kt]" in report.checks_passed
+    cube.arrays["gust_kt"][1] = -32768
+    report = validate_cube(cube)
+    assert not report.ok
+    assert "missing_fraction[gust_kt]" in report.summary()
 
 
 def test_ecmwf_build_cube_is_wind_only_when_a_step_has_no_gust(monkeypatch):

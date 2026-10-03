@@ -108,6 +108,19 @@ def test_cli_aborts_on_validation_failure(tmp_path, monkeypatch, capsys):
     assert "validation FAILED" in capsys.readouterr().out
 
 
+def test_cli_refuses_one_empty_decoded_time_slice_before_writing(tmp_path, monkeypatch, capsys):
+    cube = make_weather_cube()
+    cube.time_axes["h3"] = list(range(0, 120, 3))
+    cube.arrays["visibility_m"] = np.full((40, 4, 8), 10_000, np.float32)
+    cube.arrays["visibility_m"][20] = np.nan
+    _stub_gfs(monkeypatch, cube, [])
+
+    assert cli.main(["weather", "--dry-run", str(tmp_path)]) == 1
+    assert not list(tmp_path.rglob("*.json"))
+    assert not list(tmp_path.rglob("*.bin.gz"))
+    assert "validation FAILED" in capsys.readouterr().out
+
+
 def test_cli_currents_ibi_dry_run_wiring(tmp_path, monkeypatch):
     from ingest.sources import ibi
 
