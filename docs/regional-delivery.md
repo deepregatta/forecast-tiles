@@ -540,3 +540,41 @@ Tailwind 3 build tooling. `npm audit --omit=dev` reports zero runtime dependency
 vulnerabilities; this does not waive the required full audit. Resolving this
 validation gate and obtaining passing hosted CI remain required before
 full-cadence promotion.
+
+
+## Evening observation, 2026-10-03
+
+All three evening cycles delivered within their recorded deadlines:
+[ICON-EU 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37133219853)
+at 15:49:30 UTC,
+[UKV 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37143537260)
+at 18:19:37 UTC and
+[AROME 15Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37145435478)
+at 18:59:59 UTC. Their current/previous pointers now retain the morning runs.
+AROME and UKV have two on-time slots each; ICON-EU's approved recheck has one.
+ICON-EU's original window still records its first late cycle alongside the
+new on-time cycle. Seven elapsed days remain mandatory; no window has passed.
+
+UKV's [first 12Z attempt](https://github.com/deepregatta/forecast-tiles/actions/runs/37136218148)
+was paused by the newly enabled spending control. Its zero exit code did not
+publish data. The original paused report is retained separately from the
+successful scheduled catch-up, which finished before the 18:25 UTC deadline.
+This verifies recovery under the spending guard without changing that policy.
+Already-published catch-up reports likewise contribute no new delivery time.
+
+Actions history was paginated back through the earliest original observation
+start. All 23 completed attempt reports were downloaded in original form;
+workflow/artifact identities and report hashes are retained in the acceptance
+record. Both catalogues and all 20 current/previous public manifests passed
+the canonical schemas and run/layer identity checks. Existing root dispatches
+continued publishing, including IBI 00Z, GFS/GEFS/waves 12Z and ECMWF 12Z.
+The [evening read-only whole-bucket audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37152807217)
+passed with no incomplete/superseded runs or damaged references. Its physical
+and complete overlap envelopes fit the unchanged approved guard; the higher
+reviewed existing-layer reservation was retained.
+
+Passage's current production deployment contains all three regional models.
+Its [latest CI](https://github.com/deepregatta/passage/actions/runs/37152627848)
+still fails only at the previously reported dependency audit, while browser
+and Python jobs pass. This gate remains open. GitHub and Worker full cadence
+are still false; observation and quiet twice-daily monitoring continue.

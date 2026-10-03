@@ -63,11 +63,11 @@
           "observation_ends_at": "2026-10-09T21:09:26.449084+00:00",
           "expected_cycles": 14,
           "counts": {
-            "on_time": 0,
+            "on_time": 1,
             "late": 1,
             "failed": 0,
             "unknown": 0,
-            "pending": 13,
+            "pending": 12,
             "invalid_published": 0
           },
           "invalid_publications": [],
@@ -83,11 +83,11 @@
           "observation_ends_at": "2026-10-10T08:00:06.350599+00:00",
           "expected_cycles": 14,
           "counts": {
-            "on_time": 0,
+            "on_time": 1,
             "late": 0,
             "failed": 0,
             "unknown": 0,
-            "pending": 14,
+            "pending": 13,
             "invalid_published": 0
           },
           "invalid_publications": [],
@@ -156,7 +156,16 @@
     "ci_status": "failed: existing unpatched build dependency advisory; 72 browser and 512 Python tests passed",
     "production_deployment_status": "success",
     "local_validation": "450 engine and 535 viewer tests; 84 targeted gust/export/i18n tests; lint and production build passed",
-    "production_copy": "model-neutral one-hour maximum gust notice verified in English and French"
+    "production_copy": "model-neutral one-hour maximum gust notice verified in English and French",
+    "current_deployment_readback": {
+      "verified_at": "2026-10-03T20:52:57.283543+00:00",
+      "commit": "c8266a78396afd6e17afba98e87fb78f88f52782",
+      "pages_deployment_id": "cdf0495a-e9ad-4372-a131-353ddb208da2",
+      "production_deployment_status": "success",
+      "enabled_models": "weather-arome,weather-icon-eu,weather-ukv",
+      "ci_url": "https://github.com/deepregatta/passage/actions/runs/37152627848",
+      "ci_status": "unchanged overall npm audit failure for braces; browser and Python jobs passed"
+    }
   },
   "dispatcher_version_id": "d1c8d08a-ad6f-4705-b141-21307134b868",
   "operator_drill": {
@@ -172,10 +181,10 @@
     "Repeat current production consumer/attribution checks before full-cadence promotion.",
     "Resolve the required Passage dependency audit and obtain passing hosted CI before promoting full cadence; current overall CI must not be described as passed."
   ],
-  "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37108440311",
+  "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37152807217",
   "root_readback": {
-    "verified_at": "2026-10-03T08:20:40.729681+00:00",
-    "catalogue_updated_at": "2026-10-03T07:38:29Z",
+    "verified_at": "2026-10-03T20:52:57.283543+00:00",
+    "catalogue_updated_at": "2026-10-03T19:38:57Z",
     "layers": [
       "weather",
       "ensemble",
@@ -185,15 +194,15 @@
       "currents-ibi",
       "weather-ecmwf-short"
     ],
-    "result": "all seven existing layers retained; regional entries confined to latest-regional.json",
+    "result": "all seven existing layers retained and current; regional entries confined to latest-regional.json",
     "current_runs": {
-      "weather": "weather-20261003T00Z",
-      "ensemble": "ensemble-20261003T00Z",
-      "waves": "waves-20261003T00Z",
-      "weather-ecmwf": "weather-ecmwf-20261003T00Z",
+      "weather": "weather-20261003T12Z",
+      "ensemble": "ensemble-20261003T12Z",
+      "waves": "waves-20261003T12Z",
+      "weather-ecmwf": "weather-ecmwf-20261003T12Z",
       "currents": "currents-20261003T00Z",
-      "currents-ibi": "currents-ibi-20261002T00Z",
-      "weather-ecmwf-short": "weather-ecmwf-short-20261002T18Z"
+      "currents-ibi": "currents-ibi-20261003T00Z",
+      "weather-ecmwf-short": "weather-ecmwf-short-20261003T06Z"
     }
   },
   "follow_up": {
@@ -329,6 +338,107 @@
       "capacity_result": "complete overlap fits unchanged approved guard with retained higher existing-layer reservation",
       "existing_delivery": "seven root layers retained; six advanced since activation; IBI next dispatcher slot not yet due",
       "scheduled_replacement": "all three current/previous pointers preserve bootstrap runs; ICON-EU explicit retry valid but late"
+    },
+    {
+      "reviewed_at": "2026-10-03T20:52:57.283543+00:00",
+      "models": {
+        "weather-arome": {
+          "started_at": "2026-10-02T20:49:47.207117+00:00",
+          "observation_ends_at": "2026-10-09T20:49:47.207117+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 2,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 12,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-icon-eu": {
+          "started_at": "2026-10-02T21:09:26.449084+00:00",
+          "observation_ends_at": "2026-10-09T21:09:26.449084+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 1,
+            "late": 1,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 12,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-ukv": {
+          "started_at": "2026-10-02T21:22:06.887353+00:00",
+          "observation_ends_at": "2026-10-09T21:22:06.887353+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 2,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 12,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        }
+      },
+      "icon_eu_approved_recheck": {
+        "started_at": "2026-10-03T08:00:06.350599+00:00",
+        "observation_ends_at": "2026-10-10T08:00:06.350599+00:00",
+        "expected_cycles": 14,
+        "counts": {
+          "on_time": 1,
+          "late": 0,
+          "failed": 0,
+          "unknown": 0,
+          "pending": 13,
+          "invalid_published": 0
+        },
+        "invalid_publications": [],
+        "unknown_publications": [],
+        "observation_complete": false,
+        "timeliness_passed": false
+      },
+      "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37152807217",
+      "capacity_result": "complete physical and overlap envelopes fit unchanged approved guard; higher existing-layer reservation retained",
+      "existing_delivery": "all seven root layers retained and current; IBI advanced to October 3 00Z; root dispatcher publications confirmed",
+      "scheduled_replacement": "all three October 3 evening cycles published with morning cycles retained as previous",
+      "ukv_retry": {
+        "cycle": "2026-10-03T12:00Z",
+        "initial_attempt_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37136218148",
+        "initial_outcome": "paused by spending control; exit zero without publication",
+        "recovery_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37143537260",
+        "confirmed_finish": "2026-10-03T18:19:37.406768+00:00",
+        "deadline": "2026-10-03T18:25:00+00:00",
+        "result": "catch-up publication on time; paused attempt preserved and never counted as a delivery"
+      },
+      "manifest_validation": {
+        "current_previous_manifests": 20,
+        "result": "root/regional catalogues and every current/previous manifest pass canonical schema and run/layer identity checks"
+      },
+      "artifact_review": {
+        "history_pages": 1,
+        "reviewed_reports": 23,
+        "missing_reports": []
+      },
+      "full_cadence_enabled": false,
+      "passage_ci": {
+        "commit": "c8266a78396afd6e17afba98e87fb78f88f52782",
+        "workflow_url": "https://github.com/deepregatta/passage/actions/runs/37152627848",
+        "result": "unchanged overall npm audit failure for braces; browser and Python jobs passed"
+      }
     }
   ],
   "incidents": [
@@ -354,35 +464,35 @@
     }
   ],
   "regional_readback": {
-    "verified_at": "2026-10-03T08:14:06.626463+00:00",
-    "catalogue_updated_at": "2026-10-03T07:58:47Z",
+    "verified_at": "2026-10-03T20:52:57.283543+00:00",
+    "catalogue_updated_at": "2026-10-03T18:59:05Z",
     "layers": {
       "weather-arome": {
-        "run_id": "weather-arome-20261003T03Z",
-        "previous_run_id": "weather-arome-20261002T15Z",
-        "cycle": "2026-10-03T03:00Z",
+        "run_id": "weather-arome-20261003T15Z",
+        "previous_run_id": "weather-arome-20261003T03Z",
+        "cycle": "2026-10-03T15:00Z",
         "member_count": 1,
-        "published_at": "2026-10-03T05:49:00Z",
+        "published_at": "2026-10-03T18:59:05Z",
         "cadence_hours": 12
       },
       "weather-icon-eu": {
-        "run_id": "weather-icon-eu-20261003T00Z",
-        "previous_run_id": "weather-icon-eu-20261002T12Z",
-        "cycle": "2026-10-03T00:00Z",
+        "run_id": "weather-icon-eu-20261003T12Z",
+        "previous_run_id": "weather-icon-eu-20261003T00Z",
+        "cycle": "2026-10-03T12:00Z",
         "member_count": 1,
-        "published_at": "2026-10-03T07:58:47Z",
+        "published_at": "2026-10-03T15:47:29Z",
         "cadence_hours": 12
       },
       "weather-ukv": {
-        "run_id": "weather-ukv-20261003T00Z",
-        "previous_run_id": "weather-ukv-20261002T12Z",
-        "cycle": "2026-10-03T00:00Z",
+        "run_id": "weather-ukv-20261003T12Z",
+        "previous_run_id": "weather-ukv-20261003T00Z",
+        "cycle": "2026-10-03T12:00Z",
         "member_count": 1,
-        "published_at": "2026-10-03T04:29:04Z",
+        "published_at": "2026-10-03T18:17:13Z",
         "cadence_hours": 12
       }
     },
-    "result": "all current/previous manifests and referenced tiles valid in post-recovery read-only audit"
+    "result": "all three evening replacements verified; current/previous manifests and referenced tiles valid"
   },
   "unresolved_validation": [
     {
@@ -393,6 +503,238 @@
       "status": "audit failed; no patched braces release available at this checkpoint",
       "runtime_dependency_audit": "npm audit --omit=dev passed with zero vulnerabilities; full audit is still unresolved",
       "required_before_full_cadence": true
+    }
+  ],
+  "reviewed_receipts": [
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37062808393",
+      "artifact": "weather-arome-attempt-37062808393-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-02T15:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-02T20:49:47.207117+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "fb86c7b0c504721bef03d5c48b9416b83b3e70a5d8bea1c7b0c6d05cddcb0514"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37064565029",
+      "artifact": "weather-arome-attempt-37064565029-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-02T15:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-02T21:04:29.381362+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "e6d4a0abf530a6c36795f905aaa17385f5c71e29e45cbf6c6396bc906d858a44"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37064779481",
+      "artifact": "weather-icon-eu-attempt-37064779481-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-02T12:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-02T21:09:26.449084+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "28b77cb494c3c0ac1575c7c9ac371683d585eb8324107dbb882889b65adbfc9a"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37066152404",
+      "artifact": "weather-ukv-attempt-37066152404-1",
+      "layer": "weather-ukv",
+      "cycle": "2026-10-02T12:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-02T21:22:06.887353+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "cace08d9ec43869219ca0ec241a20d7abbc84672a85cce36119dc970a6160b81"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37080109919",
+      "artifact": "weather-icon-eu-attempt-37080109919-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-02T12:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-03T00:01:02.806325+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "bb9bc70625d15dd601b90cf7a218d7e90146f958a3c945bc0cae367836efa9f9"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37080109919",
+      "artifact": "weather-arome-attempt-37080109919-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-02T15:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-03T00:00:51.249363+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "6e2cfc24ba68557a257dde7b848f66e864861cc78f2115d9ac8fd268e78c5471"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37080109919",
+      "artifact": "weather-ukv-attempt-37080109919-1",
+      "layer": "weather-ukv",
+      "cycle": "2026-10-02T12:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-03T00:01:19.015280+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "c02ddce4833601fae8415bdb12d27ebc9df7bcf57d26ec365f462b3ed2f6541f"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37093177955",
+      "artifact": "weather-icon-eu-attempt-37093177955-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-03T00:00Z",
+      "outcome": "source_rejected",
+      "finished_at": "2026-10-03T03:26:27.791918+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "f3c8b810a4a9605e49136621ac308329843d8f1bcef2a6ce157c64359876d68c"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37095967210",
+      "artifact": "weather-ukv-attempt-37095967210-1",
+      "layer": "weather-ukv",
+      "cycle": "2026-10-03T00:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-03T04:30:43.242469+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "bba604c049b8f59adf78a5d300136de7ab52eab0ed98b4e2c2390d9ebaaf5796"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37100880530",
+      "artifact": "weather-arome-attempt-37100880530-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-03T03:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-03T05:50:40.996243+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "b0e0171489387b71d4f1b3f74f8f414dda4e73e3a8c739f41d6186b31905c669"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37108056371",
+      "artifact": "weather-icon-eu-attempt-37108056371-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-03T00:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-03T08:00:06.350599+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "286c4eee5ec71d531d7676949ce0975deb449b83362eef1ab5589c780c2bacea"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37110093033",
+      "artifact": "weather-ukv-attempt-37110093033-1",
+      "layer": "weather-ukv",
+      "cycle": "2026-10-03T00:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-03T08:34:09.975079+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "ecc0e2f337fecc34e47c3f9ec50491b92a649652ca7c96722586f56c29efbbfe"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37110093033",
+      "artifact": "weather-icon-eu-attempt-37110093033-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-03T00:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-03T08:33:57.247347+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "2b4ef6ebfd2c7de9638f86349795b6b274a7f06f90fcbd1d3a4134bf987aafb3"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37110093033",
+      "artifact": "weather-arome-attempt-37110093033-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-03T03:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-03T08:33:40.333838+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "5a490b22f498e062e1fd327e3100cc5e7415221c32452fb284439cbf55c19fb0"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37127775310",
+      "artifact": "weather-arome-attempt-37127775310-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-03T03:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-03T13:54:42.475895+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "6a2fabdb449463460ef00515e08b0b1abf832f57871e66fa86b9eb265c0f92b9"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37127775310",
+      "artifact": "weather-icon-eu-attempt-37127775310-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-03T00:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-03T13:54:57.650925+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "a379db977ea82e8935035020aaf4ca5be6ba8d2202c6be8a479e73c0a53a3495"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37127775310",
+      "artifact": "weather-ukv-attempt-37127775310-1",
+      "layer": "weather-ukv",
+      "cycle": "2026-10-03T00:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-03T13:55:13.924318+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "31c914dd8a69f9bb975f641305e6e3fcecd11208c6e1462feb72c28442947353"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37133219853",
+      "artifact": "weather-icon-eu-attempt-37133219853-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-03T12:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-03T15:49:30.861126+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "c24178e3034de55924d402d2401948bf2616ec91771a221b68f38c45a4d2060a"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37136218148",
+      "artifact": "weather-ukv-attempt-37136218148-1",
+      "layer": "weather-ukv",
+      "cycle": "2026-10-03T12:00Z",
+      "outcome": "paused",
+      "finished_at": "2026-10-03T16:29:26.157128+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "c420fb4850fda46a767d4f1f8fd4e77d9bfd2f8bdefdef3e8a3f26b3fb2c09fc"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37143537260",
+      "artifact": "weather-ukv-attempt-37143537260-1",
+      "layer": "weather-ukv",
+      "cycle": "2026-10-03T12:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-03T18:19:37.406768+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "c14fbebd7297d6064ed51d3d7181bd54db964c9853cc71473d80873ea7d8399d"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37143537260",
+      "artifact": "weather-arome-attempt-37143537260-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-03T03:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-03T18:16:15.046056+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "40dd76e45ae90e68bc28cc8887d5626870ff756ca71148dc58fc33639593b052"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37143537260",
+      "artifact": "weather-icon-eu-attempt-37143537260-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-03T12:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-03T18:16:28.166228+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "b17336969f6df436ca9d8acc6e84f6cdb2db36409344735156dde1533a26e8b8"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37145435478",
+      "artifact": "weather-arome-attempt-37145435478-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-03T15:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-03T18:59:59.679519+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "715fc1b0ece8abc5b01334dd28f528eafc9c783eb229e88cc78d1beca7797f82"
     }
   ]
 }
