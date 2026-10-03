@@ -86,6 +86,7 @@ Maintained documentation: [regional operations and evidence](docs/regional-deliv
 [regional implementation plan](docs/open-meteo-bulk-implementation-plan.md),
 [IBI geometry and horizon](docs/ibi-currents.md),
 [spending controls](docs/paid-work.md),
+[checksum phase measurements](docs/checksum-profile.md),
 [routing index](docs/land-index-format.md). The
 [regional access assessment](docs/regional-model-access.md) and
 [Phase 0 measurements](docs/phase0-results.md) retain their dated evidence;

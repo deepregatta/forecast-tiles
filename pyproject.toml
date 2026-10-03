@@ -13,6 +13,7 @@ dependencies = [
     "ecmwf-opendata>=0.3.19",
     "eccodeslib>=2.47.3.22",
     "boto3>=1.34",
+    "fnv-c==0.3.1",
 ]
 
 [project.scripts]

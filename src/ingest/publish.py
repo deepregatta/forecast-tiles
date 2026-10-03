@@ -48,6 +48,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+from fnv_c import fnv1a_64
+
 from ingest.cube import ForecastCube, utcnow_iso
 from ingest.validate import ValidationReport
 from tilekit.codec import decode_tile
@@ -122,11 +124,7 @@ class PointerConflictError(PublishError):
 def fnv64(data: bytes) -> str:
     """FNV-1a 64-bit hex digest (manifest hashes are over the gzipped object
     as stored)."""
-    h = 0xCBF29CE484222325
-    for b in data:
-        h ^= b
-        h = (h * 0x100000001B3) & 0xFFFFFFFFFFFFFFFF
-    return f"{h:016x}"
+    return f"{fnv1a_64(data):016x}"
 
 
 def z_res(resolution_deg: float) -> str:
