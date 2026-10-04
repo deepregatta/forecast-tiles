@@ -96,22 +96,25 @@ push. Restore a last verified immutable pin when an action update fails; do
 not restore mutable tags as routine recovery. Do not run production writes
 or the isolated live R2 test merely to validate this task.
 
-## Proposed main ruleset — activation requires owner approval
+## Main ruleset — activated 2026-10-04
 
 The 2026-10-04 read-back found `main.protected=false`, branch protection GET
 404, zero repository/inherited rulesets and zero effective branch rules.
 Actions were enabled with `allowed_actions=all`, `sha_pinning_required=false`;
 default token permission was `read`, and workflow PR approval was disabled.
-These provider settings have not been changed by this preparation.
+The Actions settings remain unchanged. After explicit owner approval on
+2026-10-04, `main-history-safety` was activated. Provider read-back exactly
+matched the approved payload, effective main rules contained only its
+`deletion` and `non_fast_forward` rules, and `main.protected` became `true`.
 
-The exact [proposed REST payload](../.github/main-ruleset.proposed.json) is named
+The exact [approved REST payload](../.github/main-ruleset.proposed.json) is named
 `main-history-safety`, targets only `refs/heads/main`, has enforcement `active`,
 and contains just `deletion` and `non_fast_forward`. Its bypass actor list is
 empty: owner, administrators, apps, deploy keys and other writers are subject
 to both rules. Ordinary fast-forward direct pushes and existing dispatches
 remain allowed; no actor needs a bypass for the authorized delivery flow.
-No restriction on branch updates/creation, PR, review, signatures, linear
-history, deployments or status checks is proposed.
+There is no restriction on branch updates/creation, PR, review, signatures,
+linear history, deployments or status checks in this ruleset.
 
 [GitHub documents](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets)
 that these rules block deletion and force-push, including default-branch
@@ -124,7 +127,7 @@ at `036dc0bd406844fea4ca0c02ef34de1f64370e79` in
 before that push would need a separately demonstrated bootstrap/contribution
 flow. Their passing status alone is insufficient to propose mandatory checks.
 
-After explicit approval of this payload, recheck main HEAD and all current
+For any approved recreation or modification, recheck main HEAD and all current
 rules/protection with the whitelisted reads below. If they have changed,
 reconcile rather than replacing someone else's settings. Use existing scoped
 GitHub administration access; do not create a credential or alter plans:
@@ -133,7 +136,7 @@ GitHub administration access; do not create a credential or alter plans:
 gh api repos/deepregatta/forecast-tiles/branches/main --jq '{name,sha:.commit.sha,protected}'
 gh api repos/deepregatta/forecast-tiles/rulesets --jq 'map({id,name,target,enforcement,source_type,source})'
 gh api repos/deepregatta/forecast-tiles/rules/branches/main --jq 'map({type,ruleset_id,ruleset_source_type,ruleset_source})'
-# Only after approval; save the returned ruleset ID privately.
+# Recreation only after approval and verifying this ruleset is absent; record its ID privately.
 gh api --method POST repos/deepregatta/forecast-tiles/rulesets \
   --input .github/main-ruleset.proposed.json \
   --jq '{id,name,target,enforcement,bypass_actors,conditions,rules}'
@@ -163,7 +166,9 @@ activation. Never delete unrelated rulesets. Risk: administrators can still
 change settings, and these two rules do not prevent faulty fast-forward code,
 secret misuse, account compromise or spending. This proposal does not modify
 the EUR 20 monthly budget, free plans, storage admission or `MAX_BUCKET_BYTES`.
-Activation, provider read-back and post-activation contribution proof remain
-open until actually performed.
+Activation and exact provider read-back are verified. The dated F03 audit
+result separately records the subsequent ordinary direct-main contribution
+and its hosted CI outcome; provider read-back alone does not prove that flow
+or forecast publication. Recheck current provider settings for later changes.
 
 REST schema: [create/update repository rulesets](https://docs.github.com/en/rest/repos/rules).
