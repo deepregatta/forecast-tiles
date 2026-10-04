@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "paused": true,
+  "rollout_complete": false,
+  "epoch": 0,
+  "limit_bytes": 100000000,
+  "headroom_bytes": 1000000,
+  "owners": {
+    "forecast-root": {
+      "mode": "managed",
+      "prefixes": [
+        "forecast-runs/"
+      ],
+      "ceiling_bytes": 60000000
+    },
+    "forecast-regional": {
+      "mode": "managed",
+      "prefixes": [
+        "forecast-runs/weather-arome-",
+        "forecast-runs/weather-icon-eu-",
+        "forecast-runs/weather-ukv-"
+      ],
+      "ceiling_bytes": 12000000
+    },
+    "land": {
+      "mode": "managed",
+      "prefixes": [
+        "land-index/"
+      ],
+      "ceiling_bytes": 5000000
+    },
+    "prepared": {
+      "mode": "unmanaged",
+      "prefixes": [
+        "prepared/"
+      ],
+      "ceiling_bytes": 10000000
+    },
+    "technical": {
+      "mode": "unmanaged",
+      "prefixes": [
+        "latest.json",
+        "latest-regional.json",
+        "ops/",
+        "status/"
+      ],
+      "ceiling_bytes": 1000000
+    },
+    "multipart": {
+      "mode": "unmanaged",
+      "prefixes": [
+        "multipart-staging/"
+      ],
+      "ceiling_bytes": 1000000
+    }
+  },
+  "baseline_bytes": {
+    "forecast-root": 0,
+    "forecast-regional": 0,
+    "land": 0,
+    "prepared": 0,
+    "technical": 0,
+    "multipart": 0
+  },
+  "reservations": {},
+  "seen_work": []
+}

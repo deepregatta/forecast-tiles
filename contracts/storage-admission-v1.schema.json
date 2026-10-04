@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/deepregatta/forecast-tiles/contracts/storage-admission-v1.schema.json",
+  "title": "Storage admission v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "paused",
+    "rollout_complete",
+    "epoch",
+    "limit_bytes",
+    "headroom_bytes",
+    "owners",
+    "baseline_bytes",
+    "reservations",
+    "seen_work"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "paused": {
+      "type": "boolean"
+    },
+    "rollout_complete": {
+      "type": "boolean"
+    },
+    "epoch": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "limit_bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "headroom_bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "owners": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode",
+          "prefixes",
+          "ceiling_bytes"
+        ],
+        "properties": {
+          "mode": {
+            "enum": [
+              "managed",
+              "unmanaged"
+            ]
+          },
+          "prefixes": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "ceiling_bytes": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "baseline_bytes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "seen_work": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "reservations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "writer",
+          "work",
+          "bytes",
+          "expires_at",
+          "state"
+        ],
+        "properties": {
+          "writer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "work": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "expires_at": {
+            "type": "number"
+          },
+          "state": {
+            "enum": [
+              "active",
+              "finished"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

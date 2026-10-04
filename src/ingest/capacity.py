@@ -1,6 +1,7 @@
-"""Regional admission counts physical bytes and reserves fixed upload peaks.
+"""Shared reservation integration and the existing regional peak calculation.
 
-The existing root publisher keeps its historical guard. A regional R2 writer
+Every publisher keeps its retained-manifest guard and can activate shared v1
+admission separately after the participating-writer rollout. A regional R2 writer
 also requires an operator-measured existing-layer peak (including upload
 overlap) and explicit headroom. Neither can be inferred from retained tiles.
 No account identifiers or private capacity figures belong in this module.
@@ -10,10 +11,38 @@ from __future__ import annotations
 
 import os
 import math
+from contextlib import contextmanager
 from dataclasses import dataclass
 
 from ingest.publish import StorageGuardError
 from ingest.sources.openmeteo import registry
+
+
+@contextmanager
+def reserved_publication(
+    store, writer, work_id, upload_bytes, *, prefix, mutable_keys, admission=None
+):
+    """One boundary for every root/regional/land caller, including manual/force.
+
+    Scratch output bypasses production policy unless an admission is injected.
+    Production activation remains explicit and independent of paid-work.
+    """
+    from ingest.publish import DirStore, PreconditionFailed
+    from ingest.storage_admission import Admission, CapacityDenied, ReservedStore, enforced
+
+    try:
+        enabled = False if isinstance(store, DirStore) and admission is None else enforced()
+        if admission is None and not enabled:
+            yield store
+            return
+        admission = admission or Admission(store, conflicts=(PreconditionFailed,))
+        reservation = admission.acquire(writer, work_id, upload_bytes)
+        scoped = ReservedStore(admission, reservation, prefix=prefix, mutable_keys=mutable_keys)
+        yield scoped
+        admission.finish(reservation)
+    except CapacityDenied as exc:
+        raise StorageGuardError(f"shared capacity: {exc}") from exc
+
 
 ROOT_LAYERS = (
     "weather",

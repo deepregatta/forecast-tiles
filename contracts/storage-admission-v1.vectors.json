@@ -1,0 +1,315 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "name": "exact-boundary",
+      "document": {
+        "version": 1,
+        "paused": false,
+        "rollout_complete": true,
+        "epoch": 0,
+        "limit_bytes": 262444,
+        "headroom_bytes": 50,
+        "owners": {
+          "a": {
+            "mode": "managed",
+            "prefixes": [
+              "a/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "b": {
+            "mode": "managed",
+            "prefixes": [
+              "b/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "legacy": {
+            "mode": "unmanaged",
+            "prefixes": [
+              "legacy/"
+            ],
+            "ceiling_bytes": 100
+          }
+        },
+        "baseline_bytes": {
+          "a": 20,
+          "b": 30,
+          "legacy": 0
+        },
+        "reservations": {},
+        "seen_work": []
+      },
+      "measured_bytes": {
+        "a": 20,
+        "b": 30,
+        "legacy": 0
+      },
+      "writer": "a",
+      "request_bytes": 100,
+      "expected": "admit",
+      "expected_peak_bytes": 262444
+    },
+    {
+      "name": "one-byte-over",
+      "document": {
+        "version": 1,
+        "paused": false,
+        "rollout_complete": true,
+        "epoch": 0,
+        "limit_bytes": 262443,
+        "headroom_bytes": 50,
+        "owners": {
+          "a": {
+            "mode": "managed",
+            "prefixes": [
+              "a/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "b": {
+            "mode": "managed",
+            "prefixes": [
+              "b/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "legacy": {
+            "mode": "unmanaged",
+            "prefixes": [
+              "legacy/"
+            ],
+            "ceiling_bytes": 100
+          }
+        },
+        "baseline_bytes": {
+          "a": 20,
+          "b": 30,
+          "legacy": 0
+        },
+        "reservations": {},
+        "seen_work": []
+      },
+      "measured_bytes": {
+        "a": 20,
+        "b": 30,
+        "legacy": 0
+      },
+      "writer": "a",
+      "request_bytes": 100,
+      "expected": "deny",
+      "expected_peak_bytes": null
+    },
+    {
+      "name": "expired-still-charged",
+      "document": {
+        "version": 1,
+        "paused": false,
+        "rollout_complete": true,
+        "epoch": 0,
+        "limit_bytes": 262444,
+        "headroom_bytes": 50,
+        "owners": {
+          "a": {
+            "mode": "managed",
+            "prefixes": [
+              "a/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "b": {
+            "mode": "managed",
+            "prefixes": [
+              "b/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "legacy": {
+            "mode": "unmanaged",
+            "prefixes": [
+              "legacy/"
+            ],
+            "ceiling_bytes": 100
+          }
+        },
+        "baseline_bytes": {
+          "a": 20,
+          "b": 30,
+          "legacy": 0
+        },
+        "reservations": {
+          "old": {
+            "writer": "b",
+            "work": "0000000000000000000000000000000000000000000000000000000000000000",
+            "bytes": 100,
+            "expires_at": 0,
+            "state": "active"
+          }
+        },
+        "seen_work": [
+          "0000000000000000000000000000000000000000000000000000000000000000"
+        ]
+      },
+      "measured_bytes": {
+        "a": 20,
+        "b": 30,
+        "legacy": 0
+      },
+      "writer": "a",
+      "request_bytes": 1,
+      "expected": "deny",
+      "expected_peak_bytes": null
+    },
+    {
+      "name": "unconverted-growth",
+      "document": {
+        "version": 1,
+        "paused": false,
+        "rollout_complete": true,
+        "epoch": 0,
+        "limit_bytes": 262444,
+        "headroom_bytes": 50,
+        "owners": {
+          "a": {
+            "mode": "managed",
+            "prefixes": [
+              "a/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "b": {
+            "mode": "managed",
+            "prefixes": [
+              "b/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "legacy": {
+            "mode": "unmanaged",
+            "prefixes": [
+              "legacy/"
+            ],
+            "ceiling_bytes": 100
+          }
+        },
+        "baseline_bytes": {
+          "a": 20,
+          "b": 30,
+          "legacy": 0
+        },
+        "reservations": {},
+        "seen_work": []
+      },
+      "measured_bytes": {
+        "a": 20,
+        "b": 30,
+        "legacy": 101
+      },
+      "writer": "a",
+      "request_bytes": 1,
+      "expected": "deny",
+      "expected_peak_bytes": null
+    },
+    {
+      "name": "unexpected-managed-growth",
+      "document": {
+        "version": 1,
+        "paused": false,
+        "rollout_complete": true,
+        "epoch": 0,
+        "limit_bytes": 262444,
+        "headroom_bytes": 50,
+        "owners": {
+          "a": {
+            "mode": "managed",
+            "prefixes": [
+              "a/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "b": {
+            "mode": "managed",
+            "prefixes": [
+              "b/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "legacy": {
+            "mode": "unmanaged",
+            "prefixes": [
+              "legacy/"
+            ],
+            "ceiling_bytes": 100
+          }
+        },
+        "baseline_bytes": {
+          "a": 20,
+          "b": 30,
+          "legacy": 0
+        },
+        "reservations": {},
+        "seen_work": []
+      },
+      "measured_bytes": {
+        "a": 21,
+        "b": 30,
+        "legacy": 0
+      },
+      "writer": "a",
+      "request_bytes": 1,
+      "expected": "deny",
+      "expected_peak_bytes": null
+    },
+    {
+      "name": "orphans-and-revisions-in-baseline",
+      "document": {
+        "version": 1,
+        "paused": false,
+        "rollout_complete": true,
+        "epoch": 0,
+        "limit_bytes": 262444,
+        "headroom_bytes": 50,
+        "owners": {
+          "a": {
+            "mode": "managed",
+            "prefixes": [
+              "a/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "b": {
+            "mode": "managed",
+            "prefixes": [
+              "b/"
+            ],
+            "ceiling_bytes": 1000
+          },
+          "legacy": {
+            "mode": "unmanaged",
+            "prefixes": [
+              "legacy/"
+            ],
+            "ceiling_bytes": 100
+          }
+        },
+        "baseline_bytes": {
+          "a": 60,
+          "b": 30,
+          "legacy": 0
+        },
+        "reservations": {},
+        "seen_work": []
+      },
+      "measured_bytes": {
+        "a": 60,
+        "b": 30,
+        "legacy": 0
+      },
+      "writer": "a",
+      "request_bytes": 60,
+      "expected": "admit",
+      "expected_peak_bytes": 262444
+    }
+  ]
+}

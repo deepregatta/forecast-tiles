@@ -45,7 +45,12 @@ class FakeStore:
 
     def put(self, key, data, *, content_type, cache_control, if_match=None, if_none_match=False):
         conditional = if_match is not None or if_none_match
-        if conditional and self.before_put and not self._in_hook:
+        if (
+            conditional
+            and key in {"latest.json", "latest-regional.json", "land-index/latest.json"}
+            and self.before_put
+            and not self._in_hook
+        ):
             hook = self.before_put.pop(0)
             self._in_hook = True  # a competitor's own writes inside the hook run plainly
             try:
@@ -75,6 +80,12 @@ class FakeStore:
     def list_keys(self, prefix):
         self.ops.append(("list", prefix))
         return sorted(k for k in self.objects if k.startswith(prefix))
+
+    def list_objects(self, prefix):
+        return [{"key": key, "bytes": len(self.objects[key])} for key in self.list_keys(prefix)]
+
+    def multipart_bytes(self):
+        return 0
 
     def delete(self, key):
         self.ops.append(("delete", key))
@@ -133,8 +144,11 @@ def test_publish_ordering_manifest_last_latest_after_check():
     ops = store.ops
     manifest_put = ops.index(("put", manifest_key))
     latest_put = ops.index(("put", "latest.json"))
-    verify_gets = [i for i, (op, k) in enumerate(ops) if op == "get" and cube.run_id in k]
-    assert verify_gets and all(manifest_put < i < latest_put for i in verify_gets)
+    verify_gets = [
+        i for i, (op, k) in enumerate(ops) if op == "get" and cube.run_id in k and i > manifest_put
+    ]
+    assert len(verify_gets) == 1 + min(3, len(tiles))
+    assert all(i < latest_put for i in verify_gets)
 
     # cache headers / content types
     assert store.meta[tile_puts[0]] == ("application/octet-stream", CACHE_IMMUTABLE)

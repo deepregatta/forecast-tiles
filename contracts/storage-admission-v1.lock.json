@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "canonical_repository": "deepregatta/forecast-tiles",
+  "recorded_on": "2026-10-04",
+  "artifacts": [
+    {
+      "path": "src/ingest/storage_admission.py",
+      "sha256": "d3ce5a4305c43fa747c8444c8d8248f690cbae720a721bd0b88b12093329a964"
+    },
+    {
+      "path": "contracts/storage-admission-v1.schema.json",
+      "sha256": "1faa96d5ce57423e99bad6e71b7baaf0739db52ea1bd319612ff8c7ba74b19e2"
+    },
+    {
+      "path": "contracts/storage-admission-v1.example.json",
+      "sha256": "dc251a42f8141c0a890d4948b1dcfb3f7771fcc7b6ccb007966595c034fb0f06"
+    },
+    {
+      "path": "contracts/storage-admission-v1.vectors.json",
+      "sha256": "0b7ccacd25a4619705b2ec164ba64a1f4e48cc3de6dde05b67f594bcaa792c70"
+    }
+  ]
+}

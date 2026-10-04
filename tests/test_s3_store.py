@@ -121,3 +121,28 @@ def _body(data: bytes):
     from botocore.response import StreamingBody
 
     return StreamingBody(io.BytesIO(data), len(data))
+
+
+def test_missing_size_or_incomplete_pagination_is_never_empty_inventory():
+    from types import SimpleNamespace
+    from ingest.publish import StorageGuardError
+
+    for response in (
+        {},
+        {"IsTruncated": True, "Contents": []},
+        {"IsTruncated": False, "Contents": [{"Key": "x"}]},
+    ):
+        store = S3Store(SimpleNamespace(list_objects_v2=lambda **_: response), "b")
+        with pytest.raises((StorageGuardError, KeyError)):
+            store.list_objects("")
+
+
+def test_unknown_multipart_page_cannot_return_zero_bytes():
+    from types import SimpleNamespace
+    from ingest.publish import StorageGuardError
+
+    for response in ({}, {"IsTruncated": True, "Uploads": []}):
+        paginator = SimpleNamespace(paginate=lambda **_: [response])
+        store = S3Store(SimpleNamespace(get_paginator=lambda _: paginator), "b")
+        with pytest.raises(StorageGuardError):
+            store.multipart_bytes()

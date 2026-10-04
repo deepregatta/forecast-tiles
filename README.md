@@ -87,6 +87,7 @@ Maintained documentation: [shared contract ownership and drift checks](docs/shar
 [regional implementation plan](docs/open-meteo-bulk-implementation-plan.md),
 [IBI geometry and horizon](docs/ibi-currents.md),
 [spending controls](docs/paid-work.md),
+[shared storage admission and staged rollout](docs/storage-admission.md),
 [checksum phase measurements](docs/checksum-profile.md),
 [routing index](docs/land-index-format.md). The
 [regional access assessment](docs/regional-model-access.md) and
@@ -98,6 +99,9 @@ use the operational records above for deployment/acceptance status.
 [Optional production spending control](docs/paid-work.md) documents the
 persistent frequency, runtime and duplicate guard, its activation variable,
 intentional pause reports, and operator recovery. It preserves consumer reads.
+[Storage admission v1](docs/storage-admission.md) adds coordinated physical upload
+reservations for root, regional and land writers; production activation remains
+gated on Passage/OSCAR writer coverage and a reviewed account allocation.
 
 ```sh
 uv sync
@@ -109,7 +113,7 @@ uv run ingest weather-ecmwf-short             # ECMWF's 06Z/18Z runs, to 144 h
 uv sync --extra currents                    # required for either CMEMS current layer
 uv run ingest currents                      # six-hourly global current field
 uv run ingest currents-ibi                   # hourly regional current field
-uv run ingest weather --force                # re-publish the cycle latest.json already has (repairs only)
+uv run ingest weather --force                # retry identical immutable content; guards still apply
 uv run ingest weather --cycle 20260930T06 --wait-minutes 90   # wait for the provider, then publish
 uv run ingest land --domain nweu             # rebuild the routing index (one-shot)
 uv sync --extra openmeteo                    # regional dependency; activation is separate
@@ -201,7 +205,7 @@ The Phase 0 size-measurement prototype is still runnable:
    `PutObject`, which the `latest.json` commit relies on.
 
 The storage guard refuses to publish when retained runs + the new run would
-exceed `MAX_BUCKET_BYTES` (default 8 GB). It counts tile bytes after retention
+exceed `MAX_BUCKET_BYTES` (default 14 GB). It counts tile bytes after retention
 across both forecast pointers, and refuses before uploading if a retained
 manifest is missing, unreadable, or has invalid/inconsistent size metadata.
 Reconcile those references using verified information before retrying. This

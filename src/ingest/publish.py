@@ -59,7 +59,7 @@ CACHE_MUTABLE = "public, max-age=300, must-revalidate"
 OCTET_STREAM = "application/octet-stream"
 APPLICATION_JSON = "application/json"
 
-DEFAULT_MAX_BUCKET_BYTES = 8_000_000_000  # 8 GB storage guard
+DEFAULT_MAX_BUCKET_BYTES = 14_000_000_000  # retained tiles only; not an account spending cap
 
 LATEST_KEY = "latest.json"
 # Regional models (src/ingest/sources/openmeteo) have a pointer of their own,
@@ -235,17 +235,48 @@ class S3Store:
             if token:
                 kwargs["ContinuationToken"] = token
             resp = self.client.list_objects_v2(**kwargs)
+            if type(resp.get("IsTruncated")) is not bool:
+                raise StorageGuardError("physical inventory pagination state unknown")
             out += [
                 {
                     "key": obj["Key"][len(self.prefix) :],
-                    "bytes": int(obj.get("Size", 0)),
+                    "bytes": obj["Size"],
                     "modified": obj.get("LastModified"),
+                    "storage_class": obj.get("StorageClass", "STANDARD"),
                 }
                 for obj in resp.get("Contents", [])
             ]
             if not resp.get("IsTruncated"):
                 return out
-            token = resp.get("NextContinuationToken")
+            next_token = resp.get("NextContinuationToken")
+            if not next_token or next_token == token:
+                raise StorageGuardError("physical inventory pagination incomplete")
+            token = next_token
+
+    def multipart_bytes(self) -> int:
+        total = 0
+        for page in self.client.get_paginator("list_multipart_uploads").paginate(
+            Bucket=self.bucket, Prefix=self.prefix
+        ):
+            if type(page.get("IsTruncated")) is not bool or (
+                page["IsTruncated"]
+                and (not page.get("NextKeyMarker") or not page.get("NextUploadIdMarker"))
+            ):
+                raise StorageGuardError("multipart inventory pagination incomplete")
+            for upload in page.get("Uploads", []):
+                for parts in self.client.get_paginator("list_parts").paginate(
+                    Bucket=self.bucket, Key=upload["Key"], UploadId=upload["UploadId"]
+                ):
+                    if type(parts.get("IsTruncated")) is not bool or (
+                        parts["IsTruncated"] and not parts.get("NextPartNumberMarker")
+                    ):
+                        raise StorageGuardError("part inventory pagination incomplete")
+                    for part in parts.get("Parts", []):
+                        size = part["Size"]
+                        if type(size) is not int or size < 0:
+                            raise StorageGuardError("multipart inventory invalid")
+                        total += size
+        return total
 
     def delete(self, key: str) -> None:
         self.client.delete_object(Bucket=self.bucket, Key=self._key(key))
@@ -315,6 +346,9 @@ class DirStore:
     def list_keys(self, prefix: str) -> list[str]:
         return [obj["key"] for obj in self.list_objects(prefix)]
 
+    def multipart_bytes(self) -> int:
+        return 0
+
     def list_objects(self, prefix: str) -> list[dict]:
         base = self._path(prefix)
         root = base if base.is_dir() else base.parent
@@ -351,6 +385,7 @@ def make_r2_store_from_env(prefix: str = "") -> S3Store:
     """R2 S3 client from R2_ENDPOINT / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY /
     R2_BUCKET; `prefix` isolates every key under a sub-path (tests only)."""
     import boto3
+    from botocore.config import Config
 
     missing = [
         k
@@ -365,6 +400,7 @@ def make_r2_store_from_env(prefix: str = "") -> S3Store:
         aws_access_key_id=os.environ["R2_ACCESS_KEY_ID"],
         aws_secret_access_key=os.environ["R2_SECRET_ACCESS_KEY"],
         region_name="auto",
+        config=Config(retries={"total_max_attempts": 1}),
     )
     return S3Store(client, os.environ["R2_BUCKET"], prefix=prefix)
 
@@ -378,6 +414,21 @@ def max_bucket_bytes_from_env() -> int:
 
 def json_bytes(obj: dict) -> bytes:
     return json.dumps(obj, indent=1, sort_keys=False).encode()
+
+
+def put_immutable(
+    store, key, data, *, content_type, cache_control=CACHE_IMMUTABLE, allow_identical=True
+):
+    """Create only; an identical retry can reuse bytes but never replace them."""
+    try:
+        store.put(
+            key, data, content_type=content_type, cache_control=cache_control, if_none_match=True
+        )
+    except PreconditionFailed:
+        if not allow_identical:
+            raise
+        if store.get(key) != data:
+            raise PreconditionFailed(f"{key}: immutable object differs; use a new version")
 
 
 def _get_json(store, key: str) -> dict | None:
@@ -778,6 +829,7 @@ def publish_run(
     started_at: float | None = None,
     sleep: Callable[[float], None] = time.sleep,
     pointer_key: str | None = None,
+    capacity_admission=None,
 ) -> PublishResult:
     """Run the full atomic publish protocol for an already-validated cube.
 
@@ -812,8 +864,27 @@ def publish_run(
     current = published_layer(store, cube.layer, pointer_key)
     check_pointer_ownership(store, cube.layer, pointer_key)
     check_not_older(cube.layer, current, cube.cycle_iso, pointer_key)
-    if regional and store.get(f"forecast-runs/{run_id}/manifest.json") is not None:
+    existing_raw = store.get(f"forecast-runs/{run_id}/manifest.json")
+    if regional and existing_raw is not None:
         raise PreconditionFailed(f"{run_id}: immutable manifest already exists; nothing uploaded")
+    if existing_raw is not None:
+        try:
+            existing = json.loads(existing_raw)
+        except (TypeError, ValueError) as exc:
+            raise StorageGuardError(
+                "existing immutable manifest is unreadable; reconcile first"
+            ) from exc
+        candidate = build_manifest(
+            cube,
+            tiles,
+            report,
+            published_at=existing["published_at"],
+            validated_at=existing["validation"]["validated_at"],
+        )
+        if candidate != existing:
+            raise PreconditionFailed(f"{run_id}: immutable manifest differs; use a new cycle")
+        manifest = existing
+        published_at = existing["published_at"]
     check_storage_guard(store, cube.layer, manifest["totals"]["bytes"], max_bucket_bytes)
     if regional:
         from ingest.sources.openmeteo.registry import product
@@ -831,71 +902,88 @@ def publish_run(
                 RegionalAllocation.from_env(cube.layer),
             )
 
-    # 2. tiles under the immutable run id
-    template = manifest["tiling"]["path_template"]
-    for tid, gz in tiles:
-        store.put(
-            f"forecast-runs/{run_id}/" + template.format(tile_id=tid),
-            gz,
-            content_type=OCTET_STREAM,  # stored gzipped; client decompresses explicitly
+    from ingest.capacity import reserved_publication
+    from ingest.storage_admission import MUTABLE_UPLOAD_BYTES
+
+    upload_bytes = (
+        sum(len(gz) for _, gz in tiles) + len(json_bytes(manifest)) + MUTABLE_UPLOAD_BYTES
+    )
+    with reserved_publication(
+        store,
+        "forecast-regional" if regional else "forecast-root",
+        run_id,
+        upload_bytes,
+        prefix=f"forecast-runs/{run_id}/",
+        mutable_keys=(pointer_key, f"status/{cube.layer}.json"),
+        admission=capacity_admission,
+    ) as store:
+        # 2. tiles under the immutable run id
+        template = manifest["tiling"]["path_template"]
+        for tid, gz in tiles:
+            put_immutable(
+                store,
+                f"forecast-runs/{run_id}/" + template.format(tile_id=tid),
+                gz,
+                content_type=OCTET_STREAM,  # stored gzipped; client decompresses explicitly
+                cache_control=CACHE_IMMUTABLE,
+                allow_identical=not regional,
+            )
+
+        # 3. manifest LAST — its presence marks the run complete
+        put_immutable(
+            store,
+            f"forecast-runs/{run_id}/manifest.json",
+            json_bytes(manifest),
+            content_type=APPLICATION_JSON,
             cache_control=CACHE_IMMUTABLE,
-            if_none_match=regional,
+            allow_identical=not regional,
         )
 
-    # 3. manifest LAST — its presence marks the run complete
-    store.put(
-        f"forecast-runs/{run_id}/manifest.json",
-        json_bytes(manifest),
-        content_type=APPLICATION_JSON,
-        cache_control=CACHE_IMMUTABLE,
-        if_none_match=regional,
-    )
+        # 4. post-publish check
+        _post_publish_check(store, run_id, manifest, rng)
 
-    # 4. post-publish check
-    _post_publish_check(store, run_id, manifest, rng)
+        # 5. this layer's latest.json entry, compare-and-swap
+        entry = {
+            "run_id": run_id,
+            "cycle": cube.cycle_iso,
+            "member_count": cube.member_count,
+            "published_at": published_at,
+            "cadence_hours": cadence_hours_for(cube.layer),
+        }
+        commit = commit_layer_entry(
+            store, cube.layer, entry, pointer_key=pointer_key, sleep=sleep, rng=rng
+        )
+        previous = commit.previous_run_id
 
-    # 5. this layer's latest.json entry, compare-and-swap
-    entry = {
-        "run_id": run_id,
-        "cycle": cube.cycle_iso,
-        "member_count": cube.member_count,
-        "published_at": published_at,
-        "cadence_hours": cadence_hours_for(cube.layer),
-    }
-    commit = commit_layer_entry(
-        store, cube.layer, entry, pointer_key=pointer_key, sleep=sleep, rng=rng
-    )
-    previous = commit.previous_run_id
+        # 6. retention, only now that the commit is confirmed
+        deleted, kept = apply_retention(store, cube.layer, run_id, previous)
 
-    # 6. retention, only now that the commit is confirmed
-    deleted, kept = apply_retention(store, cube.layer, run_id, previous)
+        # 7. per-layer status
+        duration_s = round(time.time() - t0, 1)
+        status = {
+            "layer": cube.layer,
+            "run_id": run_id,
+            "cycle": cube.cycle_iso,
+            "published_at": published_at,
+            "tile_count": manifest["totals"]["tile_count"],
+            "bytes": manifest["totals"]["bytes"],
+            "duration_s": duration_s,
+            "checks_passed": report.checks_passed,
+        }
+        store.put(
+            f"status/{cube.layer}.json",
+            json_bytes(status),
+            content_type=APPLICATION_JSON,
+            cache_control=CACHE_MUTABLE,
+        )
 
-    # 7. per-layer status
-    duration_s = round(time.time() - t0, 1)
-    status = {
-        "layer": cube.layer,
-        "run_id": run_id,
-        "cycle": cube.cycle_iso,
-        "published_at": published_at,
-        "tile_count": manifest["totals"]["tile_count"],
-        "bytes": manifest["totals"]["bytes"],
-        "duration_s": duration_s,
-        "checks_passed": report.checks_passed,
-    }
-    store.put(
-        f"status/{cube.layer}.json",
-        json_bytes(status),
-        content_type=APPLICATION_JSON,
-        cache_control=CACHE_MUTABLE,
-    )
-
-    return PublishResult(
-        run_id=run_id,
-        tile_count=manifest["totals"]["tile_count"],
-        bytes=manifest["totals"]["bytes"],
-        duration_s=duration_s,
-        previous_run_id=previous,
-        deleted_runs=deleted,
-        kept_runs=kept,
-        commit_attempts=commit.attempts,
-    )
+        return PublishResult(
+            run_id=run_id,
+            tile_count=manifest["totals"]["tile_count"],
+            bytes=manifest["totals"]["bytes"],
+            duration_s=duration_s,
+            previous_run_id=previous,
+            deleted_runs=deleted,
+            kept_runs=kept,
+            commit_attempts=commit.attempts,
+        )

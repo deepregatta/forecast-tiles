@@ -90,3 +90,14 @@ allowance is a workload limit, not a paid Actions allowance.
 
 [R2 pricing](https://developers.cloudflare.com/r2/pricing/) and
 [conditional S3 writes](https://developers.cloudflare.com/r2/api/s3/extensions/).
+
+## Physical storage admission
+
+[Storage v1](storage-admission.md) is an independent, separately gated capacity
+contract owned in forecast-tiles. Root, regional and land publishers reserve
+their entire temporary upload peak with conditional coordination before data
+writes when `CAPACITY_ENFORCE=1`. Its default remains `0` pending Passage/OSCAR
+writer integration and reviewed account allocations. It never changes this
+ledger's usage. Expired, finished and uncertain storage reservations remain
+charged until an explicit paused/fenced reconciliation; runtime lease expiry
+is not storage-release proof. Existing data and ordinary reads remain available.

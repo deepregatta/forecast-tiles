@@ -33,6 +33,12 @@ from ingest.publish import (
     StorageGuardError,
     fnv64,
     json_bytes,
+    put_immutable,
+    check_storage_guard as check_forecast_storage_guard,
+    PreconditionFailed,
+    UncertainWriteError,
+    PointerConflictError,
+    StalePublishError,
 )
 from landkit.codec import decode_tile
 
@@ -89,20 +95,25 @@ def check_storage_guard(store, new_bytes: int, max_bucket_bytes: int) -> dict[st
     lets the bucket fill.
     """
     sizes: dict[str, int] = {}
-    latest = _get_json(store, "latest.json") or {"layers": {}}
-    retained = set()
-    for entry in latest.get("layers", {}).values():
-        retained.add(entry["run_id"])
-        if entry.get("previous_run_id"):
-            retained.add(entry["previous_run_id"])
-    for run_id in sorted(retained):
-        manifest = _get_json(store, f"forecast-runs/{run_id}/manifest.json")
-        if manifest is not None:
-            sizes[run_id] = int(manifest["totals"]["bytes"])
+    sizes.update(check_forecast_storage_guard(store, "land-index", 0, max_bucket_bytes))
     for index_id in existing_index_ids(store):
         manifest = _get_json(store, f"{PREFIX}/{index_id}/manifest.json")
         if manifest is not None:
-            sizes[index_id] = int(manifest["totals"]["bytes"])
+            try:
+                size = manifest["totals"]["bytes"]
+                tile_sizes = [t["bytes"] for t in manifest["tiles"].values()]
+                valid = (
+                    type(size) is int
+                    and size > 0
+                    and bool(tile_sizes)
+                    and all(type(n) is int and n > 0 for n in tile_sizes)
+                    and size == sum(tile_sizes)
+                )
+            except (KeyError, TypeError, AttributeError):
+                valid = False
+            if not valid:
+                raise StorageGuardError(f"land storage guard: invalid manifest {index_id}")
+            sizes[index_id] = size
     total = sum(sizes.values()) + new_bytes
     if total > max_bucket_bytes:
         raise StorageGuardError(
@@ -163,6 +174,7 @@ def publish_index(
     rng: random.Random | None = None,
     started_at: float | None = None,
     now: str | None = None,
+    capacity_admission=None,
 ) -> LandPublishResult:
     if not tiles:
         raise PublishError("refusing to publish an index with zero tiles")
@@ -178,67 +190,102 @@ def publish_index(
             "is immutable; build a new version instead"
         )
 
+    current = (_get_json(store, LATEST_KEY) or {}).get("domains", {}).get(manifest["domain"], {})
+    if current.get("index_id", "") > index_id:
+        raise StalePublishError("land pointer already names a newer index; nothing uploaded")
+
     # 1. storage guard — before any upload
     check_storage_guard(store, manifest["totals"]["bytes"], max_bucket_bytes)
 
-    # 2. tiles under the immutable index id
-    for tile_id, gz in tiles:
-        store.put(
-            f"{PREFIX}/{index_id}/" + PATH_TEMPLATE.format(tile_id=tile_id),
-            gz,
-            content_type=OCTET_STREAM,  # stored gzipped; the client decompresses explicitly
+    from ingest.capacity import reserved_publication
+    from ingest.storage_admission import MUTABLE_UPLOAD_BYTES
+
+    upload_bytes = (
+        sum(len(gz) for _, gz in tiles) + len(json_bytes(manifest)) + MUTABLE_UPLOAD_BYTES
+    )
+    with reserved_publication(
+        store,
+        "land",
+        index_id,
+        upload_bytes,
+        prefix=f"{PREFIX}/{index_id}/",
+        mutable_keys=(LATEST_KEY, STATUS_KEY),
+        admission=capacity_admission,
+    ) as store:
+        # 2. tiles under the immutable index id
+        for tile_id, gz in tiles:
+            put_immutable(
+                store,
+                f"{PREFIX}/{index_id}/" + PATH_TEMPLATE.format(tile_id=tile_id),
+                gz,
+                content_type=OCTET_STREAM,  # stored gzipped; the client decompresses explicitly
+                cache_control=CACHE_IMMUTABLE,
+            )
+
+        # 3. manifest LAST — its presence marks the index complete
+        put_immutable(
+            store,
+            f"{PREFIX}/{index_id}/manifest.json",
+            json_bytes(manifest),
+            content_type=APPLICATION_JSON,
             cache_control=CACHE_IMMUTABLE,
         )
 
-    # 3. manifest LAST — its presence marks the index complete
-    store.put(
-        f"{PREFIX}/{index_id}/manifest.json",
-        json_bytes(manifest),
-        content_type=APPLICATION_JSON,
-        cache_control=CACHE_IMMUTABLE,
-    )
+        # 4. post-publish check
+        _post_publish_check(store, index_id, manifest, rng)
 
-    # 4. post-publish check
-    _post_publish_check(store, index_id, manifest, rng)
+        # 5. the pointer
+        previous = _update_latest(store, manifest, published_at)
 
-    # 5. the pointer
-    previous = _update_latest(store, manifest, published_at)
-
-    # 6. retention: the current index and the one before it
-    keep = {index_id} | ({previous} if previous else set())
-    deleted = []
-    for stale in existing_index_ids(store, manifest["domain"]):
-        if stale in keep:
-            continue
-        for key in store.list_keys(f"{PREFIX}/{stale}/"):
-            store.delete(key)
-        deleted.append(stale)
-
-    duration_s = round(time.time() - t0, 1)
-    store.put(
-        STATUS_KEY,
-        json_bytes(
-            {
-                "index_id": index_id,
-                "domain": manifest["domain"],
-                "published_at": published_at,
-                "tile_count": manifest["totals"]["tile_count"],
-                "bytes": manifest["totals"]["bytes"],
-                "duration_s": duration_s,
-                "checks_passed": manifest["validation"]["checks_passed"],
+        # 6. retention: the current index and the one before it
+        keep = {index_id} | ({previous} if previous else set())
+        deleted = []
+        for stale in existing_index_ids(store, manifest["domain"]):
+            if stale in keep:
+                continue
+            if stale >= (previous or index_id):
+                continue  # a newer concurrent upload may be complete before its pointer lands
+            # Incomplete uploads and every domain's live references remain protected.
+            keys = store.list_keys(f"{PREFIX}/{stale}/")
+            if f"{PREFIX}/{stale}/manifest.json" not in keys:
+                continue
+            live = _get_json(store, LATEST_KEY) or {"domains": {}}
+            protected = {
+                v
+                for entry in live.get("domains", {}).values()
+                for v in (entry.get("index_id"), entry.get("previous_index_id"))
             }
-        ),
-        content_type=APPLICATION_JSON,
-        cache_control=CACHE_MUTABLE,
-    )
-    return LandPublishResult(
-        index_id=index_id,
-        tile_count=manifest["totals"]["tile_count"],
-        bytes=manifest["totals"]["bytes"],
-        duration_s=duration_s,
-        previous_index_id=previous,
-        deleted_indexes=deleted,
-    )
+            if stale in protected:
+                continue
+            for key in sorted(keys, key=lambda k: k.endswith("/manifest.json")):
+                store.delete(key)
+            deleted.append(stale)
+
+        duration_s = round(time.time() - t0, 1)
+        store.put(
+            STATUS_KEY,
+            json_bytes(
+                {
+                    "index_id": index_id,
+                    "domain": manifest["domain"],
+                    "published_at": published_at,
+                    "tile_count": manifest["totals"]["tile_count"],
+                    "bytes": manifest["totals"]["bytes"],
+                    "duration_s": duration_s,
+                    "checks_passed": manifest["validation"]["checks_passed"],
+                }
+            ),
+            content_type=APPLICATION_JSON,
+            cache_control=CACHE_MUTABLE,
+        )
+        return LandPublishResult(
+            index_id=index_id,
+            tile_count=manifest["totals"]["tile_count"],
+            bytes=manifest["totals"]["bytes"],
+            duration_s=duration_s,
+            previous_index_id=previous,
+            deleted_indexes=deleted,
+        )
 
 
 def _post_publish_check(store, index_id: str, manifest: dict, rng: random.Random) -> None:
@@ -260,30 +307,49 @@ def _post_publish_check(store, index_id: str, manifest: dict, rng: random.Random
 
 
 def _update_latest(store, manifest: dict, published_at: str) -> str | None:
+    import json
+
     domain = manifest["domain"]
-    latest = _get_json(store, LATEST_KEY) or {
-        "schema_version": MANIFEST_SCHEMA_VERSION,
-        "spec": "TLI1",
-        "domains": {},
-    }
-    latest.setdefault("domains", {})
-    entry = latest["domains"].get(domain, {})
-    previous = entry.get("index_id")
-    if previous == manifest["index_id"]:
-        previous = entry.get("previous_index_id")
-    latest["updated_at"] = published_at
-    latest["domains"][domain] = {
-        "index_id": manifest["index_id"],
-        "previous_index_id": previous,
-        "label": manifest["domain_label"],
-        "tiles": sorted(manifest["tiles"]),
-        "tile_deg": manifest["tiling"]["tile_deg"],
-        "published_at": published_at,
-    }
-    store.put(
-        LATEST_KEY,
-        json_bytes(latest),
-        content_type=APPLICATION_JSON,
-        cache_control=CACHE_MUTABLE,
-    )
-    return previous
+    target = manifest["index_id"]
+    for _ in range(6):
+        raw, etag = store.get_with_etag(LATEST_KEY)
+        latest = (
+            json.loads(raw)
+            if raw is not None
+            else {
+                "schema_version": MANIFEST_SCHEMA_VERSION,
+                "spec": "TLI1",
+                "domains": {},
+            }
+        )
+        entry = latest["domains"].get(domain, {})
+        if entry.get("index_id") == target:
+            return entry.get("previous_index_id")
+        if entry.get("index_id", "") > target:
+            raise StalePublishError("newer land index committed during upload; nothing pruned")
+        previous = entry.get("index_id")
+        latest["updated_at"] = published_at
+        latest["domains"][domain] = {
+            "index_id": target,
+            "previous_index_id": previous,
+            "label": manifest["domain_label"],
+            "tiles": sorted(manifest["tiles"]),
+            "tile_deg": manifest["tiling"]["tile_deg"],
+            "published_at": published_at,
+        }
+        try:
+            store.put(
+                LATEST_KEY,
+                json_bytes(latest),
+                content_type=APPLICATION_JSON,
+                cache_control=CACHE_MUTABLE,
+                if_match=etag if raw is not None else None,
+                if_none_match=raw is None,
+            )
+            return previous
+        except (PreconditionFailed, UncertainWriteError):
+            continue  # re-read before merging or any retention
+    settled = (_get_json(store, LATEST_KEY) or {}).get("domains", {}).get(domain, {})
+    if settled.get("index_id") == target:
+        return settled.get("previous_index_id")
+    raise PointerConflictError("land pointer outcome unresolved; nothing pruned")
