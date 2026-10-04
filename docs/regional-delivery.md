@@ -729,3 +729,58 @@ additional artifacts from [37190024725](https://github.com/deepregatta/forecast-
 are already-published skips for AROME 03Z and ICON-EU/UKV 00Z; they contribute
 no publication or timely credit. All five scored observation windows retain
 their previous counts, including both failed ICON-EU windows.
+
+
+## Evening observation, 2026-10-04
+
+All three scheduled evening regional cycles published from the read-repaired
+source, with the morning runs retained as previous:
+[ICON-EU 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37212977200)
+confirmed at 15:50:53.885183 UTC (deadline 16:20 UTC),
+[UKV 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37216130136)
+at 16:32:59.100236 UTC (deadline 18:25 UTC), and
+[AROME 15Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37225691350)
+at 18:58:57.429638 UTC (deadline 20:25 UTC). Their original reports confirm
+successful validation and pointer commits; publication time comes from the
+confirmed attempt finish, rather than manifest creation or workflow status.
+
+AROME and UKV now each have four timely slots in their original windows.
+ICON-EU's selected October 4 post-control-read-repair window has its first timely
+slot and thirteen pending slots. Its original window retains two late slots
+and its October 3 recheck retains one; their maximum possible results remain
+12/14 and 13/14. All three ICON-EU windows were scored separately. No seven-day
+window has elapsed or passed. The selected window still ends on October 11 at
+09:05:12 UTC and requires fourteen timely scheduled deliveries.
+
+Actions history was paginated through the earliest original observation start.
+All 42 original attempt reports are retained with workflow/artifact identities
+and hashes: nine new reports contain three confirmed publications and six
+already-published skips. Those skips receive no additional delivery credit.
+No new unknown timing, missing report or invalid publication was found. Both
+catalogues and all twenty current/previous manifests passed their canonical
+schemas and run/layer identity checks.
+
+Root delivery also continued after the read repair. Publication job logs confirm
+[IBI 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37193203236)
+at 09:54:07 UTC, GFS and waves 06Z/12Z, ECMWF-short 06Z,
+[GEFS 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37223760432)
+at 18:42:13.7479606 UTC, and
+[ECMWF 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37227933791)
+at 19:47:40.9074511 UTC. Seven root layers remain present, with valid previous
+runs. The historical GEFS 18Z gap, ECMWF 00Z pause/manual recovery and ICON-EU
+misses remain in the cumulative record; later delivery does not erase them.
+No new control-read pause appeared in the reviewed root or regional jobs.
+
+The [evening read-only whole-bucket audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37233479169)
+passed with intact references and no incomplete/superseded runs. Physical usage
+plus upload/headroom and the complete retained overlap envelope fit the unchanged
+approved guard. The existing-layer reservation remains sufficient and unchanged.
+Exact account figures remain private.
+
+Passage production deployment `aa040084-8a56-4799-857c-ad8c729f523a` succeeded
+on `0915e4c821419cee25ef14c342f9c5ef838bc824`, with all three regional models
+still enabled. Its [required CI](https://github.com/deepregatta/passage/actions/runs/37233008589)
+passed all four jobs. The morning independent exports and attribution checks
+remain dated evidence; fresh consumer checks are still required before promotion.
+GitHub and Worker full cadence both read back false. Observation continues with
+all starts, two-cycle profiles, prior failures and validation history preserved.
