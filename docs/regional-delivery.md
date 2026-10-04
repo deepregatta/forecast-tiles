@@ -578,3 +578,78 @@ Its [latest CI](https://github.com/deepregatta/passage/actions/runs/37152627848)
 still fails only at the previously reported dependency audit, while browser
 and Python jobs pass. This gate remains open. GitHub and Worker full cadence
 are still false; observation and quiet twice-daily monitoring continue.
+
+## Control-read delivery incident, 2026-10-04
+
+The [scheduled ICON-EU 00Z attempt](https://github.com/deepregatta/forecast-tiles/actions/runs/37174061949)
+exited zero but did **not** publish. Required source variables became ready
+at 03:42:29 UTC, after the resolver correctly waited for their inventory.
+The subsequent spending-control read returned `control state unavailable`;
+the attempt was recorded as paused at 03:43:50 UTC, before any tile upload.
+The original log does not expose the exception type, so its precise transport
+cause remains unknown. A fresh control read showed valid admission policy;
+no owner pause, allowance change or lease clearing was used for recovery.
+
+The [guarded manual recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37187079023)
+published at **2026-10-04 07:54:46.640741 UTC**, with all thirteen validation
+checks passing and a confirmed pointer commit. It retained October 3 12Z as
+previous. Its 60 tiles stayed within the registered compressed and decoded
+limits. This recovery ran on `176beb7`, before the read repair described below.
+The 04:20 UTC deadline was missed: this slot is **late** in both ICON-EU
+windows, never counted as a timely delivery.
+
+ICON-EU's original window now contains one on-time and two late deliveries,
+with a maximum possible **12/14** on time. Its owner-approved October 3–10
+recheck contains one on-time and one late delivery, with a maximum **13/14**.
+Neither can reach 95%. Both starts, both windows and every attempt are retained.
+A further separate recheck awaits an owner decision after repair verification;
+there is no automatic reset. AROME and UKV each have three on-time deliveries
+and retain their original windows. Seven elapsed days remain mandatory.
+
+The same generic control-read failure also paused
+[GEFS October 3 18Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37164416190)
+at 01:37:53 UTC and
+[ECMWF October 4 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37185512740)
+at 07:35:54 UTC after their provider waits. These green workflows were not
+publications. GEFS 00Z subsequently published; its missing 18Z slot remains
+a historical delivery gap, and the older cycle must not replace current 00Z.
+An [explicit guarded ECMWF recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37187443477)
+was dispatched without changing spending policy. Its actual publication
+evidence, rather than workflow status alone, is retained in the status record.
+
+Forecast `dba89e2` adds at most three idempotent control GET/stream attempts for
+transient transport failures and HTTP 408/429/500/502/503/504 responses, closing
+each body before retry and waiting one then two seconds. Missing, unauthorized,
+malformed or oversized control remains paused. Exception diagnostics expose
+only the class. Uncertain admission PUTs are never retried; owner pause,
+spending allowances, leases, capacity guard and reservations are unchanged.
+The canonical Oscar copy (`9f6d009c`) and Passage vendor (`1c324e4`) carry the
+same implementation, verified by AST; the write method is unchanged by AST.
+
+Eight regressions failed before the repair. After it, local verification
+passed **386 forecast Python tests**, shared-contract checks, Ruff, dispatcher
+typecheck and **60 dispatcher tests**; **1,535 Oscar Python tests** (four
+skipped) and Ruff; and **537 Passage Python tests** and Ruff. Oscar's local
+image check could not run because Docker is unavailable, but its
+[hosted image build and deterministic offline smoke](https://github.com/deepregatta/oscar/actions/runs/37187803132)
+passed. [Forecast repair CI](https://github.com/deepregatta/forecast-tiles/actions/runs/37187844842)
+passed. [Passage repair CI](https://github.com/deepregatta/passage/actions/runs/37187841701)
+still fails the required dependency audit; passing Python/shared-contract
+jobs do not waive that failure. Detailed final job states are in the status
+record. No Oscar production deployment is claimed by the shared-library sync.
+
+Actions history was paginated through the earliest original start. Thirty
+original attempt reports are retained with artifact identities and hashes;
+no reports are missing. Both catalogues and all 20 current/previous manifests
+pass canonical schemas and identity checks. The seven root layers remain
+present, with the delivery regressions above explicitly retained.
+The [read-only whole-bucket audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37186842467)
+passed with intact references and no abandoned runs at its checkpoint.
+The measured physical and complete overlap envelopes fit the unchanged
+approved guard; the retained existing-layer reservation still covers the
+refreshed profile. Exact account figures remain private.
+
+Passage production deployment `5d765a3b-7bf0-4d24-945a-f13b46f501a1` succeeded
+for `1c324e4`, retaining all three regional models. Current export and
+attribution checks must be repeated before promotion. GitHub and Worker
+full-cadence flags remain false. The heartbeat remains twice daily.
