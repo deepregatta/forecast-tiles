@@ -14,6 +14,10 @@ open full regional cadence, change IAM, provision a ledger, delete data, or
 change the existing `ops/paid-work.json` usage. Dated account inventory and
 financial assumptions remain in private operator evidence, outside this repo.
 
+[Coordinated rollout](storage-rollout.md) covers D01 release ordering, read-only
+paused policy preparation, preservation of existing debits and unresolved GCS,
+native-only and legacy-writer gates. Preparation does not authorize activation.
+
 ## Two independent controls
 
 `MAX_BUCKET_BYTES` remains the retained forecast tile guard. Its fallback now

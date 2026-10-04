@@ -89,6 +89,7 @@ Maintained documentation: [shared contract ownership and drift checks](docs/shar
 [IBI geometry and horizon](docs/ibi-currents.md),
 [spending controls](docs/paid-work.md),
 [shared storage admission and staged rollout](docs/storage-admission.md),
+[coordinated policy preparation and rollout](docs/storage-rollout.md),
 [checksum phase measurements](docs/checksum-profile.md),
 [routing index](docs/land-index-format.md). The
 [regional access assessment](docs/regional-model-access.md) and
