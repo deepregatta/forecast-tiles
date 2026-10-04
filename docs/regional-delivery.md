@@ -602,8 +602,8 @@ ICON-EU's original window now contains one on-time and two late deliveries,
 with a maximum possible **12/14** on time. Its owner-approved October 3–10
 recheck contains one on-time and one late delivery, with a maximum **13/14**.
 Neither can reach 95%. Both starts, both windows and every attempt are retained.
-A further separate recheck awaits an owner decision after repair verification;
-there is no automatic reset. AROME and UKV each have three on-time deliveries
+A further separate recheck was requested after repair verification; the
+subsequent owner approval and new window are recorded below. AROME and UKV each have three on-time deliveries
 and retain their original windows. Seven elapsed days remain mandatory.
 
 The same generic control-read failure also paused
@@ -661,3 +661,27 @@ Passage production deployment `5d765a3b-7bf0-4d24-945a-f13b46f501a1` succeeded
 for `1c324e4`, retaining all three regional models. Current export and
 attribution checks must be repeated before promotion. GitHub and Worker
 full-cadence flags remain false. The heartbeat remains twice daily.
+
+## Approved further ICON-EU recheck, 2026-10-04
+
+The owner approved the separate recheck after the control-read repair passed
+its relevant local and hosted gates, and directed autonomous continuation of
+the authorized Release 1 acceptance work. The selected ICON-EU window is now
+`post-control-read-repair`, from **2026-10-04 09:05:12 UTC** to
+**2026-10-11 09:05:12 UTC (11:05:12 Europe/Paris)**. The original October 2
+window and the October 3 readiness-repair window remain intact and continue
+to be scored separately, with all failed/paused attempts and late recoveries.
+The historical `recheck_started_at` still refers to the October 3 window;
+the selected window and `current_recheck_started_at` identify the new one.
+
+The new window has fourteen scheduled slots, starting with October 4 12Z
+(dispatch 15:25 UTC, delivery deadline 16:20 UTC). The October 4 00Z manual
+recovery predates this schedule, used pre-repair source and contributes no
+timely cycle. All fourteen slots must be on time, and all seven days must
+elapse before this gate can pass. AROME and UKV retain their original starts.
+
+Routine recovery and further separately recorded rechecks after verified
+fixes proceed within the owner's direction to continue autonomously, retaining
+all earlier evidence. Duration, timeliness, required validation, invalid-run,
+capacity and consumer gates remain mandatory. Full cadence stays disabled
+until every gate passes; later model expansion remains an owner decision.

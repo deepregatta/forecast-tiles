@@ -1,5 +1,5 @@
 {
-  "status": "AROME/UKV observing original windows; both ICON-EU windows cannot meet 95%; guarded recovery published late; further window awaits owner decision",
+  "status": "AROME/UKV observing original windows; ICON-EU observing separately owner-approved post-control-read-repair window; both earlier failed windows and every miss retained",
   "started_on": "2026-10-02",
   "observation_days": 7,
   "minimum_on_time_fraction": 0.95,
@@ -56,7 +56,7 @@
         "attribution": "verified in live Passage"
       },
       "recheck_started_at": "2026-10-03T08:00:06.350599+00:00",
-      "active_acceptance_window": "post-readiness-repair",
+      "active_acceptance_window": "post-control-read-repair",
       "acceptance_windows": {
         "original": {
           "started_at": "2026-10-02T21:09:26.449084+00:00",
@@ -106,6 +106,33 @@
             "2026-10-04T00:00:00+00:00"
           ],
           "maximum_possible_on_time_fraction": "13/14"
+        },
+        "post-control-read-repair": {
+          "started_at": "2026-10-04T09:05:12+00:00",
+          "observation_ends_at": "2026-10-11T09:05:12+00:00",
+          "expected_cycles": 14,
+          "status": "observing",
+          "owner_approval": "Owner approved the further separate recheck on 2026-10-04 and directed autonomous continuation of the authorized acceptance work",
+          "bootstrap_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37187079023",
+          "bootstrap_in_scheduled_score": false,
+          "bootstrap_precedes_read_repair": true,
+          "repair_commit": "dba89e27684f4732d0c6692875a4c4fff8a47130",
+          "repair_ci_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37187844842",
+          "first_expected_cycle": "2026-10-04T12:00Z",
+          "first_scheduled_at": "2026-10-04T15:25:00+00:00",
+          "first_deadline": "2026-10-04T16:20:00+00:00",
+          "counts": {
+            "on_time": 0,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 14,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
         }
       },
       "recovery_consumer_export": {
@@ -129,7 +156,8 @@
         "attribution": "Deutscher Wetterdienst ICON-EU via Open-Meteo; CC BY 4.0 verified in live Passage in both languages",
         "independent_validation": "all GRIB2 messages date 20261003 time 00; u/v/gust parameter numbers 2/3/22; gust windows one hour"
       },
-      "pending_owner_decision": "Further separate seven-day recheck after verified read repair; preserve original and approved October 3 windows and every miss"
+      "pending_owner_decision": null,
+      "current_recheck_started_at": "2026-10-04T09:05:12+00:00"
     },
     "weather-ukv": {
       "observation_started_at": "2026-10-02T21:22:06.887353+00:00",
@@ -183,7 +211,7 @@
     "result": "four checks passed; prefix cleaned"
   },
   "remaining_acceptance": [
-    "AROME/UKV require seven elapsed days and at least 95% on time in original windows. Both retained ICON-EU windows cannot reach 95%; a further separately recorded window requires an owner decision. Continue scoring every approved window and preserving every miss.",
+    "AROME/UKV require seven elapsed days and at least 95% on time in their original windows. ICON-EU uses its owner-approved post-control-read-repair seven-day window starting 2026-10-04T09:05:12+00:00; fourteen timely scheduled cycles are mandatory. Continue scoring both earlier ICON-EU windows and preserving every miss.",
     "No invalid publication; unknown evidence cannot pass.",
     "Resolve recorded existing-layer delivery regressions and verify subsequent scheduled root/regional replacement, retry and current/previous integrity after the read repair; retain historical gaps.",
     "Refresh capacity across representative cycles; both catalogues and whole-bucket overlap must still fit the approved guard.",
@@ -645,6 +673,117 @@
         "result": "Whole-bucket physical usage and complete overlap envelope fit unchanged approved guard; existing-layer reservation covers refreshed profile; no control changes applied",
         "damaged_references": false
       }
+    },
+    {
+      "reviewed_at": "2026-10-04T09:06:16.532938+00:00",
+      "event": "owner-approved further separate ICON-EU recheck",
+      "models": {
+        "weather-arome": {
+          "started_at": "2026-10-02T20:49:47.207117+00:00",
+          "observation_ends_at": "2026-10-09T20:49:47.207117+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 3,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 11,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-icon-eu": {
+          "started_at": "2026-10-02T21:09:26.449084+00:00",
+          "observation_ends_at": "2026-10-09T21:09:26.449084+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 1,
+            "late": 2,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 11,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-ukv": {
+          "started_at": "2026-10-02T21:22:06.887353+00:00",
+          "observation_ends_at": "2026-10-09T21:22:06.887353+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 3,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 11,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        }
+      },
+      "icon_eu_acceptance_windows": {
+        "original": {
+          "started_at": "2026-10-02T21:09:26.449084+00:00",
+          "observation_ends_at": "2026-10-09T21:09:26.449084+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 1,
+            "late": 2,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 11,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "post-readiness-repair": {
+          "started_at": "2026-10-03T08:00:06.350599+00:00",
+          "observation_ends_at": "2026-10-10T08:00:06.350599+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 1,
+            "late": 1,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 12,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "post-control-read-repair": {
+          "started_at": "2026-10-04T09:05:12+00:00",
+          "observation_ends_at": "2026-10-11T09:05:12+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 0,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 14,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        }
+      },
+      "full_cadence_enabled": false
     }
   ],
   "incidents": [
@@ -756,7 +895,9 @@
           }
         }
       },
-      "owner_decision": "Awaiting owner decision on a further separate seven-day recheck after repair verification; no automatic reset"
+      "owner_decision": "Owner approved a further separate seven-day recheck on 2026-10-04 and instructed autonomous continuation; no history or earlier window reset",
+      "additional_recheck_started_at": "2026-10-04T09:05:12+00:00",
+      "additional_recheck_ends_at": "2026-10-11T09:05:12+00:00"
     },
     {
       "layer": "ensemble",
@@ -1130,5 +1271,9 @@
       "pointer_commit_confirmed": true,
       "report_sha256": "a8c19ddd3f7638861a6d927f9fbbf8a2928db0e0eacdbd0df7f41a8af15cb91c"
     }
-  ]
+  ],
+  "acceptance_authorization": {
+    "recorded_at": "2026-10-04T09:05:12+00:00",
+    "scope": "Continue authorized Release 1 acceptance autonomously, including routine recovery and separately recorded rechecks after verified fixes; preserve every prior window and miss. No relaxation of duration, timeliness, invalid-publication, required validation, capacity or consumer gates. Later model expansion remains an owner decision."
+  }
 }
