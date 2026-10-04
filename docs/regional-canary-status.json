@@ -187,21 +187,136 @@
   },
   "consumer": {
     "production_url": "https://passage.deepregatta.com",
-    "commit": "5a5cc046e03c4ec36380654d1ab3789b04321b5e",
-    "ci_url": "https://github.com/deepregatta/passage/actions/runs/37108941963",
-    "pages_deployment_id": "b8e605d2-2c0e-4245-8a2c-973e8deca6b5",
-    "ci_status": "failed: existing unpatched build dependency advisory; 72 browser and 512 Python tests passed",
+    "commit": "97eb0938359aa45b3b26f91e10d99832a7a9408d",
+    "ci_url": "https://github.com/deepregatta/passage/actions/runs/37192475185",
+    "pages_deployment_id": "8fc54c6b-c9ac-4f6c-84bc-6cdfa76bea85",
+    "ci_status": "passed: javascript (including full npm audit), browser, Python and shared contracts",
     "production_deployment_status": "success",
-    "local_validation": "450 engine and 535 viewer tests; 84 targeted gust/export/i18n tests; lint and production build passed",
-    "production_copy": "model-neutral one-hour maximum gust notice verified in English and French",
+    "local_validation": "Clean npm ci, full audit (zero vulnerabilities), lint, 513 engine and 595 viewer tests, 106 desktop/mobile browser checks and production build passed; screenshot/demo fixtures unchanged",
+    "production_copy": "One-hour maximum gust notice for AROME/ICON-EU and UKV instantaneous semantics verified in English and French",
     "current_deployment_readback": {
-      "verified_at": "2026-10-04T08:13:15.578602+00:00",
-      "commit": "1c324e4b26dc95ab26a728374097a8b4f616cf85",
-      "pages_deployment_id": "5d765a3b-7bf0-4d24-945a-f13b46f501a1",
+      "verified_at": "2026-10-04T09:40:30.263147+00:00",
+      "commit": "97eb0938359aa45b3b26f91e10d99832a7a9408d",
+      "pages_deployment_id": "8fc54c6b-c9ac-4f6c-84bc-6cdfa76bea85",
       "production_deployment_status": "success",
       "enabled_models": "weather-arome,weather-icon-eu,weather-ukv",
-      "ci_url": "https://github.com/deepregatta/passage/actions/runs/37187841701",
-      "ci_status": "Required npm audit remains failed; detailed current hosted job states in read-repair evidence. No waiver."
+      "ci_url": "https://github.com/deepregatta/passage/actions/runs/37192475185",
+      "ci_status": "passed: all four required hosted jobs"
+    },
+    "initial_canary_checkpoint": {
+      "commit": "5a5cc046e03c4ec36380654d1ab3789b04321b5e",
+      "ci_url": "https://github.com/deepregatta/passage/actions/runs/37108941963",
+      "pages_deployment_id": "b8e605d2-2c0e-4245-8a2c-973e8deca6b5",
+      "ci_status": "failed: existing unpatched build dependency advisory; 72 browser and 512 Python tests passed",
+      "production_deployment_status": "success",
+      "local_validation": "450 engine and 535 viewer tests; 84 targeted gust/export/i18n tests; lint and production build passed",
+      "production_copy": "model-neutral one-hour maximum gust notice verified in English and French"
+    },
+    "current_exports": {
+      "verified_at": "2026-10-04T09:33:54.852Z",
+      "gust_notice_verified_at": "2026-10-04T09:34:50.931Z",
+      "production_url": "https://passage.deepregatta.com/#plan/grib?area=48,49,-5,-4",
+      "results": [
+        {
+          "model": "arome",
+          "filename": "passage_wind-arome_20261004T03Z_N48W005_N49W004.grb2",
+          "bytes": 120360,
+          "sha256": "ca2929a0af250204b2f1a510092bc6d8f2c0da064276c4f38e27b0646c2d76c5",
+          "attribution": "Météo-France AROME",
+          "transfers": [
+            {
+              "url": "https://forecast.deepregatta.com/forecast-runs/weather-arome-20261004T03Z/weather-arome/grid-0p025/N45W005.bin.gz",
+              "status": 200
+            }
+          ],
+          "gust_notice": true,
+          "french_attribution": "Météo-France AROME",
+          "gust_ui_semantics": "one-hour maximum interval notice verified in English and French",
+          "independent_grib_validation": {
+            "model": "arome",
+            "messages": 75,
+            "times": 25,
+            "grid_points": [
+              1681
+            ],
+            "cycle_date": 20261004,
+            "cycle_time": 300,
+            "gust_step_type": "max",
+            "gust_template": 8,
+            "first_gust_interval": [
+              5,
+              6
+            ]
+          }
+        },
+        {
+          "model": "icon-eu",
+          "filename": "passage_wind-icon-eu_20261004T00Z_N48W005_N49W004.grb2",
+          "bytes": 30048,
+          "sha256": "c4d4ccb40ecb89c3705683aeba0d19cd4a6df57fe7d57042addaf6b0fefa427b",
+          "attribution": "Deutscher Wetterdienst ICON-EU",
+          "transfers": [
+            {
+              "url": "https://forecast.deepregatta.com/forecast-runs/weather-icon-eu-20261004T00Z/weather-icon-eu/grid-0p0625/N40W010.bin.gz",
+              "status": 200
+            }
+          ],
+          "gust_notice": true,
+          "french_attribution": "Deutscher Wetterdienst ICON-EU",
+          "gust_ui_semantics": "one-hour maximum interval notice verified in English and French",
+          "independent_grib_validation": {
+            "model": "icon-eu",
+            "messages": 75,
+            "times": 25,
+            "grid_points": [
+              289
+            ],
+            "cycle_date": 20261004,
+            "cycle_time": 0,
+            "gust_step_type": "max",
+            "gust_template": 8,
+            "first_gust_interval": [
+              8,
+              9
+            ]
+          }
+        },
+        {
+          "model": "ukv",
+          "filename": "passage_wind-ukv_20261004T00Z_N48W005_N49W004.grb2",
+          "bytes": 113460,
+          "sha256": "1b3b978be5256469d07d6be236a3e720d50ddad8fbcb6da204e6ddfaeb9778b5",
+          "attribution": "British Crown copyright",
+          "transfers": [
+            {
+              "url": "https://forecast.deepregatta.com/forecast-runs/weather-ukv-20261004T00Z/weather-ukv/grid-0p025/N48W006.bin.gz",
+              "status": 200
+            }
+          ],
+          "gust_notice": false,
+          "french_attribution": "copyright de la Couronne britannique",
+          "gust_ui_semantics": "instantaneous UKV; no maximum interval notice",
+          "independent_grib_validation": {
+            "model": "ukv",
+            "messages": 75,
+            "times": 25,
+            "grid_points": [
+              1681
+            ],
+            "cycle_date": 20261004,
+            "cycle_time": 0,
+            "gust_step_type": "instant",
+            "gust_template": 0,
+            "first_gust_interval": [
+              9,
+              9
+            ]
+          }
+        }
+      ],
+      "bilingual_attribution": "English/French credits and UKV CC BY-SA 4.0 verified",
+      "viewport_checks": "1568px desktop and 390px mobile; no horizontal page overflow",
+      "page_errors": []
     }
   },
   "dispatcher_version_id": "d1c8d08a-ad6f-4705-b141-21307134b868",
@@ -216,7 +331,7 @@
     "Resolve recorded existing-layer delivery regressions and verify subsequent scheduled root/regional replacement, retry and current/previous integrity after the read repair; retain historical gaps.",
     "Refresh capacity across representative cycles; both catalogues and whole-bucket overlap must still fit the approved guard.",
     "Repeat current production consumer/attribution checks before full-cadence promotion.",
-    "Resolve the required Passage dependency audit and obtain passing hosted CI before promoting full cadence; current overall CI must not be described as passed."
+    "Keep current required hosted validation passing before full-cadence promotion; the previously failed Passage audit is resolved without a waiver."
   ],
   "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37188468153",
   "root_readback": {
@@ -784,6 +899,23 @@
         }
       },
       "full_cadence_enabled": false
+    },
+    {
+      "reviewed_at": "2026-10-04T09:40:30.263147+00:00",
+      "scope": "Passage required dependency audit resolution",
+      "passage_commit": "97eb0938359aa45b3b26f91e10d99832a7a9408d",
+      "workflow_url": "https://github.com/deepregatta/passage/actions/runs/37192475185",
+      "result": "Full audit zero vulnerabilities and all four required hosted jobs passed; current regional exports independently decoded and bilingual attribution checked; all prior failed checks retained",
+      "production_deployment_id": "8fc54c6b-c9ac-4f6c-84bc-6cdfa76bea85",
+      "consumer_verified_at": "2026-10-04T09:33:54.852Z",
+      "full_cadence_enabled": false,
+      "acceptance_windows": "unchanged; AROME/UKV original windows and all three ICON-EU windows retained",
+      "artifact_review": {
+        "history_pages": 2,
+        "reviewed_reports": 33,
+        "missing_reports": [],
+        "new_outcomes": "Three already-published skips in 37190024725; no new publication or timely credit; all five window scores unchanged"
+      }
     }
   ],
   "incidents": [
@@ -959,17 +1091,7 @@
     },
     "result": "Three current/previous pairs valid; AROME/UKV scheduled replacement timely; ICON-EU manual recovery replaced previous late"
   },
-  "unresolved_validation": [
-    {
-      "check": "Passage required npm audit",
-      "workflow_url": "https://github.com/deepregatta/passage/actions/runs/37108941963",
-      "advisory": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
-      "dependency_path": "Tailwind CSS 3 -> braces 3.0.3 (development/build dependency)",
-      "status": "audit failed; no patched braces release available at this checkpoint",
-      "runtime_dependency_audit": "npm audit --omit=dev passed with zero vulnerabilities; full audit is still unresolved",
-      "required_before_full_cadence": true
-    }
-  ],
+  "unresolved_validation": [],
   "reviewed_receipts": [
     {
       "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37062808393",
@@ -1270,10 +1392,90 @@
       "finished_at": "2026-10-04T07:54:46.640741+00:00",
       "pointer_commit_confirmed": true,
       "report_sha256": "a8c19ddd3f7638861a6d927f9fbbf8a2928db0e0eacdbd0df7f41a8af15cb91c"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37190024725",
+      "artifact": "weather-arome-attempt-37190024725-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-04T03:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-04T08:47:09.961501+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "c4d0947a53708c8d6db23fab3f68bb0a3362f745161fbb9fc89ff564b8d31391"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37190024725",
+      "artifact": "weather-ukv-attempt-37190024725-1",
+      "layer": "weather-ukv",
+      "cycle": "2026-10-04T00:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-04T08:47:35.512889+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "233af23469e3d5150ee28990d03fecd43d1f0d8a2352c01e03ae23320cf71557"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37190024725",
+      "artifact": "weather-icon-eu-attempt-37190024725-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-04T00:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-04T08:47:23.166590+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "856dfe06be2119fddc49db2c999c05a245c650eaa368f7597d0244d9b93371cb"
     }
   ],
   "acceptance_authorization": {
     "recorded_at": "2026-10-04T09:05:12+00:00",
     "scope": "Continue authorized Release 1 acceptance autonomously, including routine recovery and separately recorded rechecks after verified fixes; preserve every prior window and miss. No relaxation of duration, timeliness, invalid-publication, required validation, capacity or consumer gates. Later model expansion remains an owner decision."
-  }
+  },
+  "resolved_validation": [
+    {
+      "check": "Passage required npm audit",
+      "status": "resolved: vulnerable build dependency chain removed; full required hosted CI passed; no waiver",
+      "resolved_at": "2026-10-04T09:40:30.263147+00:00",
+      "original_failed_gate": {
+        "check": "Passage required npm audit",
+        "workflow_url": "https://github.com/deepregatta/passage/actions/runs/37108941963",
+        "advisory": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+        "dependency_path": "Tailwind CSS 3 -> braces 3.0.3 (development/build dependency)",
+        "status": "audit failed; no patched braces release available at this checkpoint",
+        "runtime_dependency_audit": "npm audit --omit=dev passed with zero vulnerabilities; full audit is still unresolved",
+        "required_before_full_cadence": true
+      },
+      "commit": "97eb0938359aa45b3b26f91e10d99832a7a9408d",
+      "workflow_url": "https://github.com/deepregatta/passage/actions/runs/37192475185",
+      "hosted_jobs": {
+        "javascript": {
+          "status": "completed",
+          "conclusion": "success"
+        },
+        "browser": {
+          "status": "completed",
+          "conclusion": "success"
+        },
+        "shared-contracts": {
+          "status": "completed",
+          "conclusion": "success"
+        },
+        "python": {
+          "status": "completed",
+          "conclusion": "success"
+        }
+      },
+      "full_audit_vulnerabilities": 0,
+      "remediation": "Pinned Tailwind CSS and @tailwindcss/postcss 4.3.3; removed Autoprefixer and the Tailwind 3 path through braces; retained existing visual metrics",
+      "local_validation": {
+        "clean_install": "passed",
+        "full_npm_audit": "zero vulnerabilities",
+        "lint": "passed",
+        "engine_tests": 513,
+        "viewer_tests": 595,
+        "desktop_mobile_browser_tests": 106,
+        "production_build": "passed",
+        "screenshot_demo_fixtures": "unchanged"
+      },
+      "production_deployment_id": "8fc54c6b-c9ac-4f6c-84bc-6cdfa76bea85",
+      "consumer_verified_at": "2026-10-04T09:33:54.852Z"
+    }
+  ]
 }

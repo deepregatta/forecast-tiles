@@ -685,3 +685,47 @@ fixes proceed within the owner's direction to continue autonomously, retaining
 all earlier evidence. Duration, timeliness, required validation, invalid-run,
 capacity and consumer gates remain mandatory. Full cadence stays disabled
 until every gate passes; later model expansion remains an owner decision.
+
+
+## Required Passage audit resolved, 2026-10-04
+
+Passage [`97eb093`](https://github.com/deepregatta/passage/commit/97eb0938359aa45b3b26f91e10d99832a7a9408d)
+removes the Tailwind 3 build chain through the unpatched `braces` advisory
+[GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
+Tailwind CSS and its PostCSS plugin are pinned to 4.3.3. Compatibility rules
+retain the existing typography, divider sides, control corners, native date
+metrics, hover borders and focus outlines. Browser link assertions follow the
+configured demo origin, allowing isolated local checks without occupying an
+existing application's port. Committed screenshot and demo fixtures remain
+unchanged.
+
+A clean install and full `npm audit` report **zero vulnerabilities**; lint,
+**513 engine tests**, **595 viewer tests**, **106 desktop/mobile browser checks**
+and the production build pass locally. All four required jobs in
+[Passage CI](https://github.com/deepregatta/passage/actions/runs/37192475185)
+pass, including the full audit. The original failed audit and later failed
+checkpoints remain in the cumulative record; no audit waiver was used.
+
+Production deployment `8fc54c6b-c9ac-4f6c-84bc-6cdfa76bea85` succeeded for the same commit,
+retaining all three regional models. Fresh live Passage exports for October 4
+AROME 03Z, ICON-EU 00Z and UKV 00Z each contain **75 GRIB2 messages across 25
+hourly times** over 48–49°N, 5–4°W. Independent ecCodes decoding confirms cycle
+identity and u/v/gust parameters: AROME and ICON-EU gusts use template 8 with
+one-hour maximum intervals; UKV uses instantaneous template 0. Export sizes
+are 120,360 / 30,048 / 113,460 bytes respectively; exact SHA-256 receipts are
+in the status record. Each regional tile request returned HTTP 200. Credits,
+UKV CC BY-SA terms and gust semantics pass in English and French, and the
+390px mobile page has no horizontal overflow or uncaught page errors.
+
+This resolves the required dependency gate. Delivery observation continues
+through the selected ICON-EU window ending October 11 at 09:05:12 UTC;
+AROME/UKV starts, all earlier ICON-EU windows, misses, capacity policy and
+full-cadence gates are unchanged. Current consumer and required hosted checks
+must still pass at promotion.
+
+A final history refresh paginated two pages back to the original start and
+retained **33 original attempt reports** with no missing reports. The three
+additional artifacts from [37190024725](https://github.com/deepregatta/forecast-tiles/actions/runs/37190024725)
+are already-published skips for AROME 03Z and ICON-EU/UKV 00Z; they contribute
+no publication or timely credit. All five scored observation windows retain
+their previous counts, including both failed ICON-EU windows.
