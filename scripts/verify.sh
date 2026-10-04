@@ -28,6 +28,7 @@ if [[ "$verify_scope" == all || "$verify_scope" == python ]]; then
   run .venv/bin/python scripts/check_shared_contracts.py
   run .venv/bin/python scripts/check_storage_admission.py
   run .venv/bin/python -m unittest discover -s scripts -p test_shared_contracts.py
+  run .venv/bin/python -m unittest discover -s scripts -p test_action_refs.py
   echo "Offline suite: excluding tests/test_r2_conditional.py (live R2 writes)."
   run env -u R2_TEST_PREFIX .venv/bin/python -m pytest -q --ignore=tests/test_r2_conditional.py
   run .venv/bin/ruff check .

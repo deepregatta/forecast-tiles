@@ -82,6 +82,7 @@ proof is a separate operator gate, not part of offline CI. No ingestion,
 deployment or provider writes are performed by the wrapper.
 
 Maintained documentation: [shared contract ownership and drift checks](docs/shared-contracts.md),
+[GitHub Actions pins, verified updates and proposed main protection](docs/github-actions.md),
 [regional operations and evidence](docs/regional-delivery.md),
 [canary status](docs/regional-canary-status.json),
 [regional implementation plan](docs/open-meteo-bulk-implementation-plan.md),
