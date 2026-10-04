@@ -613,9 +613,12 @@ at 01:37:53 UTC and
 at 07:35:54 UTC after their provider waits. These green workflows were not
 publications. GEFS 00Z subsequently published; its missing 18Z slot remains
 a historical delivery gap, and the older cycle must not replace current 00Z.
-An [explicit guarded ECMWF recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37187443477)
-was dispatched without changing spending policy. Its actual publication
-evidence, rather than workflow status alone, is retained in the status record.
+The [explicit guarded ECMWF recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37187443477)
+confirmed publication to R2 at **08:15:58 UTC**, with twelve validation checks
+passing and 648 tiles. Fresh root readback and schema checks verify current
+October 4 00Z and previous October 3 12Z. Its paused scheduled attempt remains
+in the cumulative record. This recovery used the pre-repair source;
+subsequent scheduled delivery must demonstrate the repair in operation.
 
 Forecast `dba89e2` adds at most three idempotent control GET/stream attempts for
 transient transport failures and HTTP 408/429/500/502/503/504 responses, closing
@@ -632,11 +635,13 @@ typecheck and **60 dispatcher tests**; **1,535 Oscar Python tests** (four
 skipped) and Ruff; and **537 Passage Python tests** and Ruff. Oscar's local
 image check could not run because Docker is unavailable, but its
 [hosted image build and deterministic offline smoke](https://github.com/deepregatta/oscar/actions/runs/37187803132)
-passed. [Forecast repair CI](https://github.com/deepregatta/forecast-tiles/actions/runs/37187844842)
+passed, and Oscar's full hosted CI passed.
+[Forecast repair CI](https://github.com/deepregatta/forecast-tiles/actions/runs/37187844842)
 passed. [Passage repair CI](https://github.com/deepregatta/passage/actions/runs/37187841701)
-still fails the required dependency audit; passing Python/shared-contract
-jobs do not waive that failure. Detailed final job states are in the status
-record. No Oscar production deployment is claimed by the shared-library sync.
+still fails the required dependency audit; passing Python, shared-contract
+and browser jobs do not waive that failure. Detailed final job states are in
+the status record. No Oscar production deployment is claimed by the
+shared-library sync.
 
 Actions history was paginated through the earliest original start. Thirty
 original attempt reports are retained with artifact identities and hashes;
@@ -648,6 +653,9 @@ passed with intact references and no abandoned runs at its checkpoint.
 The measured physical and complete overlap envelopes fit the unchanged
 approved guard; the retained existing-layer reservation still covers the
 refreshed profile. Exact account figures remain private.
+The [audit repeated after both recoveries](https://github.com/deepregatta/forecast-tiles/actions/runs/37188468153)
+also passed, with intact references and no incomplete or superseded runs;
+physical usage and complete overlap still fit without any policy change.
 
 Passage production deployment `5d765a3b-7bf0-4d24-945a-f13b46f501a1` succeeded
 for `1c324e4`, retaining all three regional models. Current export and

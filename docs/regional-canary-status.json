@@ -185,15 +185,15 @@
   "remaining_acceptance": [
     "AROME/UKV require seven elapsed days and at least 95% on time in original windows. Both retained ICON-EU windows cannot reach 95%; a further separately recorded window requires an owner decision. Continue scoring every approved window and preserving every miss.",
     "No invalid publication; unknown evidence cannot pass.",
-    "Verify actual scheduled replacement/retry, current/previous pointer integrity and unchanged existing-layer delivery.",
+    "Resolve recorded existing-layer delivery regressions and verify subsequent scheduled root/regional replacement, retry and current/previous integrity after the read repair; retain historical gaps.",
     "Refresh capacity across representative cycles; both catalogues and whole-bucket overlap must still fit the approved guard.",
     "Repeat current production consumer/attribution checks before full-cadence promotion.",
     "Resolve the required Passage dependency audit and obtain passing hosted CI before promoting full cadence; current overall CI must not be described as passed."
   ],
-  "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37186842467",
+  "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37188468153",
   "root_readback": {
-    "verified_at": "2026-10-04T08:13:15.578602+00:00",
-    "catalogue_updated_at": "2026-10-04T07:06:33Z",
+    "verified_at": "2026-10-04T08:18:03.891942+00:00",
+    "catalogue_updated_at": "2026-10-04T08:06:50Z",
     "layers": [
       "weather",
       "ensemble",
@@ -208,7 +208,7 @@
       "weather": "weather-20261004T00Z",
       "ensemble": "ensemble-20261004T00Z",
       "waves": "waves-20261004T00Z",
-      "weather-ecmwf": "weather-ecmwf-20261003T12Z",
+      "weather-ecmwf": "weather-ecmwf-20261004T00Z",
       "currents": "currents-20261004T00Z",
       "currents-ibi": "currents-ibi-20261003T00Z",
       "weather-ecmwf-short": "weather-ecmwf-short-20261003T18Z"
@@ -450,7 +450,7 @@
       }
     },
     {
-      "reviewed_at": "2026-10-04T08:13:15.578602+00:00",
+      "reviewed_at": "2026-10-04T08:20:23.950349+00:00",
       "models": {
         "weather-arome": {
           "started_at": "2026-10-02T20:49:47.207117+00:00",
@@ -523,7 +523,7 @@
       },
       "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37186842467",
       "capacity_result": "Complete physical and overlap envelopes fit unchanged approved guard; retained existing-layer reservation covers refreshed profile; no control changes applied",
-      "existing_delivery": "All seven root layers retained; GEFS 18Z gap and ECMWF 00Z control-read pause are preserved as delivery regressions, with current recovery evidence below",
+      "existing_delivery": "All seven root layers retained; current ECMWF 00Z recovery confirmed published at 08:15:58 UTC with twelve validation checks passing. GEFS 18Z gap and both original control-read pauses retained.",
       "existing_delivery_incidents": [
         {
           "layer": "ensemble",
@@ -541,16 +541,24 @@
           "failed_at": "2026-10-04T07:35:54Z",
           "recovery_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37187443477",
           "recovery": {
-            "status": "in_progress",
-            "publication_confirmed": false,
-            "result": "Guarded recovery dispatched; awaiting actual publication log and fresh pointer readback. Green workflow status alone will not prove delivery."
+            "status": "completed",
+            "workflow_conclusion": "success",
+            "publication_confirmed": true,
+            "confirmed_publication_log_at": "2026-10-04T08:15:58.9669399Z",
+            "published_run_id": "weather-ecmwf-20261004T00Z",
+            "previous_run_id": "weather-ecmwf-20261003T12Z",
+            "validation_checks_passed": 12,
+            "tile_count": 648,
+            "readback_verified_at": "2026-10-04T08:18:03.891541+00:00",
+            "result": "Publication to R2 confirmed from job log; root pointer and current/previous manifests valid. Recovery used pre-repair source; historical paused attempt retained."
           }
         }
       ],
       "scheduled_replacement": "AROME 03Z and UKV 00Z timely; ICON-EU 00Z replacement valid but late; previous regional runs retained",
       "manifest_validation": {
         "current_previous_manifests": 20,
-        "result": "Both catalogues and current/previous manifests pass canonical schemas and run/layer identity checks"
+        "result": "Both catalogues and current/previous manifests pass canonical schemas and run/layer identity checks",
+        "verified_at": "2026-10-04T08:18:03.891942+00:00"
       },
       "artifact_review": {
         "history_pages": 2,
@@ -629,7 +637,14 @@
           }
         }
       },
-      "full_cadence_enabled": false
+      "full_cadence_enabled": false,
+      "post_recovery_capacity_audit": {
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37188468153",
+        "started_at": "2026-10-04T08:18:23.287203+00:00",
+        "finished_at": "2026-10-04T08:18:37.050176+00:00",
+        "result": "Whole-bucket physical usage and complete overlap envelope fit unchanged approved guard; existing-layer reservation covers refreshed profile; no control changes applied",
+        "damaged_references": false
+      }
     }
   ],
   "incidents": [
@@ -759,14 +774,21 @@
       "failed_at": "2026-10-04T07:35:54Z",
       "recovery_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37187443477",
       "recovery": {
-        "status": "in_progress",
-        "publication_confirmed": false,
-        "result": "Guarded recovery dispatched; awaiting actual publication log and fresh pointer readback. Green workflow status alone will not prove delivery."
+        "status": "completed",
+        "workflow_conclusion": "success",
+        "publication_confirmed": true,
+        "confirmed_publication_log_at": "2026-10-04T08:15:58.9669399Z",
+        "published_run_id": "weather-ecmwf-20261004T00Z",
+        "previous_run_id": "weather-ecmwf-20261003T12Z",
+        "validation_checks_passed": 12,
+        "tile_count": 648,
+        "readback_verified_at": "2026-10-04T08:18:03.891541+00:00",
+        "result": "Publication to R2 confirmed from job log; root pointer and current/previous manifests valid. Recovery used pre-repair source; historical paused attempt retained."
       }
     }
   ],
   "regional_readback": {
-    "verified_at": "2026-10-04T08:13:15.578602+00:00",
+    "verified_at": "2026-10-04T08:18:03.891942+00:00",
     "catalogue_updated_at": "2026-10-04T07:53:31Z",
     "layers": {
       "weather-arome": {
