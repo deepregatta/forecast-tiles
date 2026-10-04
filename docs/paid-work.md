@@ -29,7 +29,11 @@ Each channel names `daily_starts`, `min_interval_seconds`, and
 `max_run_seconds`. Usage is shared across channels. Each admission reserves
 the entire worst-case duration using R2 `If-Match`, before building or
 publishing. A lost response stops admission without refund; only a definite
-412 conflict is retried (six attempts maximum). SDK retries are disabled.
+412 conflict is retried (six attempts maximum). SDK retries are disabled. Control-document GET/stream transport failures and
+transient HTTP responses receive at most three read attempts with one/two-second
+backoff; response bodies close between attempts. Missing/denied objects and
+malformed/oversized documents stop immediately. Exhausted reads still close
+admission. Admission PUTs are never retried after an uncertain outcome.
 Completed, failed, timed-out and crashed runs retain their charged allowance.
 One active lease per channel lasts its reservation plus 60 seconds; optional
 `single_active=true` also serializes different channels.

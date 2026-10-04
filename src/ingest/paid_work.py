@@ -1,4 +1,4 @@
-# Vendored from oscar/cloud/recompute/paid_work.py, 2026-10-03.
+# Vendored from oscar/cloud/recompute/paid_work.py, 2026-10-04.
 """Persistent admission control for optional producers; no data-path changes.
 
 The operator provisions one reviewed JSON document in R2. Policy and usage live
@@ -51,6 +51,43 @@ def positive(value) -> float:
     return value
 
 
+def _retryable_control_read(error):
+    response = getattr(error, "response", None)
+    metadata = response.get("ResponseMetadata", {}) if isinstance(response, dict) else {}
+    status = metadata.get("HTTPStatusCode") if isinstance(metadata, dict) else None
+    if isinstance(error, (TimeoutError, ConnectionError)) or status in {
+        408,
+        429,
+        500,
+        502,
+        503,
+        504,
+    }:
+        return True
+    # SDK transport failures are not built-in TimeoutError subclasses. Keep
+    # this import optional for offline callers that never construct an S3 client.
+    try:
+        from botocore.exceptions import (
+            ConnectionClosedError,
+            ConnectTimeoutError,
+            EndpointConnectionError,
+            ReadTimeoutError,
+            ResponseStreamingError,
+        )
+    except ImportError:
+        return False
+    return isinstance(
+        error,
+        (
+            ConnectionClosedError,
+            ConnectTimeoutError,
+            EndpointConnectionError,
+            ReadTimeoutError,
+            ResponseStreamingError,
+        ),
+    )
+
+
 class Guard:
     def __init__(self, client, bucket: str, key="ops/paid-work.json", *, clock=time.time):
         self.client, self.bucket, self.key, self.clock = client, bucket, key, clock
@@ -79,14 +116,24 @@ class Guard:
             raise Paused("control client unavailable") from exc
 
     def read(self):
-        try:
-            result = self.client.get_object(Bucket=self.bucket, Key=self.key)
-            body = result["Body"].read(1_000_001)
-            if len(body) > 1_000_000:
-                raise ValueError("oversized control document")
-            return json.loads(body), result["ETag"]
-        except Exception as exc:
-            raise Paused("control state unavailable") from exc
+        # A source wait can outlive the pooled connection's idle lifetime.
+        # Retry only idempotent GET/stream failures, never admission PUTs.
+        for attempt in range(3):
+            try:
+                result = self.client.get_object(Bucket=self.bucket, Key=self.key)
+                body = result["Body"]
+                try:
+                    payload = body.read(1_000_001)
+                    if len(payload) > 1_000_000:
+                        raise ValueError("oversized control document")
+                    return json.loads(payload), result["ETag"]
+                finally:
+                    body.close()
+            except Exception as exc:
+                if attempt == 2 or not _retryable_control_read(exc):
+                    raise Paused(f"control state unavailable ({type(exc).__name__})") from exc
+                print(f"paid-work: retrying control read ({attempt + 1}/3, {type(exc).__name__})")
+                time.sleep(attempt + 1)
 
     def validate(self, doc):
         now = self.clock()
