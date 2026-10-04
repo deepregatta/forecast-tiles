@@ -88,6 +88,7 @@ Maintained documentation: [shared contract ownership and drift checks](docs/shar
 [regional implementation plan](docs/open-meteo-bulk-implementation-plan.md),
 [IBI geometry and horizon](docs/ibi-currents.md),
 [spending controls](docs/paid-work.md),
+[public endpoint, cache policy and read exposure](docs/public-read-policy.md),
 [shared storage admission and staged rollout](docs/storage-admission.md),
 [coordinated policy preparation and rollout](docs/storage-rollout.md),
 [checksum phase measurements](docs/checksum-profile.md),
@@ -193,8 +194,11 @@ The Phase 0 size-measurement prototype is still runnable:
    - `R2_ENDPOINT` — `https://<account-id>.r2.cloudflarestorage.com`
    - `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` — from the API token
    - `R2_BUCKET` — `passage-forecast`
-4. Enable public read for the bucket (r2.dev public development URL or a
-   custom domain) so the Passage client can fetch tiles.
+4. Use the custom domain `forecast.deepregatta.com` for production public reads,
+   with the [origin-based cache policy](docs/public-read-policy.md). The managed
+   `r2.dev` development URL bypasses those domain protections. Retiring an
+   existing URL requires consumer/legacy compatibility evidence and scoped
+   access approval; F02 preparation does not disable it.
 5. For both Copernicus current layers also add
    `COPERNICUSMARINE_SERVICE_USERNAME` and
    `COPERNICUSMARINE_SERVICE_PASSWORD` (free Copernicus Marine account).
