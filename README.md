@@ -81,7 +81,8 @@ both. It unsets `R2_TEST_PREFIX` and deliberately excludes
 proof is a separate operator gate, not part of offline CI. No ingestion,
 deployment or provider writes are performed by the wrapper.
 
-Maintained documentation: [regional operations and evidence](docs/regional-delivery.md),
+Maintained documentation: [shared contract ownership and drift checks](docs/shared-contracts.md),
+[regional operations and evidence](docs/regional-delivery.md),
 [canary status](docs/regional-canary-status.json),
 [regional implementation plan](docs/open-meteo-bulk-implementation-plan.md),
 [IBI geometry and horizon](docs/ibi-currents.md),

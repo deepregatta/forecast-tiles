@@ -1,0 +1,15 @@
+# Shared contract pins require stable checkout bytes, including on Windows.
+contracts/forecast-latest-regional.schema.json text eol=lf
+contracts/forecast-latest.schema.json text eol=lf
+contracts/forecast-manifest.schema.json text eol=lf
+contracts/forecast-tile.schema.json text eol=lf
+tests/fixtures/golden-N40W010-ensemble.bin.gz -text
+tests/fixtures/golden-N40W010-ensemble.expected.json text eol=lf
+tests/fixtures/golden-N40W010-weather.bin.gz -text
+tests/fixtures/golden-N40W010-weather.expected.json text eol=lf
+contracts/land-index-latest.schema.json text eol=lf
+contracts/land-index-manifest.schema.json text eol=lf
+contracts/land-index-tile.schema.json text eol=lf
+tests/fixtures/land-index-raz/N48W005.bin.gz -text
+tests/fixtures/land-index-raz/expected.json text eol=lf
+tests/fixtures/land-index-raz/manifest.json text eol=lf
