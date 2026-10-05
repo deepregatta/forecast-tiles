@@ -159,10 +159,11 @@ class S3Store:
     protocol can be exercised against real R2 without touching live objects
     (tests/test_r2_conditional.py)."""
 
-    def __init__(self, client, bucket: str, prefix: str = ""):
+    def __init__(self, client, bucket: str, prefix: str = "", *, read_sleep=time.sleep):
         self.client = client
         self.bucket = bucket
         self.prefix = prefix
+        self.read_sleep = read_sleep
 
     def _key(self, key: str) -> str:
         return self.prefix + key
@@ -213,15 +214,46 @@ class S3Store:
         return self.get_with_etag(key)[0]
 
     def get_with_etag(self, key: str) -> tuple[bytes | None, str | None]:
-        try:
-            resp = self.client.get_object(Bucket=self.bucket, Key=self._key(key))
-        except self.client.exceptions.NoSuchKey:
-            return None, None
-        except self.client.exceptions.ClientError as exc:  # R2 may 404 differently
-            if exc.response.get("Error", {}).get("Code") in ("404", "NoSuchKey", "NotFound"):
+        from botocore.exceptions import (
+            ConnectionClosedError,
+            ConnectTimeoutError,
+            EndpointConnectionError,
+            ReadTimeoutError,
+            ResponseStreamingError,
+        )
+
+        transport = (
+            ConnectionClosedError,
+            ConnectTimeoutError,
+            EndpointConnectionError,
+            ReadTimeoutError,
+            ResponseStreamingError,
+        )
+        # Keep the SDK's single-attempt PUT policy. Only idempotent object
+        # GETs, including a failed response stream, get bounded retries.
+        for attempt in range(3):
+            try:
+                resp = self.client.get_object(Bucket=self.bucket, Key=self._key(key))
+                body = resp["Body"]
+                try:
+                    return body.read(), resp.get("ETag")
+                finally:
+                    body.close()
+            except self.client.exceptions.NoSuchKey:
                 return None, None
-            raise
-        return resp["Body"].read(), resp.get("ETag")
+            except Exception as exc:
+                response = getattr(exc, "response", None) or {}
+                if isinstance(exc, self.client.exceptions.ClientError) and response.get(
+                    "Error", {}
+                ).get("Code") in ("404", "NoSuchKey", "NotFound"):
+                    return None, None
+                status = response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+                if attempt == 2 or not (
+                    isinstance(exc, transport) or status in (408, 429, 500, 502, 503, 504)
+                ):
+                    raise
+                print(f"r2: retrying object read ({attempt + 1}/3, {type(exc).__name__})")
+                self.read_sleep(attempt + 1)
 
     def list_keys(self, prefix: str) -> list[str]:
         return [obj["key"] for obj in self.list_objects(prefix)]
@@ -429,6 +461,55 @@ def put_immutable(
             raise
         if store.get(key) != data:
             raise PreconditionFailed(f"{key}: immutable object differs; use a new version")
+    except UncertainWriteError:
+        # Settle a root upload's lost response with an authenticated read.
+        # Never issue another PUT for an uncertain write.
+        if not allow_identical or store.get(key) != data:
+            raise
+
+
+def _reuse_partial_root_tiles(store, cube, tiles):
+    """Resume only identical unpublished root data, preserving stored bytes.
+
+    Root diagnostic generation/fetch times change on a new process. They do
+    not authorize replacing an object: compare every other header field and
+    the complete encoded payload, then keep the original gzip and provenance.
+    Regional runs and already-complete manifests do not use this path.
+    """
+    prefix = f"forecast-runs/{cube.run_id}/"
+    existing = set(store.list_keys(prefix))
+    template = f"{prefix}{cube.layer}/{cube.path_label or z_res(cube.resolution_deg)}/"
+    expected = {f"{template}{tid}.bin.gz" for tid, _ in tiles}
+    if existing - expected:
+        raise PreconditionFailed(f"{cube.run_id}: immutable partial layout differs")
+    if not existing:
+        return tiles
+
+    def identity(gz):
+        raw = gzip.decompress(gz)
+        if raw[:4] != b"PFT1":
+            raise ValueError("invalid tile magic")
+        header_len = struct.unpack("<I", raw[4:8])[0]
+        header = json.loads(raw[8 : 8 + header_len])
+        header.pop("generated_at", None)
+        header.get("provenance", {}).pop("fetched_at", None)
+        payload_start = (8 + header_len + 3) // 4 * 4
+        return header, raw[payload_start:]
+
+    reused = []
+    for tid, candidate in tiles:
+        key = f"{template}{tid}.bin.gz"
+        if key in existing:
+            original = store.get(key)
+            try:
+                same = original is not None and identity(original) == identity(candidate)
+            except (ValueError, TypeError, KeyError, AttributeError, OSError, struct.error):
+                same = False
+            if not same:
+                raise PreconditionFailed(f"{key}: immutable partial tile differs")
+            candidate = original
+        reused.append((tid, candidate))
+    return reused
 
 
 def _get_json(store, key: str) -> dict | None:
@@ -886,6 +967,14 @@ def publish_run(
         manifest = existing
         published_at = existing["published_at"]
     check_storage_guard(store, cube.layer, manifest["totals"]["bytes"], max_bucket_bytes)
+    if not regional and existing_raw is None:
+        resumed_tiles = _reuse_partial_root_tiles(store, cube, tiles)
+        if resumed_tiles is not tiles:
+            tiles = resumed_tiles
+            manifest = build_manifest(
+                cube, tiles, report, published_at=published_at, validated_at=published_at
+            )
+            check_storage_guard(store, cube.layer, manifest["totals"]["bytes"], max_bucket_bytes)
     if regional:
         from ingest.sources.openmeteo.registry import product
 

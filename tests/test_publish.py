@@ -14,11 +14,13 @@ from ingest.publish import (
     PreconditionFailed,
     PublishError,
     StorageGuardError,
+    UncertainWriteError,
     build_manifest,
     check_storage_guard,
     content_etag,
     fnv64,
     publish_run,
+    put_immutable,
     z_res,
 )
 from ingest.tile import build_tiles
@@ -26,6 +28,25 @@ from ingest.validate import validate_cube
 from tilekit.codec import decode_tile
 
 SCHEMA_DIR = Path(__file__).resolve().parents[1] / "contracts"
+
+
+@pytest.mark.parametrize("landed", [True, False])
+def test_uncertain_immutable_root_put_is_read_back_without_another_put(landed):
+    from types import SimpleNamespace
+
+    calls = []
+
+    def uncertain(*args, **kwargs):
+        calls.append((args, kwargs))
+        raise UncertainWriteError("lost response")
+
+    store = SimpleNamespace(put=uncertain, get=lambda _: b"tile" if landed else None)
+    if landed:
+        put_immutable(store, "tile", b"tile", content_type="application/octet-stream")
+    else:
+        with pytest.raises(UncertainWriteError):
+            put_immutable(store, "tile", b"tile", content_type="application/octet-stream")
+    assert len(calls) == 1 and calls[0][1]["if_none_match"] is True
 
 
 class FakeStore:
@@ -99,6 +120,45 @@ def make_run(cycle_day=13):
     assert report.ok
     tiles = build_tiles(cube, generated_at="2026-07-13T10:00:00Z")
     return cube, tiles, report
+
+
+def test_partial_root_resume_preserves_original_bytes_and_only_ignores_diagnostic_times():
+    store = FakeStore()
+    cube, _, report = make_run()
+    cube.provenance["fetched_at"] = "2026-07-13T09:00:00Z"
+    original_tiles = build_tiles(cube, generated_at="2026-07-13T10:00:00Z")
+    tid, original = original_tiles[0]
+    key = f"forecast-runs/{cube.run_id}/{cube.layer}/{z_res(cube.resolution_deg)}/{tid}.bin.gz"
+    store.objects[key] = original
+    cube.provenance["fetched_at"] = "2026-07-13T11:00:00Z"
+    retried = build_tiles(cube, generated_at="2026-07-13T12:00:00Z")
+    assert original != retried[0][1]
+    publish_run(store, cube, retried, report)
+    assert store.objects[key] == original
+    manifest = json.loads(store.objects[f"forecast-runs/{cube.run_id}/manifest.json"])
+    assert manifest["tiles"][tid]["fnv64"] == fnv64(original)
+    assert decode_tile(gzip.decompress(store.objects[key])).header["provenance"]["fetched_at"] == (
+        "2026-07-13T09:00:00Z"
+    )
+
+
+@pytest.mark.parametrize("change", ["payload", "provenance", "layout"])
+def test_partial_root_resume_rejects_scientific_or_layout_change_before_any_write(change):
+    store = FakeStore()
+    cube, tiles, report = make_run()
+    tid, original = tiles[0]
+    key = f"forecast-runs/{cube.run_id}/{cube.layer}/{z_res(cube.resolution_deg)}/{tid}.bin.gz"
+    store.objects[key] = original
+    if change == "payload":
+        cube.arrays[cube.variables[0].name] += 1
+    elif change == "provenance":
+        cube.provenance["source_revision"] = "changed"
+    else:
+        store.objects[f"forecast-runs/{cube.run_id}/unexpected.bin.gz"] = b"unexpected"
+    before = dict(store.objects)
+    with pytest.raises(PreconditionFailed, match="immutable partial"):
+        publish_run(store, cube, build_tiles(cube), report)
+    assert store.objects == before and not [op for op, _ in store.ops if op == "put"]
 
 
 def seed_run(store, run_id, n_tiles=2, tile_bytes=100):

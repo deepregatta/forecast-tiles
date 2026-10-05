@@ -4,7 +4,7 @@
 import pytest
 
 boto3 = pytest.importorskip("boto3")
-from botocore.exceptions import EndpointConnectionError  # noqa: E402
+from botocore.exceptions import EndpointConnectionError, ReadTimeoutError  # noqa: E402
 from botocore.stub import Stubber  # noqa: E402
 
 from ingest.publish import (  # noqa: E402
@@ -146,3 +146,59 @@ def test_unknown_multipart_page_cannot_return_zero_bytes():
         store = S3Store(SimpleNamespace(get_paginator=lambda _: paginator), "b")
         with pytest.raises(StorageGuardError):
             store.multipart_bytes()
+
+
+@pytest.mark.parametrize("status", [408, 429, 500, 502, 503, 504])
+def test_transient_get_retries_without_changing_the_returned_etag(client, status):
+    sleeps = []
+    store = S3Store(client, "b", read_sleep=sleeps.append)
+    with Stubber(client) as stub:
+        stub.add_client_error("get_object", "Transient", http_status_code=status)
+        stub.add_response("get_object", {"Body": _body(b"fresh"), "ETag": '"fresh"'})
+        assert store.get_with_etag("latest.json") == (b"fresh", '"fresh"')
+        stub.assert_no_pending_responses()
+    assert sleeps == [1]
+
+
+def test_get_transport_failure_and_exhaustion_are_bounded(client, monkeypatch):
+    calls, sleeps = [], []
+
+    def timeout(**kwargs):
+        calls.append(kwargs)
+        raise ReadTimeoutError(endpoint_url="https://example.invalid")
+
+    monkeypatch.setattr(client, "get_object", timeout)
+    store = S3Store(client, "b", read_sleep=sleeps.append)
+    with pytest.raises(ReadTimeoutError):
+        store.get("latest.json")
+    assert len(calls) == 3 and sleeps == [1, 2]
+
+
+def test_get_stream_retry_closes_bodies_and_discards_partial_response(client, monkeypatch):
+    from types import SimpleNamespace
+
+    closed, sleeps = [], []
+
+    def failed_read():
+        raise ReadTimeoutError(endpoint_url="https://example.invalid")
+
+    first = SimpleNamespace(read=failed_read, close=lambda: closed.append("first"))
+    second = SimpleNamespace(read=lambda: b"complete", close=lambda: closed.append("second"))
+    responses = iter([{"Body": first, "ETag": '"old"'}, {"Body": second, "ETag": '"new"'}])
+    monkeypatch.setattr(client, "get_object", lambda **_: next(responses))
+    assert S3Store(client, "b", read_sleep=sleeps.append).get_with_etag("latest.json") == (
+        b"complete",
+        '"new"',
+    )
+    assert closed == ["first", "second"] and sleeps == [1]
+
+
+@pytest.mark.parametrize("status", [400, 403, 404])
+def test_nontransient_get_is_not_retried(client, status):
+    sleeps = []
+    with Stubber(client) as stub:
+        stub.add_client_error("get_object", "Denied", http_status_code=status)
+        with pytest.raises(client.exceptions.ClientError):
+            S3Store(client, "b", read_sleep=sleeps.append).get("latest.json")
+        stub.assert_no_pending_responses()
+    assert sleeps == []

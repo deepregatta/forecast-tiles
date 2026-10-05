@@ -72,6 +72,17 @@ to recover a retry. For a reviewed repair, remove only its hashed identity
 from the channel's `seen`, retain charged counters, and wait for lease and
 frequency limits. Dispatch one bounded job, then inspect its report/pointer.
 
+For a reviewed failed GFS or ECMWF full-horizon cycle, the manual
+[`recover-forecast`](../.github/workflows/recover-forecast.yml) workflow performs
+that exact one-identity CAS and authenticated read-back before ordinary guarded
+ingestion. It refuses published/superseded cycles, complete uncommitted runs,
+active leases and exhausted limits. It never refunds charges or retries an
+uncertain control PUT. This is an operator action, not an automatic retry cron.
+Partial root tiles are reused only when all scientific header fields and the
+entire encoded payload match; original compressed bytes and diagnostic times
+remain intact. Changed data/layout refuses recovery, and published manifests
+and regional immutability rules retain their existing protections.
+
 Rollback: set the repository variable to `0` (or remove it), or revert the
 guard integration commit. This reopens optional production and removes its
 protection. Keep the ledger for recovery; existing data needs no rollback.

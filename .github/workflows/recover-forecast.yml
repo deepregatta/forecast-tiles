@@ -1,0 +1,51 @@
+name: recover-forecast
+run-name: recover-forecast ${{ inputs.layer }} ${{ inputs.cycle }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      layer:
+        description: Reviewed failed current root layer
+        required: true
+        type: choice
+        options: [weather, weather-ecmwf]
+      cycle:
+        description: Reviewed failed cycle YYYYMMDDTHH; older/published cycles are refused
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ingest-${{ inputs.layer }}
+  cancel-in-progress: false
+
+env:
+  CAPACITY_ENFORCE: ${{ vars.CAPACITY_ENFORCE || '0' }}
+  PAID_WORK_ENFORCE: ${{ vars.PAID_WORK_ENFORCE || '0' }}
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          python-version: '3.13'
+      - run: uv sync
+      - name: Permit only this failed cycle and run ordinary guarded ingestion
+        run: |
+          uv run python scripts/recover_paid_forecast.py --layer "$LAYER" --cycle "$CYCLE"
+          uv run ingest "$LAYER" --cycle "$CYCLE"
+        env:
+          LAYER: ${{ inputs.layer }}
+          CYCLE: ${{ inputs.cycle }}
+          PYTHONUNBUFFERED: "1"
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          MAX_BUCKET_BYTES: ${{ vars.MAX_BUCKET_BYTES || '14000000000' }}
