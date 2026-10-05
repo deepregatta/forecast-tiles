@@ -82,6 +82,10 @@ Partial root tiles are reused only when all scientific header fields and the
 entire encoded payload match; original compressed bytes and diagnostic times
 remain intact. Changed data/layout refuses recovery, and published manifests
 and regional immutability rules retain their existing protections.
+Root data-object creates have at most three attempts: an authenticated read
+must prove absence before the same create-only body can be retried. Confirmed
+bytes are reused; different bytes or unknown read-back stop the upload. This
+does not retry admission writes or grant another producer start.
 
 Rollback: set the repository variable to `0` (or remove it), or revert the
 guard integration commit. This reopens optional production and removes its

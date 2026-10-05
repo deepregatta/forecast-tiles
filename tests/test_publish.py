@@ -31,7 +31,7 @@ SCHEMA_DIR = Path(__file__).resolve().parents[1] / "contracts"
 
 
 @pytest.mark.parametrize("landed", [True, False])
-def test_uncertain_immutable_root_put_is_read_back_without_another_put(landed):
+def test_immutable_root_create_retries_only_after_authenticated_absence(landed):
     from types import SimpleNamespace
 
     calls = []
@@ -45,8 +45,40 @@ def test_uncertain_immutable_root_put_is_read_back_without_another_put(landed):
         put_immutable(store, "tile", b"tile", content_type="application/octet-stream")
     else:
         with pytest.raises(UncertainWriteError):
-            put_immutable(store, "tile", b"tile", content_type="application/octet-stream")
-    assert len(calls) == 1 and calls[0][1]["if_none_match"] is True
+            put_immutable(
+                store,
+                "tile",
+                b"tile",
+                content_type="application/octet-stream",
+                sleep=lambda _: None,
+            )
+    assert len(calls) == (1 if landed else 3)
+    assert all(c[1]["if_none_match"] is True and c[0][1] == b"tile" for c in calls)
+
+
+@pytest.mark.parametrize("observed", [b"different", "read_failure"])
+def test_unknown_or_different_root_readback_never_retries_a_create(observed):
+    from types import SimpleNamespace
+
+    calls = []
+
+    def put(*args, **kwargs):
+        calls.append(1)
+        raise UncertainWriteError("lost response")
+
+    def get(_):
+        if observed == "read_failure":
+            raise OSError("unknown read-back")
+        return observed
+
+    with pytest.raises((UncertainWriteError, OSError)):
+        put_immutable(
+            SimpleNamespace(put=put, get=get),
+            "tile",
+            b"tile",
+            content_type="application/octet-stream",
+        )
+    assert len(calls) == 1
 
 
 class FakeStore:

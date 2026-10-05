@@ -449,23 +449,45 @@ def json_bytes(obj: dict) -> bytes:
 
 
 def put_immutable(
-    store, key, data, *, content_type, cache_control=CACHE_IMMUTABLE, allow_identical=True
+    store,
+    key,
+    data,
+    *,
+    content_type,
+    cache_control=CACHE_IMMUTABLE,
+    allow_identical=True,
+    sleep=time.sleep,
 ):
     """Create only; an identical retry can reuse bytes but never replace them."""
-    try:
-        store.put(
-            key, data, content_type=content_type, cache_control=cache_control, if_none_match=True
-        )
-    except PreconditionFailed:
-        if not allow_identical:
-            raise
-        if store.get(key) != data:
-            raise PreconditionFailed(f"{key}: immutable object differs; use a new version")
-    except UncertainWriteError:
-        # Settle a root upload's lost response with an authenticated read.
-        # Never issue another PUT for an uncertain write.
-        if not allow_identical or store.get(key) != data:
-            raise
+    for attempt in range(3 if allow_identical else 1):
+        try:
+            store.put(
+                key,
+                data,
+                content_type=content_type,
+                cache_control=cache_control,
+                if_none_match=True,
+            )
+            return
+        except PreconditionFailed:
+            if not allow_identical:
+                raise
+            if store.get(key) != data:
+                raise PreconditionFailed(f"{key}: immutable object differs; use a new version")
+            return
+        except UncertainWriteError:
+            if not allow_identical:
+                raise
+            # Authenticated GET settles a root data-object write. Reuse
+            # confirmed bytes; retry only a proven absence, with the same
+            # body and create-only condition. Admission PUTs are separate.
+            observed = store.get(key)
+            if observed == data:
+                return
+            if observed is not None or attempt == 2:
+                raise
+            print(f"publish: immutable root object absent after failed create ({attempt + 1}/3)")
+            sleep(attempt + 1)
 
 
 def _reuse_partial_root_tiles(store, cube, tiles):
