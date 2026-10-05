@@ -1,5 +1,5 @@
 {
-  "status": "Regional observation continues; AROME/UKV six timely slots and selected ICON-EU three; GFS scheduled delivery resumed, ECMWF 12Z policy pause/gap retained; fresh evening capacity audit queued",
+  "status": "Regional observation continues; AROME/UKV six timely slots and selected ICON-EU three; GFS scheduled delivery resumed, ECMWF 12Z policy pause/gap retained",
   "started_on": "2026-10-02",
   "observation_days": 7,
   "minimum_on_time_fraction": 0.95,
@@ -330,13 +330,13 @@
     "AROME/UKV require seven elapsed days and at least 95% on time in their original windows. ICON-EU uses its owner-approved post-control-read-repair seven-day window starting 2026-10-04T09:05:12+00:00; fourteen timely scheduled cycles are mandatory. Continue scoring both earlier ICON-EU windows and preserving every miss.",
     "No invalid publication; unknown evidence cannot pass.",
     "Scheduled GFS 12Z delivery resumed; GFS/ECMWF earlier recoveries and all gaps remain recorded. ECMWF October 5 12Z paused after recovery and cannot retry within the unchanged current-day allowance. Verify next actual scheduled ECMWF delivery without consuming next-day scheduled allowance for an older manual run; never publish an older cycle after supersession. Continue root/regional scheduled replacement and current/previous integrity checks.",
-    "Fresh evening r2-audit 37372268647 remains queued; physical/complete-overlap capacity and reservation sufficiency stay unknown pending execution. Preserve the unchanged guard/reservation and verify this audit before promotion. Last completed proof remains the dated October 5 afternoon audit.",
+    "Refresh read-only capacity across representative cycles; evening audit 37372268647 passed on its single bounded retry with physical/complete overlap fitting the unchanged approved guard and reservation. First runner failure remains retained.",
     "Repeat current production consumer/attribution checks before full-cadence promotion.",
     "Keep current required hosted validation passing before full-cadence promotion; the previously failed Passage audit is resolved without a waiver."
   ],
   "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37372268647",
   "root_readback": {
-    "verified_at": "2026-10-05T21:05:44.650532+00:00",
+    "verified_at": "2026-10-05T21:20:53.930442+00:00",
     "catalogue_updated_at": "2026-10-05T18:33:22Z",
     "layers": [
       "weather",
@@ -2107,6 +2107,162 @@
       },
       "full_cadence_enabled": false,
       "acceptance_result": "AROME/UKV each have six timely original slots; selected ICON-EU has three. Earlier ICON-EU maxima remain 12/14 and 13/14. No seven-day window has elapsed or passed. No missing report, unknown timing or invalid regional publication found. Existing-layer ECMWF 12Z gap and policy gate remain explicit; no control or allowance relaxed."
+    },
+    {
+      "reviewed_at": "2026-10-05T21:20:53.930442+00:00",
+      "scope": "Completed evening whole-bucket audit and hosted verification after runner acquisition failure",
+      "models": {
+        "weather-arome": {
+          "started_at": "2026-10-02T20:49:47.207117+00:00",
+          "observation_ends_at": "2026-10-09T20:49:47.207117+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 6,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 8,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-icon-eu": {
+          "started_at": "2026-10-02T21:09:26.449084+00:00",
+          "observation_ends_at": "2026-10-09T21:09:26.449084+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 4,
+            "late": 2,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 8,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-ukv": {
+          "started_at": "2026-10-02T21:22:06.887353+00:00",
+          "observation_ends_at": "2026-10-09T21:22:06.887353+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 6,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 8,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        }
+      },
+      "icon_eu_acceptance_windows": {
+        "original": {
+          "started_at": "2026-10-02T21:09:26.449084+00:00",
+          "observation_ends_at": "2026-10-09T21:09:26.449084+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 4,
+            "late": 2,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 8,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "post-readiness-repair": {
+          "started_at": "2026-10-03T08:00:06.350599+00:00",
+          "observation_ends_at": "2026-10-10T08:00:06.350599+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 4,
+            "late": 1,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 9,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "post-control-read-repair": {
+          "started_at": "2026-10-04T09:05:12+00:00",
+          "observation_ends_at": "2026-10-11T09:05:12+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 3,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 11,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        }
+      },
+      "active_icon_eu_window": "post-control-read-repair",
+      "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37372268647",
+      "capacity_audit_status": "passed on bounded retry; first runner failure retained",
+      "capacity_audit_run_attempt": 2,
+      "original_failed_attempt": {
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37372268647",
+        "run_attempt": 1,
+        "workflow_conclusion": "failure",
+        "job_conclusion": "cancelled",
+        "runner_assigned": false,
+        "executed_steps": 0,
+        "diagnostic": "The job was not acquired by Runner of type hosted even after multiple attempts",
+        "capacity_observed": false,
+        "evidence_sha256": {
+          "regional-20261005-night-audit-status.json": "4e7c6c70755746dc20a34448a2fc2715922b9dd101a1a16dc68f1730d73e4ddb",
+          "regional-20261005-night-audit-jobs-private.json": "176f57979dfba9f362bb2c227fc306f72142ab1a2697988a9ef04f8d83f97d1d",
+          "regional-20261005-night-audit-check-111972091054.json": "054ef07b1e9a0c9e461cbb7d7326e90fb7852d03b720a4eab34b0a587f40e99f",
+          "regional-20261005-night-audit-annotations-private.json": "d8ba8f79acc2dac9a79a398628510618e0fc67cfd6a899b26e84cf6eb18e933e"
+        }
+      },
+      "capacity_checks": {
+        "approved_guard_unchanged": true,
+        "physical_plus_upload_headroom_fits": true,
+        "complete_retained_overlap_fits": true,
+        "existing_reservation_sufficient": true,
+        "calculated_overlap_fits": true
+      },
+      "capacity_result": "Fresh read-only whole-bucket audit passed with intact references. Physical plus regional upload/headroom and complete retained overlap fit the unchanged approved guard. Existing-layer reservation remains sufficient and unchanged. Historical incomplete GEFS 18Z stays accounted for; no operator cleanup performed. Exact account figures private.",
+      "artifact_review": {
+        "history_pages": 2,
+        "reviewed_reports": 54,
+        "new_reports": 0,
+        "missing_reports": [],
+        "result": "Final pagination found no further completed regional attempts; all 54 original hashes remain unchanged."
+      },
+      "manifest_validation": {
+        "current_previous_manifests": 20,
+        "result": "Final root/regional readback and all twenty canonical current/previous manifests remain valid."
+      },
+      "forecast_ci": {
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37373815519",
+        "commit": "7d14399fd4f3f9a0d18aee95d4f21927ffd303d5",
+        "result": "Both hosted jobs passed for the delivery-record commit; no gate waived."
+      },
+      "full_cadence_enabled": false,
+      "acceptance_result": "Regional windows remain six timely original slots for AROME/UKV and three for selected ICON-EU, with no seven-day window elapsed. Fresh capacity and hosted checks are confirmed; ECMWF 12Z missed publication and current-day allowance exhaustion remain recorded. Next scheduled ECMWF delivery still needs confirmation."
     }
   ],
   "incidents": [
@@ -2453,7 +2609,7 @@
     }
   ],
   "regional_readback": {
-    "verified_at": "2026-10-05T21:05:44.650532+00:00",
+    "verified_at": "2026-10-05T21:20:53.930442+00:00",
     "catalogue_updated_at": "2026-10-05T19:01:08Z",
     "layers": {
       "weather-arome": {
@@ -3078,6 +3234,44 @@
       },
       "production_deployment_id": "8fc54c6b-c9ac-4f6c-84bc-6cdfa76bea85",
       "consumer_verified_at": "2026-10-04T09:33:54.852Z"
+    },
+    {
+      "kind": "hosted-capacity-audit-runner-failure",
+      "recorded_at": "2026-10-05T21:20:53.930442+00:00",
+      "original_failed_attempt": {
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37372268647",
+        "run_attempt": 1,
+        "workflow_conclusion": "failure",
+        "job_conclusion": "cancelled",
+        "runner_assigned": false,
+        "executed_steps": 0,
+        "diagnostic": "The job was not acquired by Runner of type hosted even after multiple attempts",
+        "capacity_observed": false,
+        "evidence_sha256": {
+          "regional-20261005-night-audit-status.json": "4e7c6c70755746dc20a34448a2fc2715922b9dd101a1a16dc68f1730d73e4ddb",
+          "regional-20261005-night-audit-jobs-private.json": "176f57979dfba9f362bb2c227fc306f72142ab1a2697988a9ef04f8d83f97d1d",
+          "regional-20261005-night-audit-check-111972091054.json": "054ef07b1e9a0c9e461cbb7d7326e90fb7852d03b720a4eab34b0a587f40e99f",
+          "regional-20261005-night-audit-annotations-private.json": "d8ba8f79acc2dac9a79a398628510618e0fc67cfd6a899b26e84cf6eb18e933e"
+        }
+      },
+      "resolution": {
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37372268647",
+        "run_attempt": 2,
+        "result": "Read-only audit succeeded on one bounded retry, with intact references and every capacity comparison passing. Original first attempt had no assigned runner and zero executed steps; it supplied no R2 measurement.",
+        "capacity_checks": {
+          "approved_guard_unchanged": true,
+          "physical_plus_upload_headroom_fits": true,
+          "complete_retained_overlap_fits": true,
+          "existing_reservation_sufficient": true,
+          "calculated_overlap_fits": true
+        }
+      },
+      "required_forecast_validation": {
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37373815519",
+        "commit": "7d14399fd4f3f9a0d18aee95d4f21927ffd303d5",
+        "result": "Both hosted jobs passed for the delivery-record commit; no gate waived."
+      }
     }
-  ]
+  ],
+  "capacity_audit_last_completed_attempt": 2
 }

@@ -978,3 +978,27 @@ Passage production and all three model flags remain healthy. Consumer exports
 are still dated October 4 evidence and must be refreshed before promotion.
 GitHub and Worker full cadence both read back false. The twice-daily acceptance
 heartbeat remains active; the completed one-time recovery follow-up stays paused.
+
+
+### Evening capacity and hosted verification completed
+
+The first attempt of [audit 37372268647](https://github.com/deepregatta/forecast-tiles/actions/runs/37372268647)
+ended after GitHub failed to assign a hosted runner. Its job was cancelled with
+zero executed steps, so it supplied no R2 measurement. Original check/job
+metadata and runner diagnostics remain retained with hashes. One bounded retry,
+attempt 2 on the same verified source, succeeded: the whole-bucket audit found
+intact references, physical usage plus regional upload/headroom and complete
+retained overlap fitting the unchanged approved guard. The existing-layer
+reservation remains sufficient and unchanged. The historical incomplete GEFS
+18Z prefix remains included in accounting; no operator cleanup occurred.
+Exact account figures remain private. The prior queued/unknown checkpoint and
+the failed first attempt remain historical evidence rather than being replaced.
+
+Both required [hosted checks for the delivery-record commit](https://github.com/deepregatta/forecast-tiles/actions/runs/37373815519)
+`7d14399fd4f3f9a0d18aee95d4f21927ffd303d5` passed. Final pagination retained
+the same 54 original reports and hashes, with no further completed regional
+attempts, and all twenty current/previous manifests remain canonical and valid.
+The ECMWF 12Z miss and unchanged daily-allowance gate remain recorded; subsequent
+scheduled delivery still needs confirmation. No seven-day window has passed,
+and GitHub/Worker full cadence remains false. The twice-daily acceptance
+heartbeat continues with no additional follow-up required for this audit.
