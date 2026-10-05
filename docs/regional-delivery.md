@@ -865,3 +865,59 @@ attribution checks are still required before promotion. GitHub
 `OPENMETEO_FULL_CADENCE` and Worker `REGIONAL_FULL_CADENCE` both read back false.
 The separate twice-daily acceptance heartbeat, every earlier window and every
 failure remain preserved.
+
+
+## ECMWF recovery follow-up, 2026-10-05
+
+The single follow-up reread authenticated producer control and the root pointer.
+The unchanged frequency interval had elapsed, the failed 00Z identity remained
+charged, allowances and leases permitted work, and current main's required hosted
+checks passed. [ECMWF 00Z recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37318831827) on
+`1aa3cbcd34e56b6003efcbb37bcb17cbedd12720` passed all twelve validation checks and confirmed
+publication at **2026-10-05T13:57:49.8815175Z** in its original job log. Fresh canonical pointer
+and manifest checks confirm current `weather-ecmwf-20261005T00Z` and previous
+`weather-ecmwf-20261004T12Z`. All three original partial tile samples remain
+byte-identical; their SHA-256, manifest FNV64 hashes and sizes match. The original
+HTTP 500 failure and the earlier frequency-blocked recovery remain recorded.
+This manual recovery supplies no regional scheduled-timeliness credit.
+
+Subsequent actual scheduled publication on the repaired source is also confirmed
+for [waves 06Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37300226442)
+at 11:22:38.4589069 UTC,
+[GEFS 06Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37308339113)
+at 12:42:39.5116910 UTC,
+[ECMWF-short 06Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37308343002)
+at 12:42:18.9584472 UTC, and
+[IBI 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37292201033)
+at 12:48:21.3844656 UTC. Publication lines and canonical current/previous
+manifests establish delivery rather than green workflow status alone.
+
+[GFS 06Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37296543107)
+exited zero with a recompute-frequency pause at 10:37:18.2099738 UTC, within
+the unchanged interval after the morning manual 00Z recovery. It did not publish
+and is retained as a scheduled delivery gap. The valid 00Z remains current;
+another late 06Z manual start could obstruct the upcoming 12Z slot and is not
+used here. Subsequent actual scheduled GFS and ECMWF delivery remains an
+acceptance gate. No policy, charged counter, lease, allowance, frequency limit,
+capacity guard or reservation was relaxed or refunded.
+
+The [during-recovery whole-bucket audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37319476767) and
+[post-publication audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37321005605) passed read-only with intact references.
+Physical usage plus upload/headroom and the complete retained overlap fit the
+unchanged approved guard; the existing-layer reservation remains sufficient and
+unchanged. The historical unreferenced partial GEFS 18Z prefix remains included
+in accounting; no cleanup occurred. Exact account figures remain private.
+
+Both catalogues and all twenty current/previous manifests passed their canonical
+schemas and identities. All 51 original regional attempt reports and hashes are
+retained after pagination through the earliest observation start. The three new
+morning catch-up reports are already-published skips and add no timely credit.
+All five acceptance windows were scored separately with their recorded starts
+and ingestion allowance: AROME/UKV still have five timely original slots each,
+and selected ICON-EU has two. The two earlier ICON-EU windows and all misses
+remain intact; no seven-day window has elapsed or passed. No missing report,
+unknown timing or invalid regional publication was found. Current Passage
+production and all four required hosted checks remain healthy; independent
+exports are still dated October 4 evidence and must be refreshed before promotion.
+GitHub and Worker full cadence both remain false. This one-time recovery
+follow-up is complete; the separate twice-daily acceptance heartbeat continues.
