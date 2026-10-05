@@ -1,8 +1,8 @@
 # Public forecast reads and cache policy
 
-F02 preparation, 2026-10-04. Local tooling is implemented; provider changes are
-pending approval. The custom domain remains readable and the managed development
-endpoint remains enabled. Legacy compatibility has not been globally cleared.
+F02 tooling implemented on 2026-10-04. The approved Browser TTL change was applied
+and read back on 2026-10-05. The custom domain remains readable and the managed
+development endpoint remains enabled. Legacy compatibility has not been globally cleared.
 No data, forecast cadence, publisher credential, storage allocation or plan
 changes belong to this preparation.
 
@@ -36,7 +36,7 @@ an invented immutable lifetime.
 
 ## Dated public HTTP observations
 
-The current hostname rule enables caching and uses
+The baseline hostname rule enabled caching and used
 `edge_ttl: {mode: "bypass_by_default"}`. Its complete read-back had no Browser
 TTL override or status-code TTL entries. The zone browser minimum was four
 hours. All four pointer GETs consequently advertised `max-age=14400`; HEAD
@@ -53,13 +53,22 @@ MISSes, with the repeated value then hitting. Missing-object GETs returned
 404 BYPASS twice. These observations concern sampled objects and one location;
 they do not count billed R2 operations or guarantee cache retention everywhere.
 
-## Prepared cache change
+After the approved change on 2026-10-05, 104 custom-domain checks passed with
+zero usability/integrity failures and zero TTL discrepancies: all four pointer
+GETs advertised 300 seconds, immutable objects retained one year, and byte,
+conditional, range, CORS and error checks passed. Another 26 managed-endpoint
+checks confirmed its reads remained usable. The real Passage GRIB page loaded
+the current pointers/manifests and produced a valid small GRIB2 export. This
+does not clear installed/native devices, every saved briefing, full offline
+navigation, all legacy clients or a live publication transition.
 
-Add only `browser_ttl: {mode: "respect_origin"}` to the current forecast-host
+## Approved cache change
+
+The applied change adds only `browser_ttl: {mode: "respect_origin"}` to the forecast-host
 rule. Preserve its hostname expression, activation, cache eligibility, origin
 edge policy, order and other settings. Do not change the global zone browser
 TTL, introduce an edge override, or cache errors under the immutable lifetime.
-Expected pointer GET browser TTL is 300; immutable responses keep 31536000.
+Observed pointer GET browser TTL is 300; immutable responses keep 31536000.
 Old browser entries can retain their existing four-hour lifetime: a CDN purge
 does not invalidate client caches. Extra ordinary browser requests are possible;
 the edge lifetime remains origin-based. This is policy alignment, not a client
@@ -165,7 +174,7 @@ from usability failures. Offline CI exercises policy drift/rollback, billing
 rounding and loopback conditional/range/error/TTL/integrity behavior. Neither
 tool is run against production by CI.
 
-Official references checked on 2026-10-04:
+Official references checked on 2026-10-04; cache-rule settings rechecked on 2026-10-05:
 [R2 public buckets](https://developers.cloudflare.com/r2/buckets/public-buckets/),
 [cache-rule settings](https://developers.cloudflare.com/cache/how-to/cache-rules/settings/),
 [R2 pricing](https://developers.cloudflare.com/r2/pricing/),
