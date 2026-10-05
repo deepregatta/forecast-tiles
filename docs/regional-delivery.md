@@ -921,3 +921,60 @@ production and all four required hosted checks remain healthy; independent
 exports are still dated October 4 evidence and must be refreshed before promotion.
 GitHub and Worker full cadence both remain false. This one-time recovery
 follow-up is complete; the separate twice-daily acceptance heartbeat continues.
+
+
+## Evening observation and ECMWF policy pause, 2026-10-05
+
+All three evening regional cycles published on time with successful validation
+and pointer commits in their original attempt reports:
+[ICON-EU 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37332782559)
+at 15:46:02.268740 UTC,
+[UKV 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37339495226)
+at 16:29:33.763671 UTC, and
+[AROME 15Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37358429529)
+at 19:02:50.880503 UTC. AROME and UKV each have six timely original slots;
+selected ICON-EU has three. Its two earlier retained windows still cannot pass,
+with maxima 12/14 and 13/14. All five windows were scored separately with their
+recorded starts and ingestion allowance; none has seven elapsed days or passed.
+
+Actions history was paginated through the earliest original observation start.
+All 54 original reports and their hashes remain retained, including three new
+confirmed evening publications. No missing report, unknown timing or invalid
+regional publication was found. Both catalogues and all twenty current/previous
+manifests passed canonical schemas and run/layer identity checks.
+
+Natural scheduled root delivery resumed for
+[GFS 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37340793767)
+at 16:55:53.9635746 UTC. Original job logs also confirm
+[waves 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37345241605)
+at 17:26:37.9558942 UTC and
+[GEFS 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37354652607)
+at 18:43:40.2474801 UTC. The earlier GFS 06Z pause and every other gap remain
+recorded; subsequent publication does not erase a missed attempt.
+
+[ECMWF 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37362767519)
+exited zero with a recompute-frequency pause at **19:35:53.9122773 UTC** and did
+not publish. The unchanged interval from the 13:42 UTC manual recovery permitted
+another start only after **19:42:22.536649 UTC**. Evening authenticated control
+review confirms that frequency is now eligible and no 12Z identity or lease was
+charged, but today's unchanged daily allowance is exhausted by the original
+failed 00Z start and its successful recovery. No retry was dispatched and no
+counter, allowance, frequency limit, pause or lease was overridden or refunded.
+An overnight manual 12Z start would use allowance needed by the next day's
+registered cycles, so it is not used. Verify the next actual scheduled ECMWF
+delivery, retain this 12Z gap and refuse an older publication after supersession.
+Current October 5 00Z and previous October 4 12Z remain valid.
+
+The [fresh evening read-only whole-bucket audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37372268647) is queued on GitHub.
+Current guard and reservation configuration read back unchanged. Fresh physical
+usage, complete overlap and reservation sufficiency remain unknown pending
+execution. The last completed whole-bucket proof is the
+[October 5 afternoon audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37321005605);
+its dated result remains retained and supplies no fresh evening measurement.
+The historical unreferenced GEFS 18Z prefix must remain included in accounting;
+no operator cleanup occurred. Exact account figures remain private.
+Current forecast and Passage required hosted checks pass before this record update;
+Passage production and all three model flags remain healthy. Consumer exports
+are still dated October 4 evidence and must be refreshed before promotion.
+GitHub and Worker full cadence both read back false. The twice-daily acceptance
+heartbeat remains active; the completed one-time recovery follow-up stays paused.
