@@ -784,3 +784,84 @@ passed all four jobs. The morning independent exports and attribution checks
 remain dated evidence; fresh consumer checks are still required before promotion.
 GitHub and Worker full cadence both read back false. Observation continues with
 all starts, two-cycle profiles, prior failures and validation history preserved.
+
+## Morning delivery and root recovery, 2026-10-05
+
+All three morning regional cycles published on time, with validated original
+attempt reports and confirmed pointer commits:
+[ICON-EU 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37259419851)
+at 03:50:47.735218 UTC,
+[UKV 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37262749968)
+at 04:28:23.755924 UTC, and
+[AROME 03Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37269237462)
+at 05:49:53.543334 UTC. AROME and UKV each have five timely slots in their
+original windows; ICON-EU's selected October 4 window has two. Its earlier
+windows still retain the two original misses and one recheck miss, with maxima
+12/14 and 13/14. All five windows were scored separately with the recorded
+starts and ingestion allowance. No seven-day window has elapsed or passed.
+
+Actions history was paginated back through the earliest observation start.
+All 48 original reports and their hashes are retained: six new reports contain
+three confirmed publications and three already-published skips. The skips have
+no additional timely credit. No missing report, unknown timing or invalid
+regional publication was found. Both catalogues and all twenty current/previous
+manifests passed canonical schemas and run/layer identity checks.
+
+Four overnight root jobs failed before publication. The original logs identify
+authenticated `latest.json` GET `ReadTimeoutError` for
+[waves October 4 18Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37242187750)
+and [GFS October 5 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37263491912),
+and conditional immutable tile PUT HTTP 502/500 for
+[GEFS October 4 18Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37246834210)
+and [ECMWF October 5 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37277248286),
+respectively. The waves fallback exited zero with a duplicate-work pause and
+did not publish. Subsequent scheduled
+[waves 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37265940484)
+and [GEFS 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37271553252)
+published at 05:34:53.0014776 and 06:45:31.1845428 UTC. Both missed 18Z cycles
+remain historical gaps; they must never replace the newer current runs.
+
+Repairs `8f7e2ec08fa0041eb4254981f237910b4b01267e` and
+`b7eecc863b2bae89e3118580eaf9dd6cd5eea8fe` bound authenticated object GET/stream
+retries to three and settle uncertain root data-object creates by authenticated
+read-back. A create retries only after proven absence; existing bytes must
+match. Partial unpublished root tiles are reused only when their complete
+encoded payload and nondiagnostic headers match, preserving their original
+gzip and provenance. Regional immutable behavior and uncertain admission PUT
+policy are unchanged. The manual recovery workflow removes one reviewed failed
+cycle's duplicate identity by guarded CAS while retaining every charged counter,
+lease, frequency limit, operator pause and capacity control. Local verification
+passed 101 focused regressions, 475 Python tests, 60 dispatcher tests and the
+required contract, Ruff, TypeScript and actionlint checks. Both required hosted
+jobs passed for [each](https://github.com/deepregatta/forecast-tiles/actions/runs/37281415298)
+[repair](https://github.com/deepregatta/forecast-tiles/actions/runs/37282251025).
+
+[Guarded GFS 00Z recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37281551578)
+passed all 27 validation checks and confirmed publication at
+**08:21:45.1911938 UTC** in its original job log. Fresh pointer and manifest
+read-back confirms current October 5 00Z and previous October 4 18Z.
+[ECMWF's first guarded recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37282373142)
+stopped before ledger mutation or ingestion because its unchanged frequency
+limit permits a new start only after **13:35:29.751419 UTC**. A single same-thread
+follow-up is scheduled for **15:40 Europe/Paris** today. It must reread control
+and the pointer, refuse a superseded cycle, and verify the retained partial tile
+samples against their original bytes and new manifest hashes after publication.
+Manual recovery supplies no regional scheduled-timeliness credit. Actual
+scheduled root delivery after these repairs remains a live acceptance gate.
+
+The [morning audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37279751813)
+and [post-GFS-recovery read-only audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37283528665)
+passed with intact references. The unreferenced partial GEFS October 4 18Z and
+ECMWF October 5 00Z prefixes remain included in physical and overlap accounting;
+no cleanup was performed. Physical usage plus regional upload/headroom and the
+complete overlap envelope fit the unchanged approved guard. The existing-layer
+reservation remains sufficient and unchanged. Exact account figures stay private.
+
+Passage production deployment `f2fb16d8-5789-46d4-9ce1-a3ec37ee8f17` succeeded
+on `b78c44201ca1483ddebaf67b4c76c564a09b2b60`, with all three regional models
+enabled and [all four required hosted jobs passing](https://github.com/deepregatta/passage/actions/runs/37235960339).
+October 4 independent exports remain dated consumer evidence; fresh exports and
+attribution checks are still required before promotion. GitHub
+`OPENMETEO_FULL_CADENCE` and Worker `REGIONAL_FULL_CADENCE` both read back false.
+The separate twice-daily acceptance heartbeat, every earlier window and every
+failure remain preserved.
