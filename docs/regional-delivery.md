@@ -1054,3 +1054,219 @@ source commits. Passage production remains healthy with all three regional model
 independent consumer exports retain their October 4 evidence date and must be
 refreshed before promotion. GitHub and Worker full cadence both read back false.
 The twice-daily acceptance heartbeat continues; no owner decision is pending.
+
+
+## Evening delivery stop from expired billing review, 2026-10-06
+
+Authenticated control and every new original job diagnostic confirm that the
+required provider-cost review expired at **2026-10-06T09:03:45.229649Z**, after
+its unchanged 72-hour lifetime. Production enforcement remains enabled and
+`paused=false`; the stale-review check stops admission before cycle/source
+discovery. Twenty-three reviewed root attempts and nine regional attempts exited
+zero at this gate without publishing. A green workflow therefore supplies no
+new-delivery evidence. Root and regional pointers have not advanced since the
+morning review. All seven root layers, three regional layers and twenty
+current/previous manifests remain canonical and readable; three regional tile
+samples match manifest sizes/hashes and decode as PFT1.
+
+The three registered evening slots are confirmed misses:
+[ICON-EU 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37487471311)
+at 15:26:35.5100704 UTC,
+[UKV 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37494357097)
+at 16:16:39.4094583 UTC, and
+[AROME 15Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37513849095)
+at 18:46:39.8385757 UTC. All three original job logs report
+`paused: billing review is stale`. Their requested cycles identify the slots;
+no source cycle or publication was resolved. The other six new regional reports
+are cycle-unspecified catch-up pauses and receive no inferred cycle or timing
+credit. Three pages of history reached the earliest original observation start.
+The temporary artifact cache was absent; all sixty earlier original GitHub
+reports were restored byte-for-byte against their committed hashes. All 69
+reports, prior classifications and original job diagnostics remain retained.
+
+The scorer previously treated compact CLI `requested_cycle` values as naive ISO
+timestamps and crashed on these paused attempts. Repair `d8d0aaf` uses the existing
+UTC CLI cycle parser for that exact identity format; ordinary timestamps still
+require explicit timezones and cycle-unspecified catches remain unknown.
+All five unchanged windows now score successfully. AROME and UKV originals each
+have seven timely slots and one failed slot, with maximum **13/14**. Selected
+ICON-EU has four timely and one failed slot, maximum **13/14**; its earlier
+retained windows now have maxima **11/14** and **12/14**. None can reach 95%.
+All original observation/bootstrap times, profile hours, earlier windows and
+misses remain intact. No new recheck begins before verified restoration, and no
+late/manual recovery receives timely credit or changes historical scoring.
+
+Required [CI 37529836233](https://github.com/deepregatta/forecast-tiles/actions/runs/37529836233)
+failed in an existing attempt-equivalence test because two acquisition timestamps
+crossed a wall-clock second; 476 other Python tests and dispatcher passed.
+Repair `26d8239` fixes only that test's acquisition clock. All 477 local Python
+tests, 60 dispatcher tests, lint/contracts and
+[both required hosted jobs](https://github.com/deepregatta/forecast-tiles/actions/runs/37530055537)
+passed. The original failed check and diagnostic hash remain retained; no waiver
+or production timestamp change occurred.
+
+The [fresh read-only capacity audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37529174262) passed on attempt 1 with intact
+references. Physical usage plus regional upload/headroom and complete retained
+overlap fit the unchanged approved guard. Existing-layer reservation and
+headroom remain sufficient and unchanged. Its prior configuration baseline was
+restored from the original morning AROME job log. The historical incomplete GEFS
+October 4 18Z prefix remains accounted for; no cleanup occurred. Exact account
+figures remain private. Capacity evidence cannot replace the required billing
+review: the [recovery policy](paid-work.md#operator-pause-and-recovery) requires
+current account-wide costs, billing period, conversion/tax treatment and
+outstanding-work review before a conditional provider-decision update.
+
+At the stopped checkpoint, billing API reads returned HTTP 403 and the browser
+required owner sign-in. Before the separately recorded renewal, no control write,
+producer restart, allowance/counter refund, gate bypass or cadence change occurred. Passage's current
+production and four hosted jobs remain healthy, with consumer exports still dated
+October 4 and requiring refresh before promotion. GitHub and Worker full cadence
+both remain false. The twice-daily heartbeat continues, keeping this unresolved
+review gate visible and retaining every miss rather than restarting history.
+
+
+## Conditional billing review renewal, 2026-10-06
+
+Owner sign-in enabled a real account-wide R2 Class A/Class B/storage billing
+review in the provider dashboard. Its billing period matches the existing
+control; reported billing, conversion/tax treatment and outstanding work support
+the existing reviewed decision. The existing budget alert remains intact.
+Exact account figures and the financial receipt remain private; provider costs
+are delayed and this remains a producer guard rather than a global billing cap.
+
+The new manual [review-paid-work workflow](../.github/workflows/review-paid-work.yml)
+changes only `reviewed_at`, using one conditional write and exact authenticated
+read-back. It defaults to dry run, requires a completed review within fifteen
+minutes and the exact previous timestamp, and refuses closed provider decisions,
+operator pause or expired periods. Conflicts/uncertain writes stop without another
+PUT. Twelve focused regressions, all 489 local Python and 60 dispatcher tests,
+lint/contracts and [both hosted gates](https://github.com/deepregatta/forecast-tiles/actions/runs/37531294917)
+passed on `ffecd433b50af16eeb8e7ea32ece9f1fd5594bbf`. The vendored shared guard is
+unchanged; no credential or provider plan change occurred.
+
+[Renewal 37531498219](https://github.com/deepregatta/forecast-tiles/actions/runs/37531498219)
+confirmed one CAS and exact authenticated read-back at
+**2026-10-06T21:06:38.467282Z**. Every other field, including provider decision,
+operator pause, period, cumulative/day counters, charged identities, leases,
+runtime/frequency limits, capacity guard and reservations, remains intact.
+The guard's 72-hour review lifetime is unchanged. No cost decision was inferred
+from workflow success or refreshed automatically without evidence.
+
+Six ordinary bounded guarded recovery jobs were dispatched for GEFS 12Z, full
+ECMWF 12Z, IBI October 6, and the three missed regional canary cycles. The paused
+attempts never charged those identities, so no duplicate removal or counter
+refund was needed. Manual recovery gives no timely scheduled slot. GFS, waves
+and short ECMWF are left for their approaching scheduled cycles because admission
+for older cycles now would block those slots under existing frequency limits.
+All original misses remain recorded; actual recovery publication, immutable
+read-back and later scheduled delivery are separate gates. Full cadence stays
+false. Future reviews must use fresh provider evidence before the unchanged
+72-hour expiry; a timestamp-only renewal is never a substitute for that review.
+
+
+## Regional restoration and separate rechecks, 2026-10-06
+
+Original publication logs and the original immutable attempt reports confirm
+[AROME 15Z recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37531680691)
+at 21:10:01.5939606 UTC,
+[UKV 12Z recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37531688268)
+at 21:11:27.3648129 UTC, and
+[ICON-EU 12Z recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37531684498)
+at 21:11:55.4611924 UTC. Each report passes its scientific checks and confirms
+the pointer commit. Fresh public read-back retains the morning runs as previous;
+all twenty root/regional current/previous manifests validate, and all three
+recovered regional sample tiles match manifest bytes/FNV64 and decompress as PFT1.
+The cached pointer was checked again with cache bypass to identify the new
+immutable runs. Seventy-two original reports and hashes are retained, with
+history paginated back to the earliest original observation start.
+
+The three recoveries are late in all earlier relevant windows. Current scores
+therefore retain one October 6 late slot for AROME/UKV and the selected October 4
+ICON-EU window, plus every earlier ICON-EU miss. The stopped checkpoint and all
+twenty-three root/nine regional paused attempts remain in incident/review history.
+No publication or recovery erases a miss.
+
+Under the owner's recorded autonomous routine-recheck authorization, each model
+has a **separate** `post-billing-review-restoration` window starting
+**2026-10-06T21:14:59.217473+00:00** and ending **2026-10-13T21:14:59.217473+00:00**. All original
+bootstrap/observation times, two-cycle profiles, historical ICON-EU recheck start,
+prior windows and misses remain intact. The first expected cycles are October 7
+00Z for ICON-EU/UKV and 03Z for AROME. All fourteen slots are still pending; the
+three manual late recoveries precede this schedule and earn zero timely credit.
+Seven elapsed days and all fourteen timely deliveries remain mandatory.
+
+Fresh live Passage exports from the recovered October 6 cycles each contain
+**75 independently decoded GRIB2 messages**, with correct reference cycle,
+u/v/gust parameter numbers and 25 gust messages. AROME/ICON-EU retain template 8
+preceding-hour maxima; UKV retains template 0 instantaneous gusts. English/French
+source/license attribution and gust notices match each model, including UKV's
+CC BY-SA attribution and modifications. The actual downloaded files were decoded
+with ecCodes; the first browser download watcher timed out, but the UI Saved state
+and original file proved successful export without a duplicate download.
+Observed 1905px desktop and 375px mobile layouts expose all model/download controls
+without horizontal page overflow. Temporary viewport, original language/model/period
+were restored. Responsive emulation is separate from the historical physical-phone
+evidence. The October 4 export checkpoint remains retained in export history;
+new exports will still need freshness verification at promotion.
+
+[IBI recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37531677012)
+confirmed publication at 21:10:19.0860175 UTC. GEFS/full ECMWF recoveries and
+subsequent scheduled GFS/waves/short-ECMWF delivery remain separately verified
+gates. The twice-daily heartbeat retains its schedule and quiet notification
+policy. It now requires a fresh real account-wide billing review once review age
+reaches 36 hours, before the unchanged 72-hour expiry, and permits the narrow
+conditional renewal only with actual evidence. Unavailable evidence/authentication
+remains a gate requiring action; no automatic fabricated timestamp refresh.
+GitHub and Worker full cadence both remain false.
+
+
+## In-progress root-recovery capacity checkpoint, 2026-10-06
+
+[Read-only audit 37533093940](https://github.com/deepregatta/forecast-tiles/actions/runs/37533093940)
+passed its inventory/reference checks while GEFS and full ECMWF recovery were
+still running. Physical storage plus regional upload/headroom fits the unchanged
+approved guard, and the measured existing-layer reservation remains sufficient.
+The **complete conservative overlap envelope does not fit in this snapshot**:
+it counts all unreferenced objects, including the two active incomplete root
+uploads, alongside retained/upload reservations. Inventory workflow success does
+not waive this comparison. The original snapshot and job-log hash remain retained.
+No guard, reservation, headroom, control or deletion changed. Refresh after actual
+publication and ordinary publisher retention; full-cadence promotion remains closed
+until the complete envelope fits. Exact account figures stay private.
+
+
+## All bounded recoveries confirmed; overlap gate restored, 2026-10-06
+
+[GEFS 12Z recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37531669714)
+confirmed publication from its original log at 21:23:31.7657237 UTC, and
+[full ECMWF 12Z recovery](https://github.com/deepregatta/forecast-tiles/actions/runs/37531673632)
+at 21:26:03.2907488 UTC. All six bounded recovery workflows now passed with
+confirmed publication logs; root and regional immutable current/previous
+read-back agree. All seven root layers remain present. Three recovered root
+sample tiles match manifest sizes/FNV64 and decode as PFT1; their original
+previous manifests remain byte-identical. None of these manual recoveries
+provides timely regional acceptance credit.
+
+Authenticated ledger read-back preserves every policy/period/pause/limit field,
+every prior charged identity and daily counter. The six recoveries were charged
+exactly once for their ordinary reserved runtimes, with every recovery lease
+released. No counter refund, duplicate removal, uncertain-write retry or gate
+bypass occurred.
+
+[Post-publication read-only audit 37533695166](https://github.com/deepregatta/forecast-tiles/actions/runs/37533695166)
+passes intact references, physical plus uploads/headroom, complete retained
+overlap including all unreferenced objects, measured root variation/reservation
+sufficiency and the calculated envelope. The approved guard, existing-layer
+reservation and headroom are unchanged. The earlier in-progress overlap miss
+and its original snapshot remain retained; publication/reference transition and
+ordinary publisher retention restored the fit, without manual cleanup or policy
+changes. Historical incomplete GEFS October 4 18Z remains accounted for. Exact
+account figures stay private.
+
+The remaining live gates are seven elapsed days and fourteen timely slots per
+selected recheck, actual subsequent scheduled replacement/delivery, continued
+capacity and consumer freshness, and passing current required hosted checks.
+GFS, waves and short ECMWF are still to be observed at their approaching
+scheduled slots. Their older missed cycles will never overwrite newer data.
+Both full-cadence flags remain false, and the twice-daily heartbeat continues
+autonomously with the pre-expiry real billing-review procedure.
