@@ -35,6 +35,8 @@ def snapshot(out):
 
 def test_report_is_separate_and_matches_published_bytes(regional, monkeypatch):
     _, bucket, out, report, args = regional
+    # Compare identical acquisition evidence even if the two runs cross a second.
+    monkeypatch.setattr(adapter, "utcnow_iso", lambda: "2026-10-02T06:00:00Z")
     monkeypatch.setenv("R2_SECRET_ACCESS_KEY", "private-test-secret")
     monkeypatch.setenv("GITHUB_RUN_ID", "123")
     assert cli.main(args + ["--attempt-report", str(report)]) == 0
