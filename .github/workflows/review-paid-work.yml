@@ -1,0 +1,57 @@
+name: review-paid-work
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_reviewed_at:
+        description: Exact reviewed_at from the authenticated current control
+        required: true
+      reviewed_at:
+        description: Completed account-wide billing review timestamp with timezone (last 15 minutes)
+        required: true
+      billing_review_completed:
+        description: Account-wide costs, billing period, conversion, tax and outstanding work reviewed
+        type: boolean
+        default: false
+      apply:
+        description: Renew only reviewed_at with CAS and read-back (default is dry run)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: review-paid-work
+  cancel-in-progress: false
+
+env:
+  PAID_WORK_ENFORCE: ${{ vars.PAID_WORK_ENFORCE || '0' }}
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          python-version: '3.13'
+      - run: uv sync
+      - name: Renew completed review with existing credentials
+        run: |
+          args=(--expected-reviewed-at "$EXPECTED_REVIEWED_AT" --reviewed-at "$REVIEWED_AT")
+          if [[ "$BILLING_REVIEW_COMPLETED" == true ]]; then args+=(--confirm-reviewed-provider-billing); fi
+          if [[ "$APPLY" == true ]]; then args+=(--apply); fi
+          uv run python scripts/review_paid_work.py "${args[@]}"
+        env:
+          EXPECTED_REVIEWED_AT: ${{ inputs.expected_reviewed_at }}
+          REVIEWED_AT: ${{ inputs.reviewed_at }}
+          BILLING_REVIEW_COMPLETED: ${{ inputs.billing_review_completed }}
+          APPLY: ${{ inputs.apply }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}

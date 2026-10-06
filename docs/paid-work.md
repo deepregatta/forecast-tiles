@@ -72,6 +72,18 @@ to recover a retry. For a reviewed repair, remove only its hashed identity
 from the channel's `seen`, retain charged counters, and wait for lease and
 frequency limits. Dispatch one bounded job, then inspect its report/pointer.
 
+The manual [`review-paid-work`](../.github/workflows/review-paid-work.yml)
+workflow records a completed billing review using the existing R2 credentials.
+It defaults to dry run and requires explicit confirmation of the account-wide
+review, the exact previous `reviewed_at`, and a new timezone-aware timestamp
+within fifteen minutes. It changes only `reviewed_at`; provider decisions must
+already permit work. Operator pause, expired periods, limits, counters, charged
+identities and active leases remain intact. One conditional write is followed
+by exact authenticated read-back. A conflict or uncertain result stops without
+another write; inspect the current document before any further operator action.
+This tool does not obtain billing evidence or turn a closed decision into an
+open one. Keep the actual billing receipt private.
+
 For a reviewed failed GFS or ECMWF full-horizon cycle, the manual
 [`recover-forecast`](../.github/workflows/recover-forecast.yml) workflow performs
 that exact one-identity CAS and authenticated read-back before ordinary guarded
