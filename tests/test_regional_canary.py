@@ -60,6 +60,39 @@ def test_unavailable_source_is_a_miss_even_with_exit_zero():
     assert result["counts"]["failed"] == 1 and not result["timeliness_passed"]
 
 
+def test_compact_requested_cycle_pause_retains_failed_slot_and_unknown_catchup():
+    records = receipts()
+    cycle = records[0]["cycle"]
+    records[0] = {
+        "layer": "weather-arome",
+        "destination": "r2",
+        "cycle": None,
+        "requested_cycle": utc(cycle).strftime("%Y%m%dT%H"),
+        "outcome": "paused",
+        "pointer_commit_confirmed": None,
+        "exit_code": 0,
+    }
+    catchup = {**records[0], "requested_cycle": None}
+    result = score_canary([*records, catchup], "weather-arome", START, END)
+    assert result["counts"]["failed"] == 1
+    assert result["counts"]["on_time"] == 13
+    assert result["cycles"][0]["attempt_outcomes"] == ["paused"]
+    assert not result["timeliness_passed"]
+    result = score_canary([catchup], "weather-arome", START, END)
+    assert result["counts"]["unknown"] == 14
+
+
+def test_naive_iso_requested_cycle_still_requires_timezone():
+    record = {
+        "layer": "weather-arome",
+        "destination": "r2",
+        "requested_cycle": "2026-10-03T03:00",
+        "outcome": "paused",
+    }
+    with pytest.raises(ValueError, match="timezone"):
+        score_canary([record], "weather-arome", START, END)
+
+
 def test_invalid_publication_and_incomplete_observation_cannot_pass():
     records = receipts()
     assert not score_canary(records, "weather-arome", START, "2026-10-03T21:00Z")[

@@ -7,7 +7,9 @@ cannot establish a delivery time. Bootstrap/backfill cycles are excluded.
 """
 
 from datetime import datetime, timedelta, timezone
+import re
 
+from ingest.sources.base import parse_cycle_arg
 from ingest.sources.openmeteo.registry import product
 
 
@@ -16,6 +18,18 @@ def utc(value):
     if result.tzinfo is None:
         raise ValueError("canary timestamps need a timezone")
     return result.astimezone(timezone.utc)
+
+
+def attempt_cycle(attempt):
+    """CLI requested cycles use YYYYMMDDTHH and are explicitly UTC."""
+    if attempt.get("cycle"):
+        return utc(attempt["cycle"])
+    requested = attempt.get("requested_cycle")
+    if not requested:
+        return None
+    if re.fullmatch(r"\d{8}T\d{2}", requested):
+        return parse_cycle_arg(requested)
+    return utc(requested)
 
 
 def invalid_publication(attempt):
@@ -69,8 +83,7 @@ def score_canary(attempts, layer, started_at, now, *, ingestion_minutes=10):
                 for a in attempts
                 if a.get("layer") == layer
                 and a.get("destination") == "r2"
-                and (a.get("cycle") or a.get("requested_cycle"))
-                and utc(a.get("cycle") or a["requested_cycle"]) == cycle
+                and attempt_cycle(a) == cycle
             ]
             confirmed = [
                 a
