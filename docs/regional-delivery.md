@@ -1002,3 +1002,55 @@ The ECMWF 12Z miss and unchanged daily-allowance gate remain recorded; subsequen
 scheduled delivery still needs confirmation. No seven-day window has passed,
 and GitHub/Worker full cadence remains false. The twice-daily acceptance
 heartbeat continues with no additional follow-up required for this audit.
+
+
+## Morning observation and scheduled ECMWF resumption, 2026-10-06
+
+The original validated attempt reports confirm timely scheduled replacements for
+[ICON-EU 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37408947790)
+at 03:45:47.996319 UTC,
+[UKV 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37412892316)
+at 04:31:24.968082 UTC, and
+[AROME 03Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37420185290)
+at 05:50:11.752264 UTC. AROME and UKV each have seven timely original slots;
+selected ICON-EU has four. All five windows were scored with their unchanged
+starts and ingestion allowance. Neither seven elapsed days nor acceptance has
+been reached. ICON-EU's two earlier windows and misses remain retained, with
+unchanged maxima 12/14 and 13/14.
+
+Three pages of Actions history reached the earliest observation start. All 60
+original attempt reports and hashes are retained: six new reports comprise the
+three confirmed publications and three already-published catch-up skips. No
+missing report, unknown timing or invalid regional publication was found.
+Both catalogues and all twenty current/previous manifests passed canonical
+schemas and identities. Six current ECMWF/regional tile samples match manifest
+sizes and compressed-byte hashes and decode as PFT1.
+
+[Scheduled ECMWF October 6 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37429121228)
+confirmed actual publication at **2026-10-06T07:46:15.1256209Z** in its original
+job log. Fresh readback confirms current `weather-ecmwf-20261006T00Z` and previous
+`weather-ecmwf-20261005T00Z`. The earlier October 5 12Z miss remains recorded,
+including its [fallback attempt](https://github.com/deepregatta/forecast-tiles/actions/runs/37377017734)
+at 21:37:15.4703219 UTC, which exited zero at the unchanged daily-start limit
+without publication. No midnight manual retry consumed the next day's allowance,
+and no older cycle was published. Every charged counter, lease, frequency limit,
+allowance, operator pause, guard and reservation remains unchanged by this review.
+
+Original logs confirm nine overnight root publications across GFS, waves, GEFS,
+ECMWF-short, currents and ECMWF. Six already-published root fallback skips and
+the ECMWF daily-limit pause remain separately classified with original log
+hashes. Subsequent publication does not erase any historical missed attempt.
+All seven root layers remain present with valid current/previous references.
+
+The [fresh read-only whole-bucket audit](https://github.com/deepregatta/forecast-tiles/actions/runs/37431873022) passed on attempt 1 with intact
+references. Physical usage plus regional upload/headroom and the complete
+retained overlap fit the unchanged approved guard; the existing-layer reservation
+remains sufficient and unchanged. The incomplete GEFS October 4 18Z prefix stays
+included in accounting; no operator cleanup occurred. Exact account figures
+remain private, and the previous hosted-runner failure remains historical evidence.
+
+Both forecast hosted jobs and all four Passage hosted jobs passed on the reviewed
+source commits. Passage production remains healthy with all three regional models;
+independent consumer exports retain their October 4 evidence date and must be
+refreshed before promotion. GitHub and Worker full cadence both read back false.
+The twice-daily acceptance heartbeat continues; no owner decision is pending.
