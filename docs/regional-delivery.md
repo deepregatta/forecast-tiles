@@ -1368,3 +1368,77 @@ retained; no fresh export or physical-device claim is made here. Refresh current
 exports, bilingual attribution/gust semantics and hosted validation again before
 promotion. Regional observation continues with unchanged selected windows while
 actual repaired short-ECMWF scheduled delivery remains to be verified.
+
+
+## Evening scheduled replacement checkpoint, 2026-10-07
+
+Each selected regional recheck now has **two timely scheduled cycles and twelve
+pending**, with no new miss, unknown or invalid publication. Confirmed original
+job logs and reports record
+[ICON-EU 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37643887782)
+at 15:45:28.9101957 UTC,
+[UKV 12Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37650685324)
+at 16:32:54.2344171 UTC and
+[AROME 15Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37669351274)
+at 19:04:19.1028605 UTC. All three scientific validations pass with zero failures
+and pointer commits confirmed. Fresh current/previous manifests show replacement
+of the morning cycles, and sampled current tiles match manifest hashes/bytes
+and decode as PFT1. The morning manifests remain byte-identical as previous.
+Four pages of Actions history reach the earliest original observation. All 87
+original reports are retained and prior receipt hashes rechecked; six other new
+reports from catch-ups 37599338544 and 37679834767 were already-published skips
+and supply no new timing credit. Original AROME/UKV windows score 9 timely,
+1 late and 4 pending; ICON-EU original scores 7 timely/3 late/4 pending, its
+October 3 recheck 7 timely/2 late/5 pending and October 4 recheck 6 timely/1 late/
+7 pending. These historical failed windows, all misses and original starts
+remain intact. No selected window is reset: **October 13 21:14:59.217473 UTC**,
+seven elapsed days and all fourteen timely cycles are still mandatory.
+
+The repaired short-ECMWF scheduled delivery is now verified.
+[Explicit October 7 06Z job 37619795811](https://github.com/deepregatta/forecast-tiles/actions/runs/37619795811)
+waited normally for readiness, observed the 144-hour axis after seven checks
+at 12:28:46.0428534 UTC and confirmed publication at **12:41:22.1449797 UTC**.
+Fresh root read-back holds `weather-ecmwf-short-20261007T06Z`, with the retained
+October 6 06Z as previous; its sampled immutable tile and previous manifest
+pass hash/byte checks. The repaired scheduled fallback
+[37598855320](https://github.com/deepregatta/forecast-tiles/actions/runs/37598855320)
+requested October 7 06Z at 09:11 UTC and
+[37679592926](https://github.com/deepregatta/forecast-tiles/actions/runs/37679592926)
+requested October 7 18Z at 20:07 UTC. Both correctly skipped unavailable
+successors before admission. Neither built or charged a preceding complete
+cycle. The prior October 6 18Z frequency miss and original logs remain retained;
+closing the subsequent-delivery gate does not erase that history, grant regional
+timing credit or relax a control. No manual older-cycle replay occurred.
+
+Twenty-three new completed root attempts are retained separately: nine actual
+publications, twelve already-published skips and the two expected
+source-unavailable short fallbacks, with no new pause. Original logs confirm
+GFS, waves and GEFS October 7 06Z and 12Z, full ECMWF October 7 12Z, short ECMWF
+October 7 06Z and IBI October 7 00Z. IBI
+[job 37602882406](https://github.com/deepregatta/forecast-tiles/actions/runs/37602882406)
+confirmed publication at 12:33:41.1204563 UTC; the full ECMWF
+[12Z job 37673833432](https://github.com/deepregatta/forecast-tiles/actions/runs/37673833432)
+confirmed publication at 19:47:49.2188496 UTC. Root retains all seven existing
+layers and the regional catalogue all three. Twenty canonical current/previous
+manifests validate; all seven root and three regional current tile samples
+match immutable manifest bytes/hashes and decode as PFT1. Every retained
+manifest that was sampled in the morning remains byte-identical.
+
+The [evening whole-bucket audit 37684535798](https://github.com/deepregatta/forecast-tiles/actions/runs/37684535798)
+passes physical plus uploads/headroom, complete retained overlap including all
+unreferenced objects, root variation and reservation sufficiency. Approved guard,
+existing-layer reservation and headroom remain unchanged. The historical
+incomplete GEFS October 4 18Z prefix and earlier in-progress overlap miss remain
+accounted for; no manual cleanup or policy change occurred. Exact account figures
+remain private. Authenticated control read-back finds the real October 6 billing
+review about 24 hours old, with every policy/period/pause/limit and earlier
+charged identity/daily counter preserved. No renewal is due or performed. A
+fresh actual account-wide review is due from **October 8 09:06:38.467282 UTC**,
+before the unchanged **October 9 21:06:38.467282 UTC** expiry.
+
+Both full-cadence flags remain false. Current forecast source and Passage's
+production deployment retain passing required hosted checks; no software fix
+or new consumer export was needed in this review. Independent October 6 exports
+and October 4 history remain dated, with physical-device evidence separate.
+Refresh consumer exports/attribution and required hosted validation before
+promotion. All selected windows continue observing, with no owner action needed.
