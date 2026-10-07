@@ -47,10 +47,17 @@ jobs:
         with:
           python-version: '3.13'
       - run: uv sync
-      # exits 0 with a log line when the cycle is not published yet (exit 1
-      # instead when a dispatched wait_minutes runs out)
-      - run: uv run ingest weather-ecmwf-short ${CYCLE:+--cycle "$CYCLE"} ${CYCLE:+--wait-minutes "${WAIT:-0}"} ${FORCE:+--force}
+      # A delayed fallback must not charge an older complete cycle just
+      # before the next 06Z/18Z release, blocking its frequency allowance.
+      # Check the newest started cycle once; dispatched waits are unchanged.
+      - run: |
+          if [[ "$TRIGGER" == "schedule" ]]; then
+            CYCLE="$(uv run python -m ingest.ecmwf_short_fallback)"
+            WAIT=0
+          fi
+          uv run ingest weather-ecmwf-short ${CYCLE:+--cycle "$CYCLE"} ${CYCLE:+--wait-minutes "${WAIT:-0}"} ${FORCE:+--force}
         env:
+          TRIGGER: ${{ github.event_name }}
           CYCLE: ${{ inputs.cycle }}
           WAIT: ${{ inputs.wait_minutes }}
           PYTHONUNBUFFERED: "1" # log lines carry the time they happened
