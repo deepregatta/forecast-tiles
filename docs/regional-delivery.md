@@ -1270,3 +1270,101 @@ GFS, waves and short ECMWF are still to be observed at their approaching
 scheduled slots. Their older missed cycles will never overwrite newer data.
 Both full-cadence flags remain false, and the twice-daily heartbeat continues
 autonomously with the pre-expiry real billing-review procedure.
+
+
+## First scheduled recheck cycles and short-ECMWF fallback collision, 2026-10-07
+
+The selected post-billing-review-restoration windows each have **one timely
+scheduled cycle and thirteen pending**, with no new regional miss, unknown or
+invalid publication. Original reports, publication logs, fresh pointers and
+immutable tile samples confirm
+[ICON-EU 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37566725078)
+at 03:49:53.3121912 UTC,
+[UKV 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37570652060)
+at 04:34:22.2184378 UTC, and
+[AROME 03Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37577968577)
+at 05:49:59.8549610 UTC. All three source/scientific validations pass with zero
+failures and pointer commits confirmed. Three other new reports from
+[catch-up 37550362178](https://github.com/deepregatta/forecast-tiles/actions/runs/37550362178)
+are already-published skips for the preceding cycles and supply no new timing
+credit. Three pages of Actions history reach the earliest original observation;
+all 78 original reports are retained and prior receipts verified against their
+recorded hashes. Every original start, bootstrap, two-cycle profile, failed
+window and miss stays intact. The selected windows still end **October 13 at
+21:14:59.217473 UTC** and require all fourteen timely cycles plus seven elapsed
+days. Original AROME/UKV windows now score 8 timely, 1 late and 5 pending;
+ICON-EU original scores 6 timely, 3 late and 5 pending, its October 3 recheck
+6 timely/2 late/6 pending and October 4 recheck 5 timely/1 late/8 pending.
+Those historical windows remain incapable of reaching 95%.
+
+Scheduled existing delivery resumed: GFS
+[October 6 18Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37540549658)
+and [October 7 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37571435891),
+waves [18Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37544139538)
+and [00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37574261783),
+GEFS [18Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37551066766)
+and [00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37580586630),
+[full ECMWF 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37586794698)
+at 07:51:26.9783547 UTC and
+[GLO12 00Z](https://github.com/deepregatta/forecast-tiles/actions/runs/37577965870)
+at 07:43:40.6413421 UTC have original publication-log confirmation. The earlier
+GLO12 catch-up 37549695664 exited zero because its next-day source axis was not
+ready; it receives no publication credit. Sixteen completed root attempts are
+retained individually: nine publications, five already-published skips, one
+source-unavailable outcome and one frequency pause. IBI's October 6 guarded
+recovery remains current; its October 7 scheduled slot was not yet due.
+
+Short ECMWF encountered a new retained miss. The
+[delayed fallback 37549904334](https://github.com/deepregatta/forecast-tiles/actions/runs/37549904334)
+selected the older **October 6 06Z** complete cycle at 00:06:22 UTC and published
+it at 00:17:18.4699931 UTC. The
+[explicit October 6 18Z job](https://github.com/deepregatta/forecast-tiles/actions/runs/37551068948)
+observed readiness at 00:27:44.1283607 UTC but stopped at the unchanged six-hour
+recompute frequency limit. Green workflow conclusions do not erase this 18Z
+miss. Both original logs and hashes are retained. No older cycle was written
+over a newer pointer, and no invalid run was published.
+
+Repair **869eac1ff391e38b492236b10ea9b0afd7ac9267** makes only the scheduled
+short-ECMWF fallback name the newest **started** 06Z/18Z cycle in UTC, checking
+once. An unavailable successor skips before admission instead of publishing its
+older complete predecessor. Manual defaults/explicit cycles, dispatcher waits,
+operator pause, paid-work checks, charged counters, six-hour frequency limit,
+two-start daily allowance, leases and capacity controls remain unchanged.
+Midnight/year/timezone boundary and real CLI/source-readiness regressions prove
+that a complete predecessor cannot acquire or build while the named successor
+is unavailable. All **502 Python tests, 60 dispatcher tests**, contract/lint
+checks, workflow actionlint and
+[both required hosted jobs](https://github.com/deepregatta/forecast-tiles/actions/runs/37589977374)
+passed. Actual scheduled short-ECMWF replacement after the fix remains a separate
+observation gate. A manual 18Z recovery now would consume the approaching
+October 7 06Z frequency/daily allowance, so it is left for the **12:15 UTC**
+scheduled dispatch, without an override, refund or replay.
+
+Fresh read-back retains all seven root and three regional layers and validates
+twenty canonical current/previous manifests. All seven root and three regional
+sampled tiles match manifest bytes/hashes and decode as PFT1; previous manifests
+match retained bytes where prior samples exist. The
+[read-only whole-bucket audit 37589462950](https://github.com/deepregatta/forecast-tiles/actions/runs/37589462950)
+passes physical plus upload/headroom, complete retained overlap including all
+unreferenced objects, root variation and existing-layer reservation sufficiency.
+Approved guard, reservation and headroom stay unchanged. The historical
+incomplete GEFS October 4 18Z prefix and October 6 in-progress overlap miss remain
+accounted for; no manual cleanup occurred. Exact account figures stay private.
+
+Authenticated control read-back confirms the real **October 6 21:06:38.467282
+UTC** billing-review timestamp is unchanged and about eleven hours old. Every
+policy/period/pause/limit and prior charged identity/daily counter is preserved;
+charged starts/runtime only increase through normal admissions. No review
+renewal is due or performed. The next real account-wide review is due at the
+36-hour checkpoint **October 8 09:06:38.467282 UTC**, before the unchanged
+72-hour expiry **October 9 21:06:38.467282 UTC**. Authentication was refreshed
+through Wrangler's standard read-only account command; no credentials or
+provider billing settings changed.
+
+Worker and GitHub full cadence remain false. Passage's existing deployment and
+all four required hosted checks remain healthy. Its independent October 6
+consumer exports stay dated in `current_exports`, and October 4 history stays
+retained; no fresh export or physical-device claim is made here. Refresh current
+exports, bilingual attribution/gust semantics and hosted validation again before
+promotion. Regional observation continues with unchanged selected windows while
+actual repaired short-ECMWF scheduled delivery remains to be verified.
