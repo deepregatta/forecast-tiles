@@ -1673,3 +1673,66 @@ history remain dated; physical-device proof is separate. Refresh exports,
 attribution and required hosted checks before promotion, and verify the next
 actual GFS scheduled publication after this repair. Seven-day regional observation
 continues; no owner decision is needed.
+
+
+## Regional and existing-layer checkpoint, 2026-10-09 evening
+
+All three selected windows now have **six timely scheduled cycles and eight
+pending**, with no new miss, unknown or invalid publication. Scheduled
+[AROME 15Z job 37975561924](https://github.com/deepregatta/forecast-tiles/actions/runs/37975561924)
+confirmed publication at **19:00:26.3064005 UTC**. Its original attempt confirms
+pointer commit and passing scientific validation with zero failures. Fresh
+current/previous manifests prove scheduled replacement. Three later catch-up
+reports were already-published skips. Five pages of Actions history reach the
+earliest original observation start; all **117 original reports** and prior
+receipt hashes remain retained.
+
+Original AROME/UKV each score 13 timely/1 late; original ICON-EU remains 11
+timely/3 late. ICON-EU's October 3 recheck remains 11 timely/2 late/1 pending and
+October 4 remains 10 timely/1 late/3 pending. None can pass. All original and
+bootstrap times, selected starts, profiles and misses remain unchanged.
+Selected acceptance still requires **seven elapsed days and all fourteen timely
+deliveries**, ending October 13 at **21:14:59.217473 UTC**.
+
+Ten newly completed root attempts are retained with original log hashes:
+three actual publications, six already-published skips and one source-unavailable
+exit before admission. The actual 12Z publications are
+[waves 37963274760](https://github.com/deepregatta/forecast-tiles/actions/runs/37963274760)
+at **17:38:15.9713601 UTC**,
+[GEFS 37972098766](https://github.com/deepregatta/forecast-tiles/actions/runs/37972098766)
+at **18:41:35.9119879 UTC**, and
+[full ECMWF 37979629056](https://github.com/deepregatta/forecast-tiles/actions/runs/37979629056)
+at **19:51:39.0276053 UTC**. The short-ECMWF fallback named the newest 18Z cycle
+and skipped its unavailable source without old-cycle replay or publication credit.
+Root retains seven existing layers and the regional catalogue three; all twenty
+canonical current/previous manifests validate. Seven root and three regional
+sample tiles match manifest bytes/hashes and decode as PFT1; sixteen known
+retained manifests remain byte-identical.
+
+The previously reported GFS 06Z source miss, failed admission charge and repair
+remain retained. Current GFS 12Z/previous 00Z pass read-back. Its already-published
+fallback supplies no proof of a new cycle on repaired source. The required actual
+scheduled GFS publication remains pending for the **October 9 18Z dispatch at
+22:25 UTC**, which is still forthcoming at this checkpoint. No older-cycle
+recovery, allowance refund or gate override occurred.
+
+[Read-only whole-bucket audit 37989603419](https://github.com/deepregatta/forecast-tiles/actions/runs/37989603419)
+passes physical plus upload/headroom, complete retained overlap including every
+unreferenced object, root variation and reservation sufficiency. The approved
+guard, reservation and headroom remain unchanged; no manual cleanup occurred.
+Historical incomplete prefixes and every earlier overlap miss remain retained.
+Exact account figures stay private.
+
+Authenticated control confirms the October 8 actual billing review is about
+**twenty-four hours old**. No renewal is due or performed; all policies, period,
+pause, limits, charged identities and daily counters remain preserved, including
+the failed GFS 06Z charge. A fresh real account-wide review becomes due on
+**October 10 at 08:50:53.005769 UTC**, before the unchanged 72-hour expiry on
+**October 11 at 20:50:53.005769 UTC**.
+
+Both full-cadence flags remain false. Current producer and deployed Passage source
+retain passing required hosted checks; production configuration read-back passes.
+Independent October 6 consumer exports and October 4 history remain dated;
+physical-device proof is separate. Refresh consumer exports/attribution and
+required hosted validation before promotion. Observation continues without a new
+owner decision.
