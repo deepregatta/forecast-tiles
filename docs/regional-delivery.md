@@ -1587,3 +1587,89 @@ consumer exports and October 4 export history remain dated; physical-device proo
 is separate. No fresh export/device claim is made here. Refresh exports,
 attribution and required hosted validation before promotion. Seven-day observation
 continues with no owner action needed.
+
+
+## GFS source-readiness repair and regional checkpoint, 2026-10-09
+
+Selected AROME now has **five timely scheduled cycles and nine pending**;
+ICON-EU/UKV each have **six timely and eight pending**, with no new regional
+miss, unknown or invalid publication. Five new original logs/reports confirm
+ICON-EU/UKV 00Z, AROME 03Z and ICON-EU/UKV 12Z. The 12Z publications are
+[ICON-EU 37951704150](https://github.com/deepregatta/forecast-tiles/actions/runs/37951704150)
+at 15:48:04.6559560 UTC and
+[UKV 37957872753](https://github.com/deepregatta/forecast-tiles/actions/runs/37957872753)
+at 16:36:42.3791857 UTC. All five reports confirm pointer commit and passing
+scientific validation with zero failures. AROME 15Z dispatch is still forthcoming;
+no future slot receives inferred credit. Five pages of Actions history reach the
+earliest original start; all **113 original reports** are retained and prior
+hashes verified. Six new catch-up reports are already-published skips.
+
+Original AROME scores 12 timely/1 late/1 pending; UKV 13 timely/1 late and
+ICON-EU 11 timely/3 late. ICON-EU's October 3 recheck scores 11 timely/2 late/1
+pending; October 4 scores 10 timely/1 late/3 pending. Those historical windows
+cannot pass. All original/bootstrap times, selected starts, profiles and misses
+stay unchanged. Selected acceptance still requires **seven elapsed days and
+fourteen timely deliveries**, ending October 13 at **21:14:59.217473 UTC**.
+
+[Scheduled GFS October 9 06Z job 37917573360](https://github.com/deepregatta/forecast-tiles/actions/runs/37917573360)
+failed at **10:51:39 UTC** after repeated source 404s for `f237.idx` exhausted the
+existing late-file grace. Readiness had checked only `f240.idx`. NOAA's fresh
+source metadata dates `f240.idx` at **10:36:01 UTC** and `f237.idx` at
+**10:52:14 UTC**, confirming the earlier required index arrived after the final
+index and after this failure. The original log/hash and failed admission charge
+remain retained; no invalid run was published. No charged identity was removed,
+allowance refunded, limit bypassed or superseded cycle replayed.
+
+The ordinary [GFS 12Z job 37959085316](https://github.com/deepregatta/forecast-tiles/actions/runs/37959085316)
+confirmed publication at **16:49:25.0641656 UTC**, using pre-repair source.
+Current 12Z/previous 00Z manifests and sampled immutable tiles pass. Twenty-nine
+newly completed root attempts are retained individually: fourteen actual
+publications, twelve already-published skips, two source-unavailable exits and
+this one GFS failure. The cycle-unspecified GLO12 catch-up receives no inferred
+cycle/publication credit. Root retains seven existing layers and the regional
+catalogue three; twenty canonical current/previous manifests validate. All seven
+root and three regional current samples match immutable bytes/hashes and decode
+as PFT1; known retained manifests remain byte-identical.
+
+Repair [905fc67](https://github.com/deepregatta/forecast-tiles/commit/905fc679b401b327a8ce47c9efcd2bb7a40f4403)
+requires all **161 consumed GRIB files and their indexes** before GFS admission.
+A read-only inventory uses the exact cycle/0.25-degree prefix with bounded
+pagination; missing files continue the existing wait, and incomplete/unknown
+inventory cannot confirm readiness. Requested cycles are never substituted.
+Waiting budgets, late-file grace, scientific fields/axes, charged allowances,
+leases, frequency/daily limits, monotonic publication and other sources stay
+unchanged. Regressions reproduce final-index readiness with missing `f237`/index
+and hourly `f001.idx`, bounded/invalid pagination, latest-only fallback and a
+wait timeout with no charge/build/publication. **79 focused regressions**,
+**512 Python tests**, **60 dispatcher tests**, contracts, lint/format and type
+checks pass; [both required hosted jobs 37962536875](https://github.com/deepregatta/forecast-tiles/actions/runs/37962536875)
+pass on the repair. Live read-only October 9 06Z/12Z inventories confirm all
+required files. This is software/source evidence; **actual subsequent scheduled
+GFS publication on repaired source remains pending**, expected first with the
+October 9 18Z dispatch at 22:25 UTC. Keep that operational gate open until original
+publication and fresh read-back prove it; do not relabel the pre-repair 12Z run.
+
+[Initial read-only audit 37961275391](https://github.com/deepregatta/forecast-tiles/actions/runs/37961275391)
+passed provider inventory and physical plus upload/headroom fit, but its calculated
+complete retained overlap exceeded the unchanged guard while GFS 12Z was active.
+That failed overlap assessment remains retained. The fresh
+[post-publication audit 37962059343](https://github.com/deepregatta/forecast-tiles/actions/runs/37962059343)
+passes physical and complete retained overlap including all unreferenced objects,
+root variation and reservation sufficiency. No guard/reservation/headroom change
+or manual cleanup occurred. The historical incomplete GEFS prefix and earlier
+in-progress overlap miss remain accounted for. Exact account figures stay private.
+
+Authenticated control confirms the actual October 8 billing review is about
+**twenty hours old**; no renewal is due or performed. Every policy/period/pause/
+limit and prior charged identity/daily counter is preserved, including failed
+GFS 06Z; the ordinary 12Z producer released its completed lease. The next real
+account-wide review is due from **October 10 08:50:53.005769 UTC**, before unchanged
+72-hour expiry **October 11 20:50:53.005769 UTC**. No timestamp renewal without
+fresh actual billing evidence.
+
+Both full-cadence flags remain false. Passage's deployed source retains passing
+required hosted checks. Independent October 6 consumer exports and October 4
+history remain dated; physical-device proof is separate. Refresh exports,
+attribution and required hosted checks before promotion, and verify the next
+actual GFS scheduled publication after this repair. Seven-day regional observation
+continues; no owner decision is needed.
