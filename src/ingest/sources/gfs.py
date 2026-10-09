@@ -5,15 +5,19 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from urllib.parse import urlencode
+from xml.etree import ElementTree
 
 import numpy as np
 
 from ingest.cube import ForecastCube, axis_offsets, utcnow_iso
 from ingest.sources.base import (
     DOWNLOAD_WORKERS,
+    CycleNotAvailableError,
     SourceVar,
     decode_field,
     fetch_fields,
+    http,
     quantize_field,
     resolve_cycle,
     urls_digest,
@@ -61,9 +65,54 @@ def vars_for_step(step: int) -> list[SourceVar]:
 
 
 def resolve(requested: datetime | None = None) -> datetime:
-    """Latest complete GFS cycle (f240 .idx present); falls back one cycle
-    rather than ever ingesting a partial one."""
-    return resolve_cycle(_IDX_TEMPLATE, requested)
+    """Require every consumed GRIB/index before production admission.
+
+    NOAA can upload f240.idx before earlier steps, exceeding the build's
+    late-file grace. Inventory only this cycle's exact 0.25 degree prefix;
+    keep the existing bounded wait/lookback and admission controls.
+    """
+    return resolve_cycle(_IDX_TEMPLATE, requested, is_complete=_files_ready)
+
+
+def _files_ready(cycle: datetime) -> bool:
+    prefix = f"gfs.{cycle:%Y%m%d}/{cycle:%H}/atmos/gfs.t{cycle:%H}z.pgrb2.0p25.f"
+    steps = sorted(set(HOURLY_AXIS) | set(H3_AXIS))
+    required = {f"{prefix}{step:03d}{suffix}" for step in steps for suffix in ("", ".idx")}
+    keys: set[str] = set()
+    token = None
+    seen_tokens: set[str] = set()
+    ns = "{http://s3.amazonaws.com/doc/2006-03-01/}"
+    for _ in range(4):
+        query = {"list-type": "2", "prefix": prefix, "max-keys": "1000"}
+        if token is not None:
+            query["continuation-token"] = token
+        raw = http(GFS_BASE + "/?" + urlencode(query))
+        try:
+            if len(raw) > 2 * 1024 * 1024:
+                raise ValueError("oversized inventory")
+            page = ElementTree.fromstring(raw)
+            if page.tag != ns + "ListBucketResult":
+                raise ValueError("unexpected inventory root")
+            keys.update(node.text for node in page.findall(ns + "Contents/" + ns + "Key"))
+            truncated = page.findtext(ns + "IsTruncated")
+            if truncated == "false":
+                missing = required - keys
+                if missing:
+                    print(
+                        f"ingest weather: GFS {cycle:%Y%m%dT%H}Z inventory missing "
+                        f"{len(missing)} required files (first: {min(missing)})",
+                        flush=True,
+                    )
+                return not missing
+            token = page.findtext(ns + "NextContinuationToken")
+            if truncated != "true" or not token or token in seen_tokens:
+                raise ValueError("incomplete inventory pagination")
+            seen_tokens.add(token)
+        except (ElementTree.ParseError, ValueError) as exc:
+            raise CycleNotAvailableError(
+                f"GFS {cycle:%Y%m%dT%H}Z inventory cannot confirm all required files"
+            ) from exc
+    raise CycleNotAvailableError(f"GFS {cycle:%Y%m%dT%H}Z inventory exceeded four pages")
 
 
 def build_cube(cycle: datetime, workers: int = DOWNLOAD_WORKERS) -> ForecastCube:

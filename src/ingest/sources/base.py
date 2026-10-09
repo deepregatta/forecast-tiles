@@ -10,6 +10,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from typing import Callable
 
 import numpy as np
 import requests
@@ -161,20 +162,24 @@ def resolve_cycle(
     requested: datetime | None = None,
     max_lookback_cycles: int = 8,
     cadence_h: int = 6,
+    *,
+    is_complete: Callable[[datetime], bool] | None = None,
 ) -> datetime:
-    """Latest cycle whose final-step .idx exists (never a partial cycle);
+    """Latest cycle whose final-step .idx and optional completeness check pass;
     url_template has {date}/{hh} placeholders. A requested cycle is only
     checked, never substituted."""
     if requested is not None:
         url = url_template.format(date=requested.strftime("%Y%m%d"), hh=requested.strftime("%H"))
-        if not head_ok(url):
+        if not head_ok(url) or (is_complete is not None and not is_complete(requested)):
             raise CycleNotAvailableError(
                 f"requested cycle {requested:%Y%m%dT%H}Z incomplete: {url}"
             )
         return requested
     t = floor_to_cycle(datetime.now(timezone.utc), cadence_h)
     for _ in range(max_lookback_cycles):
-        if head_ok(url_template.format(date=t.strftime("%Y%m%d"), hh=t.strftime("%H"))):
+        if head_ok(url_template.format(date=t.strftime("%Y%m%d"), hh=t.strftime("%H"))) and (
+            is_complete is None or is_complete(t)
+        ):
             return t
         t -= timedelta(hours=cadence_h)
     raise CycleNotAvailableError(f"no complete cycle found for {url_template}")
