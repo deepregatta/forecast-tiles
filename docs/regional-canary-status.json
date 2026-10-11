@@ -1,5 +1,5 @@
 {
-  "status": "AROME/UKV selected windows observing at nine timely slots; recurring ICON-EU 00Z source miss retained and valid late recovery verified, separate October 11 restored-source window observing; actual scheduled 00Z evidence pending; capacity fits; real billing review still needs sign-in before tonight’s unchanged expiry",
+  "status": "Authenticated October 11 account-wide R2 billing review and timestamp-only renewal verified; AROME/UKV selected windows observing at nine timely slots and ICON-EU October 11 window at zero; subsequent scheduled ICON-EU 00Z evidence pending; full cadence false",
   "started_on": "2026-10-02",
   "observation_days": 7,
   "minimum_on_time_fraction": 0.95,
@@ -620,7 +620,7 @@
   "remaining_acceptance": [
     "Continue AROME/UKV selected October 6 21:14:59.217473 UTC windows through October 13 at the same time; each has nine timely slots and five pending. ICON-EU's retained October 10 window now has a confirmed October 11 source-readiness miss/late recovery and cannot meet 95%; use separate post-october11-source-restoration from 2026-10-11T08:00:53.855171+00:00 through 2026-10-18T08:00:53.855171+00:00, zero timely/fourteen pending. Require seven elapsed days and fourteen timely deliveries in every selected window. Preserve every original/bootstrap start, two-cycle profile, prior window and miss; late manual recovery supplies no selected timely slot.",
     "No invalid publication; unknown evidence cannot pass.",
-    "Continue actual scheduled root and regional delivery. Subsequent scheduled GFS/waves/GEFS 18Z/00Z, GLO12 October 11 and short ECMWF 18Z publish; pending full ECMWF 00Z remains unconfirmed. ICON-EU October 11 source wait again expired while required u/v/gust variables were missing; valid guarded late recovery is charged once and preserves the later 12Z slot. Recovery does not prove the recurring upstream source-timeliness issue repaired: resolve its separate operational gate only with original-report/log evidence of an actual subsequent scheduled 00Z on-time publication plus scientific/immutable readback. No lag, wait, deadline, profile, allowance or limit change. Billing review is about 59 hours old; dashboard still signed out and real review due. Restore sign-in before unchanged October 11 20:50:53.005769 UTC expiry tonight. No timestamp renewal without actual account-wide costs, period, conversion/tax and outstanding-work review; then only timestamp-only CAS on verified main with exact authenticated readback. Preserve all charged usage, leases, frequency limits, operator policies and provider decisions.",
+    "Continue actual scheduled root and regional delivery. Subsequent scheduled GFS/waves/GEFS 18Z/00Z, GLO12 October 11 and short ECMWF 18Z publish; pending full ECMWF 00Z remains unconfirmed. ICON-EU October 11 source wait again expired while required u/v/gust variables were missing; valid guarded late recovery is charged once and preserves the later 12Z slot. Recovery does not prove the recurring upstream source-timeliness issue repaired: resolve its separate operational gate only with original-report/log evidence of an actual subsequent scheduled 00Z on-time publication plus scientific/immutable readback. No lag, wait, deadline, profile, allowance or limit change. Owner-restored authenticated account-wide R2 costs, period, conversion/tax and outstanding-work review completed October 11 08:25:17.276888 UTC. Conditional renewal 38124735603 changed only reviewed_at and exact authenticated read-back preserved every other field. Complete the next real review once due October 12 20:25:17.276888 UTC, before the unchanged 72-hour expiry October 14 08:25:17.276888 UTC. Never renew without actual evidence or repeat an uncertain write. Preserve all charged usage, leases, frequency limits, operator policies and provider decisions.",
     "Continue representative-cycle read-only capacity checks. October 11 audits 38122768338 and 38123162468 pass physical and complete retained overlap, including every unreferenced object, root variation and reservation sufficiency. Approved guard/reservation/headroom unchanged; no manual cleanup. Earlier overlap failures and historical incomplete prefix remain retained.",
     "Repeat current production consumer/attribution checks before full-cadence promotion.",
     "Keep current required hosted validation passing before full-cadence promotion; the previously failed Passage audit is resolved without a waiver."
@@ -12644,6 +12644,59 @@
       "consumer_exports_refreshed_this_review": false,
       "full_cadence_enabled": false,
       "acceptance_result": "AROME/UKV selected windows each have nine timely slots and five pending. ICON-EU 00Z again expired its source wait with required variables absent; guarded recovery at 07:56:54.7526953 UTC is late in the retained October 10 window. Separate restored-source window begins after verified production readback with zero timely/fourteen pending. Every earlier window/miss remains retained; recurring upstream timeliness is not proven repaired, so actual subsequent scheduled 00Z delivery has a separate unresolved gate. Scheduled root current/previous references and immutable sample hashes pass; pending jobs are unconfirmed. Capacity fits unchanged limits, recovery charged once and later 12Z slot preserved. Billing dashboard still signed out, real review due and unchanged expiry tonight; no unsupported renewal. No invalid publication or full-cadence promotion."
+    },
+    {
+      "reviewed_at": "2026-10-11T08:26:10.876270+00:00",
+      "scope": "October 11 owner-restored authenticated account-wide R2 billing review and one timestamp-only conditional renewal",
+      "billing_review": {
+        "reviewed_at": "2026-10-11T08:25:17.276888+00:00",
+        "source": "Owner-authenticated Cloudflare Billing > Billable usage, R2 family and all three selected products; existing Budget Alerts inspected read-only.",
+        "covered_products": [
+          "R2 Data Storage",
+          "R2 Storage Class A Operations",
+          "R2 Storage Class B Operations"
+        ],
+        "provider_period_matches_authenticated_control": true,
+        "usage_observed_through": "2026-10-11",
+        "current_costs_and_projection_reviewed": true,
+        "conversion_source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.ff.html",
+        "conversion_reference_date": "2026-10-09",
+        "existing_conversion_tax_provisions_and_delayed_billing_reserve_preserved": true,
+        "tax_and_final_invoice_not_inferred_from_usage_dashboard": true,
+        "outstanding_work": "Scheduled full ECMWF October 11 00Z job 38121070974 remains in progress with its existing lease; morning complete-overlap audits pass. Ordinary stored data/reads, admitted work and remaining permitted production retain delayed-billing uncertainty.",
+        "existing_provider_decision_supported": true,
+        "budget_alert_plans_payment_and_owner_policy_unchanged": true,
+        "account_figures_public": false
+      },
+      "conditional_renewal": {
+        "verified_at": "2026-10-11T08:26:10.876270+00:00",
+        "actual_account_wide_billing_review_completed": true,
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38124735603",
+        "source_commit": "1f8ef6c9a52a9c64e27e895a0606b81c3512b6a8",
+        "prior_reviewed_at": "2026-10-08T20:50:53.005769+00:00",
+        "reviewed_at": "2026-10-11T08:25:17.276888+00:00",
+        "single_conditional_write_confirmed": true,
+        "only_reviewed_at_changed": true,
+        "exact_authenticated_readback": true,
+        "policy_and_all_usage_preserved": true,
+        "operator_pause_period_provider_decisions_and_limits_preserved": true,
+        "active_lease_preserved": true,
+        "no_review_write_repeated": true,
+        "budget_alert_plans_and_payment_unchanged": true,
+        "real_review_due_at": "2026-10-12T20:25:17.276888+00:00",
+        "unchanged_expiry_at": "2026-10-14T08:25:17.276888+00:00",
+        "original_job_log_sha256": "12a54caa19383db9e7db966c10e978e32e067375a7ea366720e304c19c6d91a0",
+        "account_figures_public": false
+      },
+      "required_source_validation": {
+        "commit": "1f8ef6c9a52a9c64e27e895a0606b81c3512b6a8",
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38123518363",
+        "required_jobs_passed": [
+          "python",
+          "dispatcher"
+        ]
+      },
+      "acceptance_result": "Billing access gate resolved before expiry. All original/bootstrap starts, two-cycle profiles, historical windows, misses and 140 original receipts remain intact. AROME/UKV selected windows still have nine timely slots and five pending; ICON-EU selected October 11 window remains zero timely/fourteen pending. Actual subsequent scheduled ICON-EU 00Z evidence and seven-day acceptance remain pending. Full cadence stays false; consumer exports retain their original dates."
     }
   ],
   "incidents": [
@@ -15376,18 +15429,6 @@
   "capacity_audit_last_completed_attempt": 1,
   "unresolved_operational_gates": [
     {
-      "kind": "authenticated-billing-review-access-required",
-      "recorded_at": "2026-10-10T20:55:22.778538+00:00",
-      "last_completed_review_at": "2026-10-08T20:50:53.005769+00:00",
-      "real_review_due_at": "2026-10-10T08:50:53.005769+00:00",
-      "unchanged_review_expiry_at": "2026-10-11T20:50:53.005769+00:00",
-      "status": "Proactive account-wide billing review is due. Authenticated dashboard has signed out; owner sign-in requested before unchanged expiry. Prior billing API access returned 403. No actual fresh billing evidence available and no renewal performed.",
-      "action_required": "Restore Cloudflare dashboard sign-in for real account-wide Class A/Class B/storage, period, conversion/tax and outstanding-work review. Only after completed evidence may timestamp-only CAS renewal be applied on verified main.",
-      "delivery_stopped": false,
-      "review_timestamp_policy_or_usage_changed": false,
-      "cadence_promotion_permitted": false
-    },
-    {
       "kind": "subsequent-scheduled-icon-eu-00z-delivery-pending-after-repeated-source-waits",
       "recorded_at": "2026-10-11T08:04:12.332272+00:00",
       "layer": "weather-icon-eu",
@@ -15538,6 +15579,43 @@
       "previous_run_id": "weather-20261009T18Z",
       "repair_ancestor_verified": true,
       "failed_charge_and_identity_retained": true
+    },
+    {
+      "kind": "authenticated-billing-review-access-required",
+      "resolved_at": "2026-10-11T08:26:10.876270+00:00",
+      "prior_gate": {
+        "kind": "authenticated-billing-review-access-required",
+        "recorded_at": "2026-10-10T20:55:22.778538+00:00",
+        "last_completed_review_at": "2026-10-08T20:50:53.005769+00:00",
+        "real_review_due_at": "2026-10-10T08:50:53.005769+00:00",
+        "unchanged_review_expiry_at": "2026-10-11T20:50:53.005769+00:00",
+        "status": "Proactive account-wide billing review is due. Authenticated dashboard has signed out; owner sign-in requested before unchanged expiry. Prior billing API access returned 403. No actual fresh billing evidence available and no renewal performed.",
+        "action_required": "Restore Cloudflare dashboard sign-in for real account-wide Class A/Class B/storage, period, conversion/tax and outstanding-work review. Only after completed evidence may timestamp-only CAS renewal be applied on verified main.",
+        "delivery_stopped": false,
+        "review_timestamp_policy_or_usage_changed": false,
+        "cadence_promotion_permitted": false
+      },
+      "resolution": "Owner restored dashboard sign-in; actual account-wide R2 billing review completed, then one conditional timestamp-only renewal confirmed by original job log and exact authenticated control read-back. No policy or usage changed.",
+      "billing_review": {
+        "verified_at": "2026-10-11T08:26:10.876270+00:00",
+        "actual_account_wide_billing_review_completed": true,
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38124735603",
+        "source_commit": "1f8ef6c9a52a9c64e27e895a0606b81c3512b6a8",
+        "prior_reviewed_at": "2026-10-08T20:50:53.005769+00:00",
+        "reviewed_at": "2026-10-11T08:25:17.276888+00:00",
+        "single_conditional_write_confirmed": true,
+        "only_reviewed_at_changed": true,
+        "exact_authenticated_readback": true,
+        "policy_and_all_usage_preserved": true,
+        "operator_pause_period_provider_decisions_and_limits_preserved": true,
+        "active_lease_preserved": true,
+        "no_review_write_repeated": true,
+        "budget_alert_plans_and_payment_unchanged": true,
+        "real_review_due_at": "2026-10-12T20:25:17.276888+00:00",
+        "unchanged_expiry_at": "2026-10-14T08:25:17.276888+00:00",
+        "original_job_log_sha256": "12a54caa19383db9e7db966c10e978e32e067375a7ea366720e304c19c6d91a0",
+        "account_figures_public": false
+      }
     }
   ]
 }

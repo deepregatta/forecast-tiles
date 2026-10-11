@@ -2004,3 +2004,42 @@ Passage checks still pass. Independent October 6 exports, October 4 history and
 physical-device proof remain separately dated; no fresh consumer export is claimed
 here. Refresh current exports/attribution and hosted checks before promotion.
 Observation continues with every historical failure retained and no relaxed gate.
+
+
+### October 11 authenticated billing review and renewal (08:26 UTC)
+
+The owner restored Cloudflare sign-in. A real authenticated account-wide R2 review
+completed at **2026-10-11 08:25:17.276888 UTC** covered Class A and Class B operations,
+data storage, reported costs and projection, the matching provider billing period,
+conversion/tax provisions, outstanding work and the existing owner policy. The
+October 9 [ECB reference](https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.ff.html)
+was used with the existing conservative provisions; a usage dashboard does not
+establish a final invoice or assessed tax. Existing delayed-billing uncertainty
+and the larger reserve remain retained. The existing budget alert was inspected
+read-only; no alert, payment, plan, monetary threshold or provider decision changed.
+Exact account figures and the financial receipt remain private.
+
+[Conditional renewal 38124735603](https://github.com/deepregatta/forecast-tiles/actions/runs/38124735603)
+ran on verified main **1f8ef6c9a52a9c64e27e895a0606b81c3512b6a8**, whose
+[two required hosted checks](https://github.com/deepregatta/forecast-tiles/actions/runs/38123518363)
+passed. Its original job log confirms **one conditional write and exact read-back**.
+A separate authenticated control read at **08:26:10.876270 UTC** exactly matches
+the prior control with **only `reviewed_at` changed**. Every policy, period,
+operator pause, provider decision, charged counter/identity, allowance, frequency
+limit and active lease remains unchanged. The scheduled full ECMWF
+October 11 00Z job remains in progress; no publication is inferred from its status.
+No uncertain write was repeated.
+
+The billing access gate is resolved before its previous expiry, with the original
+gate retained in history. Complete the next actual review once its age reaches
+36 hours, **October 12 20:25:17.276888 UTC (22:25 Paris)**, before the unchanged
+72-hour expiry **October 14 08:25:17.276888 UTC (10:25 Paris)**. Never renew without
+fresh actual evidence.
+
+Regional windows and evidence are unchanged: AROME/UKV each retain nine timely
+slots and five pending; ICON-EU's separate October 11 selected window retains zero
+timely and fourteen pending. Every original start, bootstrap time, two-cycle
+profile, prior miss/window and all 140 original reports remain retained. Actual
+subsequent scheduled ICON-EU 00Z on-time evidence remains an open operational gate.
+Both full-cadence flags stay false. Seven-day acceptance, fresh consumer exports
+and attribution, current hosted checks and all other promotion gates still apply.
