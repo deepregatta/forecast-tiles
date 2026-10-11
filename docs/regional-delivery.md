@@ -1898,3 +1898,109 @@ retain passing required hosted checks. Independent October 6 exports, October 4
 history and physical-device evidence remain separately dated; no fresh consumer
 claim is made. Refresh current exports/attribution and hosted checks before
 promotion. Observation continues; billing sign-in is the one access requirement.
+
+
+## Repeated ICON-EU source miss and guarded restoration, 2026-10-11
+
+AROME/UKV selected windows each reach **nine timely scheduled cycles and five
+pending**, with no new miss or invalid publication. Original reports/logs confirm
+[UKV 00Z 38111038014](https://github.com/deepregatta/forecast-tiles/actions/runs/38111038014)
+at **04:32:23.3114059 UTC** and
+[AROME 03Z 38115855107](https://github.com/deepregatta/forecast-tiles/actions/runs/38115855107)
+at **05:50:13.9484002 UTC**, both scientifically valid with pointer commit.
+Their selected starts/end remain October 6/13 at **21:14:59.217473 UTC**.
+
+[ICON-EU October 11 00Z job 38108364455](https://github.com/deepregatta/forecast-tiles/actions/runs/38108364455)
+again exhausted the unchanged 45-minute wait after 24 source checks. The final
+original diagnostic at **04:11:33.4565437 UTC** still lists missing
+`wind_u_component_10m`, `wind_v_component_10m` and `wind_gusts_10m`.
+It stopped before admission/publication; the resolved cycle stays null and the
+requested exact 00Z cycle is retained. This is the second consecutive scheduled
+00Z source-readiness miss, following October 10. No invalid run was published.
+Fresh exact metadata is complete; its internal creation time **03:39:36 UTC**
+and current Last-Modified **04:18:02 UTC** do not establish when the first
+complete version became available. The original final diagnostic independently
+proves incompleteness at wait expiry. No proven transport/cache cause or software
+defect is inferred, and source lag, waiting budget and delivery deadline stay
+unchanged.
+
+One owner-authorized
+[guarded recovery 38122902805](https://github.com/deepregatta/forecast-tiles/actions/runs/38122902805)
+confirmed publication at **07:56:54.7526953 UTC**, with complete source downloads,
+thirteen producer scientific checks, zero failures and pointer commit. Fresh
+canonical current 00Z/previous October 10 12Z manifests and immutable tile
+bytes/hashes pass. Normal admission charged it once and its completed lease is
+released. Every prior charged identity/counter and the failed wait remain retained;
+the unchanged six-hour frequency limit and two starts/day still permit the later
+12Z slot. No uncertain admission PUT was repeated, gate overridden, charge refunded
+or older cycle replayed. The original publisher log records post-commit retirement
+of the older October 10 00Z regional generation; no manual cleanup occurred.
+
+The retained October 10 window now scores **one timely, one late and twelve
+pending**, maximum 13/14, below 95%. Its original failed receipt remains
+`source_wait_expired`; the late score comes from the separately confirmed recovery
+and does not erase the failed scheduled attempt. Original ICON-EU and its October
+3 recheck remain 11 timely/3 late; October 4 now scores 11 timely/3 late and October
+6 scores 7 timely/2 late/5 pending. All prior windows, starts and misses remain
+separate. Within the owner's standing autonomous-continuation direction, the new
+selected `post-october11-source-restoration` window starts after verified read-back
+at **October 11 08:00:53.855171 UTC** and ends
+**October 18 08:00:53.855171 UTC**. It has **zero
+timely/fourteen pending**, beginning with the October 11 12Z scheduled slot.
+The recovered 00Z predates that schedule and receives no timely credit.
+**Seven elapsed days and all fourteen timely deliveries** remain mandatory.
+AROME/UKV windows are unchanged.
+
+Late recovery restores data availability; it does **not prove the recurring
+upstream source-timeliness problem repaired**. A separate operational gate now
+requires an actual subsequent scheduled ICON-EU 00Z **on-time** publication,
+confirmed by its original report/log, source/scientific checks and fresh immutable
+current/previous read-back. No registered lag, waiting limit, deadline, profile or
+acceptance requirement is relaxed. Passing all fourteen selected slots remains a
+separate full-cadence requirement.
+
+6 pages of Actions history reach the earliest original start; all **140
+original reports** and prior recorded hashes remain retained. Seven new receipts
+comprise two timely scheduled publications, one expired source wait, one late
+manual recovery and three already-published catch-up skips. All ten original and
+separate windows are scored independently; green workflow status supplies no
+inferred publication or cycle.
+
+15 newly completed root attempts comprise **8 actual publications,
+six already-published skips and one short ECMWF source-unavailable fallback exit**.
+GFS/waves/GEFS October 10 18Z and October 11 00Z, short ECMWF 18Z and GLO12
+October 11 have original-log publication receipts. Source-unavailable fallback
+supplies no inferred cycle/publication credit. Full ECMWF October 11 00Z remains
+unconfirmed while pending; IBI October 11 dispatch is forthcoming. Every earlier
+root failure, control-read/frequency/daily pause, charged recovery and original
+partial-byte evidence remains retained.
+
+Production retains seven root and three regional layers. Twenty canonical
+current/previous manifests validate; all seven root and three regional current
+sampled tiles match immutable manifest bytes/hashes and decode as PFT1.
+9 known manifests present in the fresh current/previous sample remain
+byte-identical to the retained October 10 evening evidence. Read-only whole-bucket
+audits [38122768338](https://github.com/deepregatta/forecast-tiles/actions/runs/38122768338)
+and [38123162468](https://github.com/deepregatta/forecast-tiles/actions/runs/38123162468)
+both pass physical plus upload/headroom, complete retained overlap including all
+unreferenced objects, root variation and reservation sufficiency. Approved guard,
+reservation and headroom are unchanged. Historical incomplete GEFS objects and
+all earlier overlap failures remain accounted for; account figures stay private.
+
+Authenticated control still dates the last actual account-wide billing review
+**October 8 20:50:53.005769 UTC**, about **59 hours old**. The dashboard still
+requires sign-in, and the previously reported access requirement remains open.
+A real billing review is due **before tonight's unchanged October 11
+20:50:53.005769 UTC expiry (22:50 Paris)**. Delivery has not stopped, and no review
+timestamp renewal is performed without actual evidence. After account-wide
+Class A/Class B/storage costs, provider period, conversion/tax and outstanding work
+are reviewed, the existing timestamp-only CAS workflow may renew on verified main
+and must confirm exact authenticated read-back. Every policy, period, pause,
+provider decision, allowance, charged counter/identity and frequency limit stays
+unchanged; no payment, plan or alert is modified.
+
+Both full-cadence flags remain false. Required hosted producer checks and deployed
+Passage checks still pass. Independent October 6 exports, October 4 history and
+physical-device proof remain separately dated; no fresh consumer export is claimed
+here. Refresh current exports/attribution and hosted checks before promotion.
+Observation continues with every historical failure retained and no relaxed gate.
