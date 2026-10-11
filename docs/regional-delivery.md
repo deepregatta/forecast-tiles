@@ -2043,3 +2043,63 @@ profile, prior miss/window and all 140 original reports remain retained. Actual
 subsequent scheduled ICON-EU 00Z on-time evidence remains an open operational gate.
 Both full-cadence flags stay false. Seven-day acceptance, fresh consumer exports
 and attribution, current hosted checks and all other promotion gates still apply.
+
+
+## October 11 evening observation (20:50:10.300667 UTC)
+
+AROME/UKV selected windows reach **ten timely scheduled slots and four pending**.
+ICON-EU's selected October 11 window reaches **one timely slot and thirteen
+pending**. Original reports/logs confirm
+[ICON-EU 12Z 38151253661](https://github.com/deepregatta/forecast-tiles/actions/runs/38151253661)
+at **15:47:06.8946287 UTC**,
+[UKV 12Z 38154745427](https://github.com/deepregatta/forecast-tiles/actions/runs/38154745427)
+at **16:29:44.4362630 UTC**, and
+[AROME 15Z 38165192201](https://github.com/deepregatta/forecast-tiles/actions/runs/38165192201)
+at **18:58:31.5939477 UTC**. All three pass source/scientific validation and
+confirm pointer commit. Actual scheduled replacement retains the morning runs as
+previous. No new miss, unknown report or invalid publication is observed. The
+separate scheduled ICON-EU 00Z on-time gate remains open; 12Z delivery does not
+supply that evidence. Seven elapsed days and fourteen timely slots are required.
+
+Six pages of Actions history reach the earliest original start. All **149 original
+reports** are retained with hashes verified, including nine new reports: three
+confirmed timely publications and six already-published catch-up skips. All ten
+original/separate windows are scored independently. Every historical start,
+bootstrap, two-cycle profile and miss remains intact; no window is reset.
+
+23 newly completed root attempts have original logs: **nine publications, twelve
+already-published skips and two short ECMWF source-unavailable fallback exits**.
+The previously pending
+[full ECMWF 00Z 38121070974](https://github.com/deepregatta/forecast-tiles/actions/runs/38121070974)
+confirmed publication at **10:03:59.3952548 UTC** and
+[IBI October 11 38129551177](https://github.com/deepregatta/forecast-tiles/actions/runs/38129551177)
+at **09:56:36.9993965 UTC**. Scheduled GFS/waves/GEFS 06Z/12Z and short ECMWF 06Z
+also publish. The two fallback exits supply no inferred cycle or publication;
+full ECMWF 12Z remains in progress. Every earlier root failure, control-read pause,
+frequency/daily pause, charged recovery and partial-byte proof remains retained.
+
+Production retains seven root and three regional layers, with twenty canonical
+current/previous manifests. All ten current tile samples match immutable manifest
+hashes/bytes and decode as PFT1. Eight known manifests retained from the morning
+remain byte-identical. Read-only whole-bucket
+[audit 38173610340](https://github.com/deepregatta/forecast-tiles/actions/runs/38173610340)
+passes physical plus upload/headroom, complete retained overlap including every
+unreferenced object, root variation and reservation sufficiency. Approved guard,
+reservation and headroom are unchanged. Historical incomplete GEFS objects and
+all earlier overlap failures remain accounted for; no cleanup occurred. Exact
+account figures stay private.
+
+Authenticated producer control retains the real **October 11 08:25:17.276888 UTC**
+billing review, about twelve hours old, so no renewal is due or performed here.
+Every policy, period, pause, provider decision and limit remains unchanged; all
+prior charged identities and daily counters remain retained. Next actual review
+is due **October 12 20:25:17.276888 UTC**, before the unchanged 72-hour expiry
+**October 14 08:25:17.276888 UTC**. No timestamp renewal without actual evidence.
+
+Current Passage source **c162014ce60a1739fa2dd90da9c230aa0802829c** is deployed successfully as
+**1d22d5ec-7e6f-42de-9260-82e2ef5b3aa5**, and
+[CI 38172718965](https://github.com/deepregatta/passage/actions/runs/38172718965)
+passes all four required jobs. This is separate from the retained October 6
+independent exports, October 4 export history and physical-device evidence;
+no fresh consumer export is claimed. Refresh exports/attribution and hosted
+checks before promotion. Both full-cadence flags stay false. Observation continues.
