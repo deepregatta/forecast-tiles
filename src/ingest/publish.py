@@ -1065,6 +1065,13 @@ def publish_run(
             store, cube.layer, entry, pointer_key=pointer_key, sleep=sleep, rng=rng
         )
         previous = commit.previous_run_id
+        # Retention/status can fail after publication. Preserve the confirmed
+        # commit in the original job log even when the caller never gets a result.
+        print(
+            f"ingest {cube.layer}: pointer commit confirmed {run_id} in {pointer_key} "
+            f"(previous={previous}, commit attempts={commit.attempts})",
+            flush=True,
+        )
 
         # 6. retention, only now that the commit is confirmed
         deleted, kept = apply_retention(store, cube.layer, run_id, previous)

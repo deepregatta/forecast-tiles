@@ -59,6 +59,38 @@ def assert_references_intact(store):
                 assert key in store.objects, f"{layer} names {run_id}, whose manifest is gone"
 
 
+def test_commit_receipt_survives_retention_failure(monkeypatch, capsys):
+    store = FakeStore()
+    publish(store, hour=0)
+    capsys.readouterr()
+
+    def failed_retention(*args, **kwargs):
+        assert latest(store)["layers"]["weather"]["run_id"] == "weather-20260713T06Z"
+        assert "pointer commit confirmed weather-20260713T06Z" in capsys.readouterr().out
+        raise TimeoutError("retention read timed out")
+
+    monkeypatch.setattr("ingest.publish.apply_retention", failed_retention)
+    with pytest.raises(TimeoutError, match="retention read timed out"):
+        publish(store, hour=6)
+    assert_references_intact(store)
+
+
+def test_failed_commit_never_emits_confirmed_receipt(monkeypatch, capsys):
+    store = FakeStore()
+    publish(store, hour=0)
+    capsys.readouterr()
+
+    def failed_commit(*args, **kwargs):
+        raise PointerConflictError("nothing committed")
+
+    monkeypatch.setattr("ingest.publish.commit_layer_entry", failed_commit)
+    with pytest.raises(PointerConflictError, match="nothing committed"):
+        publish(store, hour=6)
+    assert "pointer commit confirmed" not in capsys.readouterr().out
+    assert latest(store)["layers"]["weather"]["run_id"] == "weather-20260713T00Z"
+    assert_references_intact(store)
+
+
 def competitor(layer, hour):
     """A before_put hook publishing another run in full, between the
     publisher's read of latest.json and its compare-and-swap."""
