@@ -2103,3 +2103,86 @@ passes all four required jobs. This is separate from the retained October 6
 independent exports, October 4 export history and physical-device evidence;
 no fresh consumer export is claimed. Refresh exports/attribution and hosted
 checks before promotion. Both full-cadence flags stay false. Observation continues.
+
+
+## October 12 source misses, retention failure and overlap checkpoint (18:31:21.307819 UTC)
+
+[ICON-EU 00Z 38199728142](https://github.com/deepregatta/forecast-tiles/actions/runs/38199728142)
+and [12Z 38270199128](https://github.com/deepregatta/forecast-tiles/actions/runs/38270199128)
+each exhausted the registered 45-minute source wait, stopping before admission.
+Original final diagnostics at **04:11:27.2391054 UTC** and **16:11:31.0530206 UTC**
+still report **no `meta.json`**. No source lag, waiting budget, deadline, profile or
+limit changed. The original failed reports remain retained. Automatic
+[catch-up 38231888820](https://github.com/deepregatta/forecast-tiles/actions/runs/38231888820)
+confirmed valid 00Z publication at **09:48:55.3900750 UTC**, after its deadline;
+it supplies no timely credit. Fresh 00Z/12Z metadata now passes the registered
+inventory/axis checks. Internal creation and current Last-Modified timestamps do
+not establish first complete availability; no transport/cache/software cause is
+proven from these observations.
+
+The selected October 11 ICON-EU window now has **one timely, one late, one failed
+and eleven pending**, maximum **12/14**, so cannot reach 95%. Its start/end and
+every prior window/miss remain intact. No new window opens before verified
+restoration. Exact 12Z manual recovery is held because complete retained overlap
+fails the unchanged guard, despite complete source and an available normal
+frequency/daily slot. Recheck after actual scheduled publication/retention, then
+reread control and pointers before any exact-cycle recovery. No older replay,
+uncertain admission retry, charge refund or gate override is authorized by a miss.
+AROME has **eleven timely/three pending**, UKV **twelve timely/two pending**, in their
+unchanged October 6-13 windows. Later slots remain pending rather than inferred
+successful or failed.
+
+Six history pages reach the earliest original start. All **160 original reports**
+and prior hashes remain retained, with eleven new reports: three timely regional
+publications, one valid late automatic catch-up, five already-published skips and
+two source-wait failures. Ten original/separate windows are scored independently.
+Seven root and three regional layers retain twenty valid canonical current/previous
+manifests; all ten current tile samples match immutable bytes/hashes and decode
+as PFT1. Four known manifests retained from the previous checkpoint are byte-identical.
+
+31 new root attempts retain original logs: **sixteen logged publications, twelve
+already-published skips, two short ECMWF source-unavailable fallbacks and one
+postcommit retention failure**. Full ECMWF October 11 12Z and October 12 00Z,
+GFS/waves/GEFS 18Z/00Z/06Z, short ECMWF 18Z/06Z, GLO12 and IBI October 12 have
+actual publication receipts. GFS 12Z requires separate treatment:
+[job 38277364205](https://github.com/deepregatta/forecast-tiles/actions/runs/38277364205)
+failed at **16:53:31 UTC** with a read timeout in `delete_object` called by
+`apply_retention` **after confirmed pointer commit**. Fresh current 12Z/previous
+06Z references and immutable samples are valid. This is a seventeenth confirmed
+publication, but its exact publication time is **unknown**: the old CLI prints
+publication only after retention returns. Do not substitute generated/published
+metadata times or a later pointer update. The workflow failure, unknown deleted
+key and original trace remain retained. No root replay or manual cleanup occurred.
+
+[Read-only whole-bucket audit 38290104009](https://github.com/deepregatta/forecast-tiles/actions/runs/38290104009)
+passes physical plus upload/headroom and existing-reservation sufficiency, but
+**complete retained overlap and calculated overlap exceed the unchanged approved
+guard**. It began during scheduled GEFS 12Z upload; the concurrent checkpoint and
+GFS retention failure do not establish one causal source of excess. All unreferenced
+objects, historical incomplete GEFS prefix and every earlier overlap failure remain
+accounted. Exact account figures stay private. Hold manual regional recovery and
+promotion; recheck after actual scheduled publication/retention. No guard,
+reservation or headroom relaxation, age-inferred cleanup or manual deletion.
+
+The diagnostic repair **6a42f5e67b8d51de52d83ce5756cb30a8fe8c873** logs a receipt immediately after a
+confirmed pointer commit and before retention/status work. Failed commits emit
+no receipt, and retention failures still fail visibly. It changes no admission,
+retention, deletion, capacity or error behavior, and claims no transport repair.
+**61 focused publisher tests, 514 full Python tests, 60 dispatcher tests, lint,
+format, contracts and type checks pass**; both required
+[hosted jobs 38290954377](https://github.com/deepregatta/forecast-tiles/actions/runs/38290954377)
+pass. The original GFS failure is historical evidence, not rewritten as green.
+
+Authenticated control retains every policy, period, pause, provider decision,
+limit and prior charged identity/counter. The actual **October 11 08:25:17.276888 UTC**
+billing review is approximately **34 hours old** and not yet due. Complete the next
+real account-wide review at **October 12 20:25:17.276888 UTC**, before unchanged
+expiry **October 14 08:25:17.276888 UTC**; never renew without actual evidence.
+The existing twice-daily heartbeat remains active to recheck these gates; no extra
+hourly task is created.
+
+Current deployed Passage **0e415986f0b1e2be58b61f381e59a4820f0b3633** / deployment
+**6d22ec59-83ca-4728-9f6a-ab4f147671c9** has all four required
+[hosted jobs 38210657225](https://github.com/deepregatta/passage/actions/runs/38210657225)
+passed. October 6 exports, October 4 history and physical-device proof remain
+separately dated; no fresh export is claimed. Both full-cadence flags remain false.
