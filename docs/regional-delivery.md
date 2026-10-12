@@ -2186,3 +2186,75 @@ Current deployed Passage **0e415986f0b1e2be58b61f381e59a4820f0b3633** / deployme
 [hosted jobs 38210657225](https://github.com/deepregatta/passage/actions/runs/38210657225)
 passed. October 6 exports, October 4 history and physical-device proof remain
 separately dated; no fresh export is claimed. Both full-cadence flags remain false.
+
+
+## October 12 evening admission miss and authenticated billing renewal (20:58:51.225606 UTC)
+
+[AROME 15Z 38293135034](https://github.com/deepregatta/forecast-tiles/actions/runs/38293135034)
+completed its source downloads and all sixteen scientific checks, then failed at
+**18:57:37.115221 UTC**: the regional reserved peak exceeded the unchanged guard,
+and the original diagnostic explicitly refused **before upload**. The original
+`publication_failed` / `StorageGuardError` report and log are retained. No pointer
+commit or publication is confirmed; current 03Z/previous October 11 15Z remain valid.
+Its paid-work admission and charge remain retained, with both normal daily starts
+used for October 12. No refund, third start, forced retry or manual recovery.
+
+The selected AROME October 6 window now has **eleven timely, one failed and two
+pending**, maximum **13/14**; its 20:25 UTC deadline passed without publication.
+It cannot reach 95%. ICON-EU's unchanged October 11 window remains **one timely,
+one late, one failed and eleven pending**, maximum **12/14**. UKV's unchanged
+October 6 window remains **twelve timely/two pending**. All ten original/separate
+windows are scored independently; every start, bootstrap, miss and earlier receipt
+remains intact. Further separate rechecks remain authorized after verified
+restoration; none opens while complete overlap fails. Manual recovery never supplies
+timely credit for an already missed slot. Seven elapsed days and fourteen timely
+scheduled slots remain mandatory.
+
+Six paginated history pages reach the earliest original start. All **161 original
+reports** and prior hashes are verified, with one new publication failure and no
+missing report. Original logs independently confirm scheduled
+[GEFS 12Z 38289762211](https://github.com/deepregatta/forecast-tiles/actions/runs/38289762211)
+at **18:48:07.3833413 UTC** and
+[full ECMWF 12Z 38297067815](https://github.com/deepregatta/forecast-tiles/actions/runs/38297067815)
+at **19:47:14.7159269 UTC**. Fresh root current/previous readback agrees. Seven root
+and three regional layers retain twenty valid canonical manifests; all ten current
+sampled tiles match bytes/hashes and decode as PFT1. Eighteen known manifests from
+the earlier checkpoint remain byte-identical. The historical GFS 12Z postcommit
+retention failure remains unresolved and its actual publication time stays unknown.
+
+[Evening read-only whole-bucket audit 38306648467](https://github.com/deepregatta/forecast-tiles/actions/runs/38306648467)
+still fails **complete retained and calculated overlap**, after the actual GEFS
+and full ECMWF publications. Physical plus upload/headroom fits and the existing
+reservation remains sufficient; guard, reservation and headroom are unchanged.
+All unreferenced objects, superseded GFS October 12 00Z and historical incomplete
+GEFS remain accounted. The audit does not identify one proven cause of the excess.
+Recheck after actual normal GFS publication/retention; do not infer cleanup,
+manually delete objects or relax any allocation. AROME and ICON-EU manual recovery
+remain held while the complete envelope fails. Re-read control/pointers before any
+later exact recovery; never replay older data over a newer publication.
+
+A real authenticated account-wide R2 billing review completed at
+**2026-10-12T20:54:16.272766+00:00**, covering Class A/Class B/storage costs, reported and
+projected usage, matching provider period, conversion/tax provisions, outstanding
+work and existing owner policy. The [October 12 ECB reference](https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.ff.html)
+was used with existing conservative provisions. Final assessed tax and delayed
+billing remain uncertain. The existing alert was inspected without edits; no
+monetary threshold, plan, payment, provider decision or control limit changed.
+Exact account figures and the financial receipt stay private.
+
+[Renewal 38307231537](https://github.com/deepregatta/forecast-tiles/actions/runs/38307231537)
+used verified main **bba1514aa328e32719231d5128ad43b310b139e7**, with both
+[required checks 38291891557](https://github.com/deepregatta/forecast-tiles/actions/runs/38291891557)
+passing. Its original log confirms one conditional write and exact read-back.
+Independent authenticated read-back exactly matches the prior control with only
+`reviewed_at` changed; every charged identity/counter, daily start, frequency limit,
+allowance, lease, pause, period and policy remains intact. No uncertain write was
+repeated. The next actual review is due **October 14 08:54:16.272766 UTC**, before
+unchanged 72-hour expiry **October 15 20:54:16.272766 UTC**. Billing and capacity are
+separate gates; successful renewal does not waive the storage failure.
+
+Current deployed Passage **0e415986f0b1e2be58b61f381e59a4820f0b3633** and its four required
+[hosted jobs 38210657225](https://github.com/deepregatta/passage/actions/runs/38210657225)
+remain passing. October 6 exports, October 4 history and physical-device evidence
+stay separately dated; no fresh consumer export is claimed. Both full-cadence flags
+remain false. The existing twice-daily heartbeat continues; no hourly task added.
