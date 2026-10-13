@@ -2399,3 +2399,56 @@ review/rollover tests include exact preservation, early/stale review refusal,
 closed policies, changed preconditions, one-write uncertainty and concurrent
 readback changes. These are local preparation checks; actual future billing
 evidence and production application/readback remain separate gates.
+
+
+### October 13 evening: three timely cycles, elapsed-time gate retained
+
+Seven history pages reach the earliest original observation start. **177 original
+regional reports** are retained, including nine new reports: three confirmed
+publications and six already-published skips. All 168 prior receipt fields/hashes
+match exactly; no original artifact is missing or needed restoration. Original
+publication logs confirm [ICON-EU 12Z 38422033845](https://github.com/deepregatta/forecast-tiles/actions/runs/38422033845)
+at **16:03:16.0853173 UTC**, [UKV 12Z 38429094061](https://github.com/deepregatta/forecast-tiles/actions/runs/38429094061)
+at **16:34:41.7241223 UTC**, and [AROME 15Z 38449439813](https://github.com/deepregatta/forecast-tiles/actions/runs/38449439813)
+at **19:02:36.0334496 UTC**. Their original reports confirm source/scientific
+validation, immutable publication and pointer commit. Each is timely; skips
+supply no new publication evidence.
+
+Actual `regional_canary.py` invocations separately score every original and
+retained acceptance window with its recorded start and ingestion allowance.
+AROME and ICON-EU's selected October 13-20 windows each have **one timely/thirteen
+pending**. UKV's selected October 6-13 window has **fourteen timely**, but its
+seven-day endpoint is **October 13 21:14:59.217473 UTC / 23:14:59 Paris**. At this
+checkpoint that elapsed-time gate is still pending, so `timeliness_passed` remains
+false. Earlier failed windows, manual recoveries and every miss remain retained.
+ICON-EU 12Z delivery does not resolve the separate recurring scheduled **00Z**
+on-time-delivery gate. Both full-cadence flags remain false.
+
+Seven root and three regional layers retain twenty canonical current/previous
+manifests, ten matching immutable tile samples and eight byte-identical manifests
+retained from the morning. Twenty-three new completed root attempts retain nine
+actual publication receipts, twelve already-published skips and two early
+short-ECMWF source-unavailable catch-ups. Those exit-zero catch-ups get no inferred
+publication or cycle credit; original logs remain retained. GFS, GEFS, waves, full
+ECMWF, short ECMWF and IBI scheduled replacements published. GLO12 current data
+remains intact. No older cycle was replayed.
+
+[Read-only whole-bucket audit 38465953609](https://github.com/deepregatta/forecast-tiles/actions/runs/38465953609)
+passes physical plus upload/headroom, complete retained overlap, calculated overlap
+and existing-reservation sufficiency against the unchanged guard. Every unreferenced
+object is accounted, including the historical incomplete GEFS prefix. No cleanup,
+reservation or headroom change was applied; account quantities remain private.
+Authenticated control preserves every non-usage field, all prior charged identities
+and daily records. The actual October 12 billing review is about **24 hours** old,
+so renewal is not due. Fresh review is due October 14 08:54:16.272766 UTC, before
+unchanged expiry October 15 20:54:16.272766 UTC. No control write occurred.
+
+The specifically approved October 20-November 20 period rollover remains scheduled
+for its single October 20 02:10 Paris follow-up, conditional on actual started-period
+billing evidence and exact preservation. [Rollover preparation CI 38465399000](https://github.com/deepregatta/forecast-tiles/actions/runs/38465399000)
+passed both required jobs on **23ae7da34e08b8244753a951f0e2d54b3f0b8b4f**.
+Passage deployment **34e556b1-0c6a-4db6-9783-fc751d53d5ee** still serves
+**a7cecaec43e8dafc48d7f603dccaadc59dea12c5**; its hosted software checks and
+provider deployment remain separate from consumer evidence. October 4/6 exports
+and physical-device evidence remain dated; fresh current exports/attribution are
+required before promotion. No acceptance requirement has been relaxed.
