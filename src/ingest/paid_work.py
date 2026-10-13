@@ -1,4 +1,4 @@
-# Vendored from oscar/cloud/recompute/paid_work.py, 2026-10-04.
+# Vendored from oscar/cloud/recompute/paid_work.py, 2026-10-13.
 """Persistent admission control for optional producers; no data-path changes.
 
 The operator provisions one reviewed JSON document in R2. Policy and usage live
@@ -187,8 +187,13 @@ class Guard:
             raise Paused("reservation outcome unknown; review before retry") from exc
         return True
 
-    def acquire(self, channel: str, work_id: str, seconds: int, *, grace=60):
+    def acquire(self, channel: str, work_id: str, seconds: int, *, grace=60, protect_next_at=None):
         positive(seconds)
+        if protect_next_at is not None:
+            try:
+                positive(protect_next_at)
+            except ValueError as exc:
+                raise Paused("invalid next scheduled slot") from exc
         token = uuid.uuid4().hex
         identity = hashlib.sha256(work_id.encode()).hexdigest()
         for _ in range(6):
@@ -249,6 +254,17 @@ class Guard:
                     or usage["seconds"] + seconds > monthly_seconds
                 ):
                     raise Paused("cumulative runtime/start limit")
+                # An opportunistic retry must preserve the next scheduled job.
+                # Check the fresh policy and clock on every CAS iteration, before
+                # charging anything; callers without protection are unchanged.
+                if protect_next_at is not None:
+                    next_day = (
+                        datetime.fromtimestamp(protect_next_at, timezone.utc).date().isoformat()
+                    )
+                    if now + max(interval, seconds + grace) > protect_next_at or (
+                        next_day == day and state["days"].get(day, 0) + 1 >= daily_starts
+                    ):
+                        raise Paused("catch-up would block next scheduled cycle")
                 usage["starts"] += 1
                 usage["seconds"] += seconds
                 state["last"] = now

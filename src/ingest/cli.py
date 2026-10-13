@@ -485,10 +485,15 @@ def _run_forecast(args, parser, *, clock, sleep) -> int:
                 print(f"ingest {args.layer}: --force refused: {exc}")
                 return 1
         if args.paid_guard:
+            protection = {}
+            if regional and requested is None:
+                from ingest.regional_schedule import next_dispatch
+
+                protection["protect_next_at"] = next_dispatch(args.layer, cycle).timestamp()
             # Stable provider-cycle identity covers dispatcher + fallback cron,
             # manual runs and --force; a repair needs explicit ledger recovery.
             args.paid_token = args.paid_guard.acquire(
-                args.layer, f"{args.layer}:{cycle_iso(cycle)}", args.paid_seconds
+                args.layer, f"{args.layer}:{cycle_iso(cycle)}", args.paid_seconds, **protection
             )
         _observe(args, "build")
         cube = _build(args, cycle)
