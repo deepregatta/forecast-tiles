@@ -2258,3 +2258,108 @@ Current deployed Passage **0e415986f0b1e2be58b61f381e59a4820f0b3633** and its fo
 remain passing. October 6 exports, October 4 history and physical-device evidence
 stay separately dated; no fresh consumer export is claimed. Both full-cadence flags
 remain false. The existing twice-daily heartbeat continues; no hourly task added.
+
+
+## October 13 retention restoration, catch-up safeguard and separate rechecks (2026-10-13T08:25:27.413151+00:00)
+
+Scheduled [GFS 18Z 38316632866](https://github.com/deepregatta/forecast-tiles/actions/runs/38316632866)
+confirmed pointer commit at **October 12 23:04:53.7104103 UTC**, then normal
+retention completed and the original publication line at **23:09:08.8235392 UTC**
+explicitly lists deletion of superseded October 12 00Z/06Z runs. This finishes
+that interrupted retention without manual cleanup. The earlier GFS 12Z failure
+and its unknown exact publication time remain historical evidence.
+
+Three fresh read-only whole-bucket audits
+[38364355631](https://github.com/deepregatta/forecast-tiles/actions/runs/38364355631),
+[38367138677](https://github.com/deepregatta/forecast-tiles/actions/runs/38367138677) and
+[38368557258](https://github.com/deepregatta/forecast-tiles/actions/runs/38368557258) pass physical plus
+upload/headroom, complete retained/calculated overlap and reservation sufficiency.
+The approved guard, existing reservation and headroom are unchanged. All remaining
+unreferenced objects and the historical incomplete GEFS prefix remain counted;
+no cleanup is inferred from age or prefix completeness. Exact account figures
+remain private.
+
+Original [catch-up 38315493332](https://github.com/deepregatta/forecast-tiles/actions/runs/38315493332)
+retains an AROME duplicate-work pause, UKV already-published skip and ICON-EU 12Z
+reserved-peak refusal before upload. ICON's normal charged start remains retained.
+[Scheduled ICON-EU 00Z 38341686329](https://github.com/deepregatta/forecast-tiles/actions/runs/38341686329)
+found complete source at **03:40:30.2216775 UTC**, within its registered wait,
+then paused under the unchanged six-hour frequency limit after that late charged
+catch-up. Source readiness here does not establish publication or timely credit.
+Earlier source-readiness misses remain, with no invented transport/cache cause.
+
+The repair **970212419c52cb86760629323d9a05a845077bff** makes opportunistic regional catch-ups
+preserve the next registered slot before charging. Inside each normal conditional
+admission attempt it rechecks current frequency, reserved lease and remaining daily
+starts against that slot. Conflict retries recheck current clock/policy; uncertain
+PUTs remain unretried. Exact cycles/default callers retain normal admission.
+There is no control-schema, policy, counter, lease, allowance, frequency, cadence,
+source-wait, deadline or storage-allocation change.
+Canonical Oscar **bc8965eb14d7e8edfddba635fd078fea92f617a5** and Passage vendor
+**a7cecaec43e8dafc48d7f603dccaadc59dea12c5** have matching Python ASTs. Five unrelated Oscar data
+files remain byte-identical across the scoped commit.
+
+The regression first reproduced the unwanted charge/build. **61 focused forecast
+checks, 531 full forecast Python and 60 dispatcher tests, 1696 Oscar Python tests
+(with four skips), 561 Passage Python tests and affected lint/format checks pass**.
+All required exact-source hosted jobs pass in
+[forecast 38366249875](https://github.com/deepregatta/forecast-tiles/actions/runs/38366249875),
+[Oscar 38366243284](https://github.com/deepregatta/oscar/actions/runs/38366243284) and
+[Passage 38366246364](https://github.com/deepregatta/passage/actions/runs/38366246364).
+Local Oscar image smoke could not run because Docker is absent; the required
+hosted production-image build/offline smoke passed separately.
+
+[Exact ICON-EU 00Z recovery 38367554553](https://github.com/deepregatta/forecast-tiles/actions/runs/38367554553)
+on verified main confirmed actual publication at **08:14:58.8246341 UTC**, with
+all thirteen scientific checks, original attempt/log, source identity and immutable
+current 00Z/previous October 12 00Z readback passing. It is **late**, supplies no
+timely credit, and supersedes the older missing October 12 12Z rather than replaying
+it. Its one normal charged start and reserved duration are retained, the lease is
+released, and the next 12Z frequency/daily slot remains available. No counter refund
+or uncertain admission retry occurred. AROME 03Z and UKV 00Z scheduled publications
+remain timely and valid. Seven root/three regional layers retain twenty canonical
+current/previous manifests and matching current immutable tile samples. Full ECMWF
+00Z **38362106693** remains in progress at the review snapshot; no publication is
+inferred from workflow status. Fifteen completed new root attempts retain eight
+actual publication lines, six skips and one cycle-unspecified source-unavailable
+short-ECMWF catch-up, with original logs preserved.
+
+Seven paginated history pages reach the earliest original start; **168 original
+reports**, all prior hashes and every miss/window remain retained. After verified
+restoration, separate AROME and ICON-EU selected rechecks run **2026-10-13T08:25:27.413151+00:00 to 2026-10-20T08:25:27.413151+00:00**.
+Actual `regional_canary.py` scores each new window as **fourteen pending**;
+first scheduled slots are October 13 AROME 15Z and ICON-EU 12Z. Each requires all
+fourteen timely slots and seven elapsed days. The recovered ICON 00Z predates
+that schedule. Earlier windows stay separately scored: AROME's October 6 window
+has twelve timely/one failed/one pending (maximum 13/14); ICON's October 11 window
+has one timely/two late/one failed/ten pending (maximum 11/14). Neither can pass.
+UKV keeps its October 6-13 window with **thirteen timely/one pending**, still awaiting
+its last slot and seven elapsed days. No original start or miss was reset.
+
+Authenticated control preserves the actual October 12 billing review, about eleven
+hours old; no renewal is due here. Next real review is due October 14 08:54:16.272766
+UTC, before unchanged expiry October 15 20:54:16.272766 UTC. A separate upcoming
+gate matters: the internal paid-work period ends **October 20 00:00 UTC**, before
+the last scheduled slots/end of the new rechecks. The owner was asked to authorize
+an October 20-November 20 date rollover only after actual authenticated billing
+review, preserving every current counter, identity, lease, limit and provider
+policy. This decision remains pending; no date or usage change was applied.
+The heartbeat explicitly forbids period resets, so silence supplies no approval.
+Without new authorization, the unchanged period gate must close at expiry.
+
+Current deployed Passage **a7cecaec43e8dafc48d7f603dccaadc59dea12c5**
+and its four required hosted checks pass independently. October 6 exports,
+October 4 history and physical-device evidence remain dated; refresh current
+exports/attribution before promotion. Both full-cadence flags remain false and
+all other acceptance gates stay in force.
+
+
+The retained in-progress ECMWF snapshot subsequently completed.
+[Full ECMWF 00Z 38362106693](https://github.com/deepregatta/forecast-tiles/actions/runs/38362106693)
+has an original publication receipt at **08:29:13.9526498 UTC**. Fresh current
+00Z/previous October 12 12Z canonical manifests and immutable tile samples pass.
+This brings the completed root review to **sixteen attempts: nine publications,
+six already-published skips and one source-unavailable catch-up**. Post-publication
+[whole-bucket audit 38370102355](https://github.com/deepregatta/forecast-tiles/actions/runs/38370102355)
+also passes every unchanged capacity comparison. Earlier snapshots, misses and
+failed audits remain retained.
