@@ -2363,3 +2363,39 @@ six already-published skips and one source-unavailable catch-up**. Post-publicat
 [whole-bucket audit 38370102355](https://github.com/deepregatta/forecast-tiles/actions/runs/38370102355)
 also passes every unchanged capacity comparison. Earlier snapshots, misses and
 failed audits remain retained.
+
+
+### October 13 owner approval: future period rollover
+
+After the pending decision above, the owner explicitly answered **yes** to the
+specific **October 20-November 20** internal paid-work period rollover, conditional
+on actual account-wide billing review and preserving every usage counter, limit
+and provider decision. The original decision request remains retained as history.
+This approval does not change production control or grant regional timeliness credit.
+
+The manual [rollover-paid-work workflow](../.github/workflows/rollover-paid-work.yml)
+and its helper are limited to the approved dates. They refuse application before
+October 20 00:00 UTC, a changed prior period/review, a closed provider decision or
+operator pause. An actual review of the started provider period must be no older
+than fifteen minutes, with costs, conversion/tax and outstanding work within the
+existing owner policy. One conditional PUT may change only `period_start`,
+`period_end` and `reviewed_at`; exact authenticated readback is mandatory. Every
+charged counter, identity, daily record, active lease, allocation and limit is copied
+unchanged. Conflicts and uncertain PUTs are never repeated. Billing plans, payment,
+alerts, thresholds and provider decisions remain unchanged.
+
+A single follow-up in this chat is scheduled for **October 20 02:10 Europe/Paris
+(00:10 UTC)**, after the new period begins and before the final ICON-EU 00Z and
+AROME 03Z dispatches at 03:25 and 05:45 UTC. The separate twice-daily acceptance
+heartbeat continues with this specific authorization recorded; its cadence is
+unchanged. If actual billing evidence, authentication, operator policy or required
+hosted checks prevent application, the period gate stays closed and the missing
+condition is reported. No period write has been made here. All previous windows,
+misses and full-cadence gates remain in force.
+
+Preparation passed **550 Python tests**, **60 dispatcher tests**, workflow
+actionlint, shared-contract checks, lint, format and type checks. The 31 focused
+review/rollover tests include exact preservation, early/stale review refusal,
+closed policies, changed preconditions, one-write uncertainty and concurrent
+readback changes. These are local preparation checks; actual future billing
+evidence and production application/readback remain separate gates.

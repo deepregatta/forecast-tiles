@@ -688,7 +688,7 @@
   "remaining_acceptance": [
     "UKV retains its October 6-13 selected window with thirteen timely/one pending; elapsed seven days and fourteen timely slots still required. AROME/ICON-EU select separate 2026-10-13T08:25:27.413151+00:00 to 2026-10-20T08:25:27.413151+00:00 rechecks, each fourteen pending slots. Every prior failed window/start/miss remains intact; manual late recovery is not timely credit.",
     "No invalid publication; unknown evidence cannot pass.",
-    "Verify subsequent actual scheduled ICON-EU 00Z on-time delivery after the repaired late-catch-up admission. Preserve original source misses, charged capacity failures, frequency pause and valid late recovery. Billing review October 12 20:54:16.272766 UTC remains about eleven hours old; renew only after real evidence once due October 14 08:54:16.272766 UTC. Current period ends October 20 00:00 UTC before new windows finish; owner rollover decision requested, no date or counter change authorized by silence.",
+    "Verify subsequent actual scheduled ICON-EU 00Z on-time delivery after the repaired late-catch-up admission. Preserve original source misses, charged capacity failures, frequency pause and valid late recovery. Billing review October 12 20:54:16.272766 UTC remains about eleven hours old; renew only after real evidence once due October 14 08:54:16.272766 UTC. Current period ends October 20 00:00 UTC before new windows finish; owner specifically approved the October 20-November 20 rollover after actual billing review; single October 20 02:10 Paris follow-up scheduled, no date or counter change applied now.",
     "Normal GFS retention and fresh complete whole-bucket envelope fit unchanged guard/reservation/headroom. Retain all earlier overlap failures and all current unreferenced objects, including historical incomplete GEFS. Continue representative audits and fresh checks before promotion; no manual cleanup or allocation relaxation.",
     "Repeat current production consumer/attribution checks before full-cadence promotion.",
     "Keep current required hosted validation passing before full-cadence promotion; the previously failed Passage audit is resolved without a waiver."
@@ -20312,16 +20312,13 @@
       "invalid_publication": false
     },
     {
-      "kind": "october20-paid-work-period-boundary-owner-decision-required",
-      "recorded_at": "2026-10-13T08:25:27.413151+00:00",
-      "current_period_end": "2026-10-20T00:00:00Z",
-      "proposed_next_period_start": "2026-10-20T00:00:00Z",
-      "proposed_next_period_end": "2026-11-20T00:00:00Z",
-      "status": "Current paid-work period expires before the last slots/end of the new selected seven-day windows. Owner decision requested for this specific rollover only after actual account-wide billing review; no date/usage/limit/decision change applied. Without approval the unchanged period gate must close.",
-      "owner_approval_required": true,
-      "owner_approval_received": false,
-      "conditions": "Confirm the actual next provider period and billing within unchanged policy, apply no earlier than October 20, use current verified source and one CAS/readback changing only period dates and completed-review timestamp. Preserve every current charged counter, identity, daily record, lease, pause, frequency/runtime/start limit, allocation and provider decision. Never repeat uncertain PUTs or reset usage.",
-      "heartbeat_constraint": "Do not expand a monetary threshold, reset a period or counters, change provider decisions, disable enforcement, repeat an uncertain PUT, or modify billing plans/payment/alerts."
+      "kind": "october20-owner-approved-period-rollover-application-pending",
+      "recorded_at": "2026-10-13T20:45:10.757821+00:00",
+      "owner_approval_received": true,
+      "required_evidence": "After October 20 00:00 UTC, confirm actual started provider period and account-wide billing within unchanged policy. Use current verified main, exact fresh prior reviewed_at, completed real review no older than fifteen minutes, one CAS and exact authenticated readback. Preserve every field other than the two approved dates and reviewed_at. No write retry after conflict/uncertainty. Leave gate closed if any condition fails.",
+      "scheduled_follow_up_at": "2026-10-20T02:10:00+02:00",
+      "automation_id": "october-20-paid-work-period-rollover",
+      "application_status": "Not applied; future date and fresh billing evidence required."
     }
   ],
   "resolved_operational_gates": [
@@ -20990,6 +20987,60 @@
         }
       },
       "arome_restoration_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38353098199"
+    },
+    {
+      "kind": "october20-paid-work-period-boundary-owner-approval-recorded",
+      "resolved_at": "2026-10-13T20:45:10.757821+00:00",
+      "prior_gate": {
+        "kind": "october20-paid-work-period-boundary-owner-decision-required",
+        "recorded_at": "2026-10-13T08:25:27.413151+00:00",
+        "current_period_end": "2026-10-20T00:00:00Z",
+        "proposed_next_period_start": "2026-10-20T00:00:00Z",
+        "proposed_next_period_end": "2026-11-20T00:00:00Z",
+        "status": "Current paid-work period expires before the last slots/end of the new selected seven-day windows. Owner decision requested for this specific rollover only after actual account-wide billing review; no date/usage/limit/decision change applied. Without approval the unchanged period gate must close.",
+        "owner_approval_required": true,
+        "owner_approval_received": false,
+        "conditions": "Confirm the actual next provider period and billing within unchanged policy, apply no earlier than October 20, use current verified source and one CAS/readback changing only period dates and completed-review timestamp. Preserve every current charged counter, identity, daily record, lease, pause, frequency/runtime/start limit, allocation and provider decision. Never repeat uncertain PUTs or reset usage.",
+        "heartbeat_constraint": "Do not expand a monetary threshold, reset a period or counters, change provider decisions, disable enforcement, repeat an uncertain PUT, or modify billing plans/payment/alerts."
+      },
+      "resolution": "Owner approved this specific date rollover after actual billing review, with every usage counter, limit and provider decision preserved. Application remains a future conditional gate; no production control write occurred."
     }
-  ]
+  ],
+  "period_rollover_authorization": {
+    "recorded_at": "2026-10-13T20:45:10.757821+00:00",
+    "owner_approval_received": true,
+    "owner_approval_source": "Direct owner yes in this chat to the specific October 20-November 20 proposal.",
+    "approved_period_start": "2026-10-20T00:00:00Z",
+    "approved_period_end": "2026-11-20T00:00:00Z",
+    "application_status": "Prepared and scheduled; not applied.",
+    "earliest_application_at": "2026-10-20T00:00:00Z",
+    "follow_up_automation_id": "october-20-paid-work-period-rollover",
+    "follow_up_at": "2026-10-20T02:10:00+02:00",
+    "follow_up_occurrences": 1,
+    "separate_acceptance_heartbeat_preserved": true,
+    "workflow": ".github/workflows/rollover-paid-work.yml",
+    "changed_fields_allowed": [
+      "period_start",
+      "period_end",
+      "reviewed_at"
+    ],
+    "all_other_fields_including_charged_usage_preserved": true,
+    "actual_started_provider_period_and_account_wide_billing_review_required": true,
+    "review_maximum_age_minutes": 15,
+    "required_hosted_ci_must_pass_before_application": true,
+    "conditional_put_attempts": 1,
+    "uncertain_put_retry_permitted": false,
+    "exact_authenticated_readback_required": true,
+    "provider_plans_payment_alerts_thresholds_and_decisions_unchanged": true,
+    "regional_timely_credit": false,
+    "acceptance_gates_relaxed": false,
+    "local_validation": {
+      "python_tests_passed": 550,
+      "dispatcher_tests_passed": 60,
+      "focused_review_and_rollover_tests_passed": 31,
+      "workflow_actionlint": "passed",
+      "shared_contracts_lint_format_and_types": "passed",
+      "live_control_write_performed": false
+    }
+  }
 }
