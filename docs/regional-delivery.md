@@ -2530,3 +2530,8 @@ exact preservation required. Passage production deployment and both full-cadence
 flags remain unchanged. October 4/6 exports and physical-device evidence remain
 dated; refresh consumer exports/attribution and required hosted validation before
 promotion. UKV timeliness alone does not complete Release 1 acceptance.
+
+The final history check found completed [catch-up 38532216886](https://github.com/deepregatta/forecast-tiles/actions/runs/38532216886).
+Its three original artifacts/logs are retained as **already-published skips**,
+with no new publication/admission or timeliness credit. The retained receipt
+count is now **187**; the earlier 184-report snapshot remains recorded.

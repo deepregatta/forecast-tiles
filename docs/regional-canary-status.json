@@ -19452,7 +19452,49 @@
       "period_rollover_authorization_preserved": true,
       "period_rollover_applied": false,
       "full_cadence_enabled": false,
-      "acceptance_result": "UKV selected seven-day timeliness passes 14/14, with prior failed original window preserved. AROME selected window has two timely/twelve pending. ICON-EU October 14 00Z saw no source marker through its registered wait; actual exact recovery is valid and late, with normal charge and no timely credit. October 13 selected window is retained at one timely/one late/twelve pending (maximum 13/14). Routine separate post-restoration ICON window starts only after verified restoration/capacity, with fourteen pending and unchanged lag/wait/deadline. No root/consumer/validation gate is waived. CMEMS authentication failures remain retained: IBI failed before resolved-cycle admission; GLO12 failed during build with normal charge and closed daily/frequency gates. Local authenticated probe also failed ConnectionError; invalid credentials or a specific transport cause are not proven. Seven other root publications confirmed; full ECMWF 00Z is still in progress at the snapshot, no publication inferred. Whole-bucket capacity and unchanged reservation fit. No operator policy, review, period, usage refund or provider decision edit. Full cadence false."
+      "acceptance_result": "UKV selected seven-day timeliness passes 14/14, with prior failed original window preserved. AROME selected window has two timely/twelve pending. ICON-EU October 14 00Z saw no source marker through its registered wait; actual exact recovery is valid and late, with normal charge and no timely credit. October 13 selected window is retained at one timely/one late/twelve pending (maximum 13/14). Routine separate post-restoration ICON window starts only after verified restoration/capacity, with fourteen pending and unchanged lag/wait/deadline. No root/consumer/validation gate is waived. CMEMS authentication failures remain retained: IBI failed before resolved-cycle admission; GLO12 failed during build with normal charge and closed daily/frequency gates. Local authenticated probe also failed ConnectionError; invalid credentials or a specific transport cause are not proven. Seven other root publications confirmed; full ECMWF 00Z is still in progress at the snapshot, no publication inferred. Whole-bucket capacity and unchanged reservation fit. No operator policy, review, period, usage refund or provider decision edit. Full cadence false.",
+      "post_snapshot_regional_attempts": [
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38532216886",
+          "artifact": "weather-icon-eu-attempt-38532216886-1",
+          "layer": "weather-icon-eu",
+          "cycle": "2026-10-14T00:00Z",
+          "outcome": "already_published",
+          "finished_at": "2026-10-14T08:02:03.739432+00:00",
+          "pointer_commit_confirmed": null,
+          "report_sha256": "f9f05944f9f9cbe6007ca0ae78ae66473c3cec47b1a801e71ed21a56c3c8a955",
+          "original_job_log_sha256": "535f1174e1de0d267c7d63a325f2f825e7c1d9f209da2437bf9831c580250af1",
+          "publications": [],
+          "already_published_skip_not_publication": true
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38532216886",
+          "artifact": "weather-arome-attempt-38532216886-1",
+          "layer": "weather-arome",
+          "cycle": "2026-10-14T03:00Z",
+          "outcome": "already_published",
+          "finished_at": "2026-10-14T08:01:47.065700+00:00",
+          "pointer_commit_confirmed": null,
+          "report_sha256": "7cce2ce8942c9248489d93db0a9d283c567fa7814d78a125d82e1a69483a7910",
+          "original_job_log_sha256": "535f1174e1de0d267c7d63a325f2f825e7c1d9f209da2437bf9831c580250af1",
+          "publications": [],
+          "already_published_skip_not_publication": true
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38532216886",
+          "artifact": "weather-ukv-attempt-38532216886-1",
+          "layer": "weather-ukv",
+          "cycle": "2026-10-14T00:00Z",
+          "outcome": "already_published",
+          "finished_at": "2026-10-14T08:02:18.413588+00:00",
+          "pointer_commit_confirmed": null,
+          "report_sha256": "16b505f32ac28fa92672fe81ccc124f2cba36a6d1a3b12f792c2d4c4ade5ad0e",
+          "original_job_log_sha256": "535f1174e1de0d267c7d63a325f2f825e7c1d9f209da2437bf9831c580250af1",
+          "publications": [],
+          "already_published_skip_not_publication": true
+        }
+      ],
+      "post_snapshot_artifact_receipt_count": 187
     }
   ],
   "incidents": [
@@ -22894,6 +22936,36 @@
       "finished_at": "2026-10-14T07:59:12.664291+00:00",
       "pointer_commit_confirmed": true,
       "report_sha256": "15ffa1d73fc72a7ca1f9f71d96f8a7d70c3ebf7f5d1589df985ce9c952d20fd5"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38532216886",
+      "artifact": "weather-icon-eu-attempt-38532216886-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-14T00:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-14T08:02:03.739432+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "f9f05944f9f9cbe6007ca0ae78ae66473c3cec47b1a801e71ed21a56c3c8a955"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38532216886",
+      "artifact": "weather-arome-attempt-38532216886-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-14T03:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-14T08:01:47.065700+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "7cce2ce8942c9248489d93db0a9d283c567fa7814d78a125d82e1a69483a7910"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38532216886",
+      "artifact": "weather-ukv-attempt-38532216886-1",
+      "layer": "weather-ukv",
+      "cycle": "2026-10-14T00:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-14T08:02:18.413588+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "16b505f32ac28fa92672fe81ccc124f2cba36a6d1a3b12f792c2d4c4ade5ad0e"
     }
   ],
   "acceptance_authorization": {
