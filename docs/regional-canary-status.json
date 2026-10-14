@@ -1,5 +1,5 @@
 {
-  "status": "October 13 evening: AROME/ICON-EU selected rechecks each 1 timely/13 pending; UKV 14 timely awaiting seven elapsed days; original misses retained; complete capacity fits; October 20 rollover owner-approved and scheduled; full cadence false",
+  "status": "October 14: UKV seven-day timeliness passed 14/14; AROME 2 timely/12 pending; ICON 00Z source miss recovered late, prior window retained and separate October 14-21 window observing; CMEMS authentication failures and GLO12 retry gates unresolved; capacity fits; full cadence false",
   "started_on": "2026-10-02",
   "observation_days": 7,
   "minimum_on_time_fraction": 0.95,
@@ -79,7 +79,7 @@
           },
           "invalid_publications": [],
           "unknown_publications": [],
-          "observation_complete": false,
+          "observation_complete": true,
           "timeliness_passed": false,
           "maximum_possible_on_time_fraction": "13/14"
         },
@@ -87,7 +87,7 @@
           "started_at": "2026-10-13T08:25:27.413151+00:00",
           "observation_ends_at": "2026-10-20T08:25:27.413151+00:00",
           "expected_cycles": 14,
-          "status": "observing; 1 timely/13 pending; seven elapsed days and fourteen timely cycles required",
+          "status": "observing; 2 timely/12 pending; seven elapsed days and fourteen timely cycles required",
           "owner_approval": "Routine separate rechecks after verified restoration are authorized by the owner's October 4 autonomous-continuation direction; every original/prior start and miss remains retained.",
           "repair_commit": "970212419c52cb86760629323d9a05a845077bff",
           "repair_ci_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38366249875",
@@ -98,11 +98,11 @@
           "recovery_precedes_recheck": true,
           "missed_cycles": [],
           "counts": {
-            "on_time": 1,
+            "on_time": 2,
             "late": 0,
             "failed": 0,
             "unknown": 0,
-            "pending": 13,
+            "pending": 12,
             "invalid_published": 0
           },
           "invalid_publications": [],
@@ -139,7 +139,7 @@
         "attribution": "verified in live Passage"
       },
       "recheck_started_at": "2026-10-03T08:00:06.350599+00:00",
-      "active_acceptance_window": "post-october13-retention-and-catchup-repair",
+      "active_acceptance_window": "post-october14-source-restoration",
       "acceptance_windows": {
         "original": {
           "started_at": "2026-10-02T21:09:26.449084+00:00",
@@ -256,7 +256,7 @@
           },
           "invalid_publications": [],
           "unknown_publications": [],
-          "observation_complete": false,
+          "observation_complete": true,
           "timeliness_passed": false,
           "maximum_possible_on_time_fraction": "9/14"
         },
@@ -277,22 +277,23 @@
             "2026-10-11T00:00:00+00:00",
             "2026-10-12T00:00:00+00:00",
             "2026-10-12T12:00:00+00:00",
-            "2026-10-13T00:00:00+00:00"
+            "2026-10-13T00:00:00+00:00",
+            "2026-10-14T00:00:00+00:00"
           ],
           "reason": "October 10 00Z scheduled source wait expired while required variables were missing. Exact source is now complete and guarded recovery is scientifically valid with immutable production read-back; the earlier failed window remains separate.",
           "counts": {
             "on_time": 3,
-            "late": 3,
+            "late": 4,
             "failed": 1,
             "unknown": 0,
-            "pending": 7,
+            "pending": 6,
             "invalid_published": 0
           },
           "invalid_publications": [],
           "unknown_publications": [],
           "observation_complete": false,
           "timeliness_passed": false,
-          "maximum_possible_on_time_fraction": "10/14"
+          "maximum_possible_on_time_fraction": "9/14"
         },
         "post-october11-source-restoration": {
           "started_at": "2026-10-11T08:00:53.855171+00:00",
@@ -310,28 +311,29 @@
           "missed_cycles": [
             "2026-10-12T00:00:00+00:00",
             "2026-10-12T12:00:00+00:00",
-            "2026-10-13T00:00:00+00:00"
+            "2026-10-13T00:00:00+00:00",
+            "2026-10-14T00:00:00+00:00"
           ],
           "reason": "October 11 00Z scheduled source wait expired while required variables were missing, following the retained October 10 miss. No change to source lag, waiting limit or delivery deadline; the recurring upstream readiness problem is not proven repaired by late manual publication. Exact source is now complete and guarded recovery is scientifically valid with immutable production read-back; the earlier failed window remains separate.",
           "counts": {
             "on_time": 2,
-            "late": 2,
+            "late": 3,
             "failed": 1,
             "unknown": 0,
-            "pending": 9,
+            "pending": 8,
             "invalid_published": 0
           },
           "invalid_publications": [],
           "unknown_publications": [],
           "observation_complete": false,
           "timeliness_passed": false,
-          "maximum_possible_on_time_fraction": "11/14"
+          "maximum_possible_on_time_fraction": "10/14"
         },
         "post-october13-retention-and-catchup-repair": {
           "started_at": "2026-10-13T08:25:27.413151+00:00",
           "observation_ends_at": "2026-10-20T08:25:27.413151+00:00",
           "expected_cycles": 14,
-          "status": "observing; 1 timely/13 pending; seven elapsed days and fourteen timely cycles required",
+          "status": "cannot meet 95%; every earlier scheduled miss retained",
           "owner_approval": "Routine separate rechecks after verified restoration are authorized by the owner's October 4 autonomous-continuation direction; every original/prior start and miss remains retained.",
           "repair_commit": "970212419c52cb86760629323d9a05a845077bff",
           "repair_ci_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38366249875",
@@ -340,19 +342,51 @@
           "first_expected_cycle": "2026-10-13T12:00Z",
           "recovery_in_scheduled_score": false,
           "recovery_precedes_recheck": true,
-          "missed_cycles": [],
+          "missed_cycles": [
+            "2026-10-14T00:00:00+00:00"
+          ],
           "counts": {
             "on_time": 1,
-            "late": 0,
+            "late": 1,
             "failed": 0,
             "unknown": 0,
-            "pending": 13,
+            "pending": 12,
             "invalid_published": 0
           },
           "invalid_publications": [],
           "unknown_publications": [],
           "observation_complete": false,
-          "timeliness_passed": false
+          "timeliness_passed": false,
+          "maximum_possible_on_time_fraction": "13/14"
+        },
+        "post-october14-source-restoration": {
+          "started_at": "2026-10-14T08:06:57.260579+00:00",
+          "observation_ends_at": "2026-10-21T08:06:57.260579+00:00",
+          "expected_cycles": 14,
+          "owner_approval": "Routine separate rechecks after verified restoration are authorized by the October 4 autonomous-continuation direction; every original/prior start, miss and window is retained.",
+          "restoration_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38531546139",
+          "restoration_verified_at": "2026-10-14T08:06:57.260579+00:00",
+          "source_commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38532356942",
+          "restoration_in_scheduled_score": false,
+          "restoration_precedes_recheck": true,
+          "first_expected_cycle": "2026-10-14T12:00:00+00:00",
+          "reason": "Late source-restoration recovery is valid; original no-marker wait and miss remain retained. Routine separate recheck is authorized; lag/wait/deadline/allowance are unchanged.",
+          "source_schedule_timing_problem_proven_repaired": false,
+          "counts": {
+            "on_time": 0,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 14,
+            "invalid_published": 0
+          },
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false,
+          "missed_cycles": [],
+          "status": "observing; 0 timely/14 pending; seven elapsed days and fourteen timely cycles required"
         }
       },
       "recovery_consumer_export": {
@@ -377,7 +411,7 @@
         "independent_validation": "all GRIB2 messages date 20261003 time 00; u/v/gust parameter numbers 2/3/22; gust windows one hour"
       },
       "pending_owner_decision": null,
-      "current_recheck_started_at": "2026-10-13T08:25:27.413151+00:00"
+      "current_recheck_started_at": "2026-10-14T08:06:57.260579+00:00"
     },
     "weather-ukv": {
       "observation_started_at": "2026-10-02T21:22:06.887353+00:00",
@@ -430,7 +464,7 @@
           "started_at": "2026-10-06T21:14:59.217473+00:00",
           "observation_ends_at": "2026-10-13T21:14:59.217473+00:00",
           "expected_cycles": 14,
-          "status": "fourteen scheduled slots timely; seven elapsed days still required until 2026-10-13T21:14:59.217473+00:00",
+          "status": "seven elapsed days and all fourteen scheduled slots timely; timeliness gate passed",
           "owner_approval": "Routine separately recorded rechecks after verified restoration fall within the owner's October 4 autonomous-continuation direction; all original and prior windows/misses retained.",
           "repair_commit": "ffecd433b50af16eeb8e7ea32ece9f1fd5594bbf",
           "repair_ci_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/37531294917",
@@ -450,8 +484,8 @@
           },
           "invalid_publications": [],
           "unknown_publications": [],
-          "observation_complete": false,
-          "timeliness_passed": false
+          "observation_complete": true,
+          "timeliness_passed": true
         }
       },
       "active_acceptance_window": "post-billing-review-restoration",
@@ -686,18 +720,18 @@
     "result": "four checks passed; prefix cleaned"
   },
   "remaining_acceptance": [
-    "UKV selected October 6-13 window has fourteen timely scheduled slots; seven elapsed days still required until 2026-10-13T21:14:59.217473+00:00. No premature timeliness pass. AROME/ICON-EU selected October 13-20 windows each have one timely/thirteen pending, ending 2026-10-20T08:25:27.413151+00:00. Preserve all original/prior starts, windows, misses and recoveries without timely credit.",
-    "No invalid publication; unknown evidence cannot pass.",
-    "Verify subsequent actual scheduled ICON-EU 00Z on-time delivery. October 13 12Z is timely, but earlier source waits, charged capacity failures and scheduled 00Z frequency pause remain retained. Real billing review October 12 20:54:16.272766 UTC is about 24 hours old; review due October 14 08:54:16.272766 UTC and expires October 15 20:54:16.272766 UTC. Actual billing evidence is mandatory before renewal.",
-    "Complete whole-bucket capacity fits the unchanged guard, reservation and headroom. Preserve every unreferenced object and earlier failed audit; continue representative audits and fresh checks before promotion. No cleanup, reservation or allocation change.",
-    "October 20-November 20 internal period rollover specifically owner-approved after real started-period billing review; single October 20 02:10 Paris follow-up scheduled. Every current charged counter, identity, daily record, lease, pause, allocation, runtime/frequency/start limit and provider decision must be preserved. No current period write or usage reset.",
-    "Refresh current production exports and bilingual attribution/gust semantics before full-cadence promotion. October 4/6 exports and physical-device evidence remain dated history.",
-    "Keep required hosted validation passing and finish all replacement/outage/disable/rollback evidence before promotion; keep both full-cadence flags false until every gate passes."
+    "UKV selected October 6-13 seven-day timeliness passed with fourteen timely cycles; its original missed window remains retained. AROME selected October 13-20 window has two timely/twelve pending. ICON-EU selects separate post-october14-source-restoration window 2026-10-14T08:06:57.260579+00:00 to 2026-10-21T08:06:57.260579+00:00, fourteen pending. Every original/prior start, window and miss is retained; manual late restoration grants no timely credit.",
+    "ICON-EU October 14 00Z upstream marker remained unavailable throughout registered 45-minute wait. Exact recovery is valid and late. Source-timeliness cause and actual subsequent scheduled 00Z on-time delivery remain unproven. No lag, wait, ingestion allowance, deadline or two-cycle profile change.",
+    "CMEMS auth failures remain unresolved: IBI catch-up 38486686018 stopped at resolve with no inferred cycle/admission; GLO12 October 14 00Z 38518353397 failed at build, normal charge preserved. GLO12 daily/frequency recovery gates are closed. A bounded authenticated local probe also failed ConnectionError; do not claim invalid credentials or a proven transport cause. Verify subsequent genuine current publications without bypassing admission or replaying older cycles over newer data.",
+    "Complete whole-bucket capacity fits unchanged guard/reservation/headroom; all unreferenced objects and prior failed audits retained. Continue representative audits; no cleanup or allocation change.",
+    "Real billing review October 12 20:54:16.272766 UTC is about 35 hours old; actual account-wide review due October 14 08:54:16.272766 UTC, before expiry October 15 20:54:16.272766 UTC. Timestamp renewal requires actual evidence; no review/period/policy edit now.",
+    "Specific October 20-November 20 rollover remains owner-approved and scheduled for one October 20 02:10 Paris follow-up, conditional on actual started-period billing review and exact preservation of every current counter, identity, lease, limit, allocation and decision. No early application or usage reset.",
+    "Refresh current production exports, bilingual attribution/gust semantics and fresh required hosted checks before full-cadence promotion. October 4/6 exports and physical-device evidence remain dated. All three selected windows, existing delivery, capacity and replacement/outage/disable/rollback gates must pass; both full-cadence flags remain false."
   ],
-  "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38465953609",
+  "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38532356942",
   "root_readback": {
-    "verified_at": "2026-10-13T20:56:46.441401+00:00",
-    "catalogue_updated_at": "2026-10-13T19:38:50Z",
+    "verified_at": "2026-10-14T08:09:33.154141+00:00",
+    "catalogue_updated_at": "2026-10-14T06:40:14Z",
     "layers": [
       "weather",
       "ensemble",
@@ -707,25 +741,25 @@
       "currents-ibi",
       "weather-ecmwf-short"
     ],
-    "result": "Seven existing layers retained; twenty root/regional canonical current/previous manifests and ten sampled immutable tiles pass. Nine new root publications confirmed from original job logs. Twelve already-published skips and two early short-ECMWF source-unavailable catch-ups give no inferred publication credit.",
     "current_runs": {
-      "weather": "weather-20261013T12Z",
-      "ensemble": "ensemble-20261013T12Z",
-      "waves": "waves-20261013T12Z",
+      "weather": "weather-20261014T00Z",
+      "ensemble": "ensemble-20261014T00Z",
+      "waves": "waves-20261014T00Z",
       "weather-ecmwf": "weather-ecmwf-20261013T12Z",
       "currents": "currents-20261013T00Z",
       "currents-ibi": "currents-ibi-20261013T00Z",
-      "weather-ecmwf-short": "weather-ecmwf-short-20261013T06Z"
+      "weather-ecmwf-short": "weather-ecmwf-short-20261013T18Z"
     },
     "previous_runs": {
-      "weather": "weather-20261013T06Z",
-      "ensemble": "ensemble-20261013T06Z",
-      "waves": "waves-20261013T06Z",
+      "weather": "weather-20261013T18Z",
+      "ensemble": "ensemble-20261013T18Z",
+      "waves": "waves-20261013T18Z",
       "weather-ecmwf": "weather-ecmwf-20261013T00Z",
       "currents": "currents-20261012T00Z",
       "currents-ibi": "currents-ibi-20261012T00Z",
-      "weather-ecmwf-short": "weather-ecmwf-short-20261012T18Z"
-    }
+      "weather-ecmwf-short": "weather-ecmwf-short-20261013T06Z"
+    },
+    "result": "Seven existing layers retained with canonical current/previous manifests and immutable samples. GLO12/IBI retain October 13 current runs while original authentication failures are preserved; GLO12 October 14 charged retry is closed by existing daily/frequency limits. Seven new root publication receipts are confirmed. Full ECMWF October 14 00Z remains in progress at history snapshot, with no inferred publication."
   },
   "follow_up": {
     "cadence": "twice daily Codex heartbeat at 09:45 and 22:45 Europe/Paris",
@@ -18190,6 +18224,1235 @@
       "period_rollover_applied": false,
       "full_cadence_enabled": false,
       "acceptance_result": "Three new scheduled regional cycles confirmed timely from original reports/logs and canonical immutable readback. UKV has 14/14 timely but seven elapsed days remain pending until October 13 21:14:59.217473 UTC. AROME/ICON-EU selected October 13-20 windows each have one timely and thirteen pending. All prior windows, starts, misses and raw receipts remain retained. Nine new root publications are confirmed; twelve skips and two early source-unavailable catch-ups give no inferred publication/cycle credit. Capacity fits every unchanged comparison and reservation remains sufficient. Real October 12 billing review is about 24 hours old, not due; only normal charged usage progressed. Approved October 20 period rollover remains future/conditional, no control write. Current exports require a fresh check before promotion. Full cadence remains false."
+    },
+    {
+      "reviewed_at": "2026-10-14T08:09:33.154141+00:00",
+      "purpose": "Overnight source miss, guarded valid late restoration, preserved earlier windows and root provider-access failures",
+      "models": {
+        "weather-arome": {
+          "started_at": "2026-10-02T20:49:47.207117+00:00",
+          "observation_ends_at": "2026-10-09T20:49:47.207117+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 13,
+            "late": 1,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 0,
+            "invalid_published": 0
+          },
+          "missed_cycles": [
+            "2026-10-06T15:00:00+00:00"
+          ],
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": true,
+          "timeliness_passed": false
+        },
+        "weather-icon-eu": {
+          "started_at": "2026-10-02T21:09:26.449084+00:00",
+          "observation_ends_at": "2026-10-09T21:09:26.449084+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 11,
+            "late": 3,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 0,
+            "invalid_published": 0
+          },
+          "missed_cycles": [
+            "2026-10-03T00:00:00+00:00",
+            "2026-10-04T00:00:00+00:00",
+            "2026-10-06T12:00:00+00:00"
+          ],
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": true,
+          "timeliness_passed": false
+        },
+        "weather-ukv": {
+          "started_at": "2026-10-02T21:22:06.887353+00:00",
+          "observation_ends_at": "2026-10-09T21:22:06.887353+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 13,
+            "late": 1,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 0,
+            "invalid_published": 0
+          },
+          "missed_cycles": [
+            "2026-10-06T12:00:00+00:00"
+          ],
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": true,
+          "timeliness_passed": false
+        }
+      },
+      "acceptance_windows": {
+        "weather-arome": {
+          "original": {
+            "started_at": "2026-10-02T20:49:47.207117+00:00",
+            "observation_ends_at": "2026-10-09T20:49:47.207117+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 13,
+              "late": 1,
+              "failed": 0,
+              "unknown": 0,
+              "pending": 0,
+              "invalid_published": 0
+            },
+            "missed_cycles": [
+              "2026-10-06T15:00:00+00:00"
+            ],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": true,
+            "timeliness_passed": false
+          },
+          "post-billing-review-restoration": {
+            "started_at": "2026-10-06T21:14:59.217473+00:00",
+            "observation_ends_at": "2026-10-13T21:14:59.217473+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 13,
+              "late": 0,
+              "failed": 1,
+              "unknown": 0,
+              "pending": 0,
+              "invalid_published": 0
+            },
+            "missed_cycles": [
+              "2026-10-12T15:00:00+00:00"
+            ],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": true,
+            "timeliness_passed": false
+          },
+          "post-october13-retention-and-catchup-repair": {
+            "started_at": "2026-10-13T08:25:27.413151+00:00",
+            "observation_ends_at": "2026-10-20T08:25:27.413151+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 2,
+              "late": 0,
+              "failed": 0,
+              "unknown": 0,
+              "pending": 12,
+              "invalid_published": 0
+            },
+            "missed_cycles": [],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": false,
+            "timeliness_passed": false
+          }
+        },
+        "weather-icon-eu": {
+          "original": {
+            "started_at": "2026-10-02T21:09:26.449084+00:00",
+            "observation_ends_at": "2026-10-09T21:09:26.449084+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 11,
+              "late": 3,
+              "failed": 0,
+              "unknown": 0,
+              "pending": 0,
+              "invalid_published": 0
+            },
+            "missed_cycles": [
+              "2026-10-03T00:00:00+00:00",
+              "2026-10-04T00:00:00+00:00",
+              "2026-10-06T12:00:00+00:00"
+            ],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": true,
+            "timeliness_passed": false
+          },
+          "post-readiness-repair": {
+            "started_at": "2026-10-03T08:00:06.350599+00:00",
+            "observation_ends_at": "2026-10-10T08:00:06.350599+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 11,
+              "late": 3,
+              "failed": 0,
+              "unknown": 0,
+              "pending": 0,
+              "invalid_published": 0
+            },
+            "missed_cycles": [
+              "2026-10-04T00:00:00+00:00",
+              "2026-10-06T12:00:00+00:00",
+              "2026-10-10T00:00:00+00:00"
+            ],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": true,
+            "timeliness_passed": false
+          },
+          "post-control-read-repair": {
+            "started_at": "2026-10-04T09:05:12+00:00",
+            "observation_ends_at": "2026-10-11T09:05:12+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 11,
+              "late": 3,
+              "failed": 0,
+              "unknown": 0,
+              "pending": 0,
+              "invalid_published": 0
+            },
+            "missed_cycles": [
+              "2026-10-06T12:00:00+00:00",
+              "2026-10-10T00:00:00+00:00",
+              "2026-10-11T00:00:00+00:00"
+            ],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": true,
+            "timeliness_passed": false
+          },
+          "post-billing-review-restoration": {
+            "started_at": "2026-10-06T21:14:59.217473+00:00",
+            "observation_ends_at": "2026-10-13T21:14:59.217473+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 9,
+              "late": 4,
+              "failed": 1,
+              "unknown": 0,
+              "pending": 0,
+              "invalid_published": 0
+            },
+            "missed_cycles": [
+              "2026-10-10T00:00:00+00:00",
+              "2026-10-11T00:00:00+00:00",
+              "2026-10-12T00:00:00+00:00",
+              "2026-10-12T12:00:00+00:00",
+              "2026-10-13T00:00:00+00:00"
+            ],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": true,
+            "timeliness_passed": false
+          },
+          "post-october10-source-restoration": {
+            "started_at": "2026-10-10T07:53:08.622122+00:00",
+            "observation_ends_at": "2026-10-17T07:53:08.622122+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 3,
+              "late": 4,
+              "failed": 1,
+              "unknown": 0,
+              "pending": 6,
+              "invalid_published": 0
+            },
+            "missed_cycles": [
+              "2026-10-11T00:00:00+00:00",
+              "2026-10-12T00:00:00+00:00",
+              "2026-10-12T12:00:00+00:00",
+              "2026-10-13T00:00:00+00:00",
+              "2026-10-14T00:00:00+00:00"
+            ],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": false,
+            "timeliness_passed": false
+          },
+          "post-october11-source-restoration": {
+            "started_at": "2026-10-11T08:00:53.855171+00:00",
+            "observation_ends_at": "2026-10-18T08:00:53.855171+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 2,
+              "late": 3,
+              "failed": 1,
+              "unknown": 0,
+              "pending": 8,
+              "invalid_published": 0
+            },
+            "missed_cycles": [
+              "2026-10-12T00:00:00+00:00",
+              "2026-10-12T12:00:00+00:00",
+              "2026-10-13T00:00:00+00:00",
+              "2026-10-14T00:00:00+00:00"
+            ],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": false,
+            "timeliness_passed": false
+          },
+          "post-october13-retention-and-catchup-repair": {
+            "started_at": "2026-10-13T08:25:27.413151+00:00",
+            "observation_ends_at": "2026-10-20T08:25:27.413151+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 1,
+              "late": 1,
+              "failed": 0,
+              "unknown": 0,
+              "pending": 12,
+              "invalid_published": 0
+            },
+            "missed_cycles": [
+              "2026-10-14T00:00:00+00:00"
+            ],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": false,
+            "timeliness_passed": false
+          },
+          "post-october14-source-restoration": {
+            "started_at": "2026-10-14T08:06:57.260579+00:00",
+            "observation_ends_at": "2026-10-21T08:06:57.260579+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 0,
+              "late": 0,
+              "failed": 0,
+              "unknown": 0,
+              "pending": 14,
+              "invalid_published": 0
+            },
+            "missed_cycles": [],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": false,
+            "timeliness_passed": false
+          }
+        },
+        "weather-ukv": {
+          "original": {
+            "started_at": "2026-10-02T21:22:06.887353+00:00",
+            "observation_ends_at": "2026-10-09T21:22:06.887353+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 13,
+              "late": 1,
+              "failed": 0,
+              "unknown": 0,
+              "pending": 0,
+              "invalid_published": 0
+            },
+            "missed_cycles": [
+              "2026-10-06T12:00:00+00:00"
+            ],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": true,
+            "timeliness_passed": false
+          },
+          "post-billing-review-restoration": {
+            "started_at": "2026-10-06T21:14:59.217473+00:00",
+            "observation_ends_at": "2026-10-13T21:14:59.217473+00:00",
+            "expected_cycles": 14,
+            "counts": {
+              "on_time": 14,
+              "late": 0,
+              "failed": 0,
+              "unknown": 0,
+              "pending": 0,
+              "invalid_published": 0
+            },
+            "missed_cycles": [],
+            "invalid_publications": [],
+            "unknown_publications": [],
+            "observation_complete": true,
+            "timeliness_passed": true
+          }
+        }
+      },
+      "selected_windows": {
+        "weather-arome": {
+          "name": "post-october13-retention-and-catchup-repair",
+          "started_at": "2026-10-13T08:25:27.413151+00:00",
+          "observation_ends_at": "2026-10-20T08:25:27.413151+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 2,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 12,
+            "invalid_published": 0
+          },
+          "missed_cycles": [],
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-icon-eu": {
+          "name": "post-october14-source-restoration",
+          "started_at": "2026-10-14T08:06:57.260579+00:00",
+          "observation_ends_at": "2026-10-21T08:06:57.260579+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 0,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 14,
+            "invalid_published": 0
+          },
+          "missed_cycles": [],
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": false,
+          "timeliness_passed": false
+        },
+        "weather-ukv": {
+          "name": "post-billing-review-restoration",
+          "started_at": "2026-10-06T21:14:59.217473+00:00",
+          "observation_ends_at": "2026-10-13T21:14:59.217473+00:00",
+          "expected_cycles": 14,
+          "counts": {
+            "on_time": 14,
+            "late": 0,
+            "failed": 0,
+            "unknown": 0,
+            "pending": 0,
+            "invalid_published": 0
+          },
+          "missed_cycles": [],
+          "invalid_publications": [],
+          "unknown_publications": [],
+          "observation_complete": true,
+          "timeliness_passed": true
+        }
+      },
+      "artifact_review": {
+        "pages": 7,
+        "reports": 184,
+        "new_reports": 7,
+        "missing": [],
+        "restored_originals": 0,
+        "all_177_prior_receipts_and_hashes_exact": true
+      },
+      "regional_attempts": [
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486937733",
+          "artifact": "weather-arome-attempt-38486937733-1",
+          "layer": "weather-arome",
+          "cycle": "2026-10-13T15:00Z",
+          "outcome": "already_published",
+          "finished_at": "2026-10-13T23:53:41.884649+00:00",
+          "pointer_commit_confirmed": null,
+          "report_sha256": "1b48b23e111080ec2a10cdaa9b702e79772fc7b84d2dbc62084d6bf0b171f4e2",
+          "original_job_log_sha256": "5e1b47a9bb43da61e07a654acff71a80b361ef4699587350ac64ab357911a1ad",
+          "publications": [],
+          "scientific_validation": null
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486937733",
+          "artifact": "weather-icon-eu-attempt-38486937733-1",
+          "layer": "weather-icon-eu",
+          "cycle": "2026-10-13T12:00Z",
+          "outcome": "already_published",
+          "finished_at": "2026-10-13T23:53:55.465731+00:00",
+          "pointer_commit_confirmed": null,
+          "report_sha256": "36624f1cf416350532a948a4b987fd0acd58db1bab76c15482e222e9303c08ad",
+          "original_job_log_sha256": "5e1b47a9bb43da61e07a654acff71a80b361ef4699587350ac64ab357911a1ad",
+          "publications": [],
+          "scientific_validation": null
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486937733",
+          "artifact": "weather-ukv-attempt-38486937733-1",
+          "layer": "weather-ukv",
+          "cycle": "2026-10-13T12:00Z",
+          "outcome": "already_published",
+          "finished_at": "2026-10-13T23:54:10.044765+00:00",
+          "pointer_commit_confirmed": null,
+          "report_sha256": "52bd0f8f24cfb6b7d2bcd3b6e058d67b700b37a40346318da3535ae57832aa5c",
+          "original_job_log_sha256": "5e1b47a9bb43da61e07a654acff71a80b361ef4699587350ac64ab357911a1ad",
+          "publications": [],
+          "scientific_validation": null
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38506176795",
+          "artifact": "weather-icon-eu-attempt-38506176795-1",
+          "layer": "weather-icon-eu",
+          "cycle": null,
+          "outcome": "source_wait_expired",
+          "finished_at": "2026-10-14T04:10:55.746793+00:00",
+          "pointer_commit_confirmed": null,
+          "report_sha256": "0a6e99f984ae0326a14b3d731d77e6631e3b2a175e27588a27fd42c5cced2f66",
+          "original_job_log_sha256": "aec6b764ec69c28cbc59ab71857e149acef3f51e9cf9bf7b6f425b0a02070783",
+          "publications": [],
+          "scientific_validation": null,
+          "requested_cycle": "2026-10-14T00:00Z",
+          "failure_category": "upstream_timeout",
+          "error_type": "CycleWaitExpired",
+          "admission_or_publication": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38510455991",
+          "artifact": "weather-ukv-attempt-38510455991-1",
+          "layer": "weather-ukv",
+          "cycle": "2026-10-14T00:00Z",
+          "outcome": "published",
+          "finished_at": "2026-10-14T04:48:29.506079+00:00",
+          "pointer_commit_confirmed": true,
+          "report_sha256": "8ea4670f978df24abc682e46d0f65862fecf23ce1f3390a4adf1f1f03e413c30",
+          "original_job_log_sha256": "3e1f79a7aa2ad4c566209493c15ea6690b021aa2fdcb54b30809d7323386e6eb",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-14T04:48:29.4996677Z",
+              "run_id": "weather-ukv-20261014T00Z"
+            }
+          ],
+          "scientific_validation": {
+            "ok": true,
+            "checks_passed": [
+              "axis_monotonic[hourly]",
+              "axis_complete[hourly]",
+              "step_coverage[wind_u_kt]",
+              "physical_range[wind_u_kt]",
+              "interior_missing[wind_u_kt]",
+              "exterior_masked[wind_u_kt]",
+              "step_coverage[wind_v_kt]",
+              "physical_range[wind_v_kt]",
+              "interior_missing[wind_v_kt]",
+              "exterior_masked[wind_v_kt]",
+              "step_coverage[gust_kt]",
+              "physical_range[gust_kt]",
+              "interior_missing[gust_kt]",
+              "exterior_masked[gust_kt]",
+              "gust_ge_wind[gust_kt]"
+            ],
+            "failure_count": 0
+          }
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38518355717",
+          "artifact": "weather-arome-attempt-38518355717-1",
+          "layer": "weather-arome",
+          "cycle": "2026-10-14T03:00Z",
+          "outcome": "published",
+          "finished_at": "2026-10-14T05:47:55.279493+00:00",
+          "pointer_commit_confirmed": true,
+          "report_sha256": "4e5be7bbdcc6bc95cd3369aca1aaf1b314b75e60ff8975483ef3bef05a49d8db",
+          "original_job_log_sha256": "5014ce1c0ce036b1d354699002ef03862fa26423417a53bc83ca3800b5e99dae",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-14T05:47:55.2762226Z",
+              "run_id": "weather-arome-20261014T03Z"
+            }
+          ],
+          "scientific_validation": {
+            "ok": true,
+            "checks_passed": [
+              "axis_monotonic[hourly]",
+              "axis_complete[hourly]",
+              "step_coverage[wind_u_kt]",
+              "physical_range[wind_u_kt]",
+              "interior_missing[wind_u_kt]",
+              "exterior_masked[wind_u_kt]",
+              "step_coverage[wind_v_kt]",
+              "physical_range[wind_v_kt]",
+              "interior_missing[wind_v_kt]",
+              "exterior_masked[wind_v_kt]",
+              "step_coverage[gust_kt]",
+              "physical_range[gust_kt]",
+              "interior_missing[gust_kt]",
+              "exterior_masked[gust_kt]",
+              "statistic_windows[gust_kt]",
+              "gust_ge_wind[gust_kt]"
+            ],
+            "failure_count": 0
+          }
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38531546139",
+          "artifact": "weather-icon-eu-attempt-38531546139-1",
+          "layer": "weather-icon-eu",
+          "cycle": "2026-10-14T00:00Z",
+          "outcome": "published",
+          "finished_at": "2026-10-14T07:59:12.664291+00:00",
+          "pointer_commit_confirmed": true,
+          "report_sha256": "15ffa1d73fc72a7ca1f9f71d96f8a7d70c3ebf7f5d1589df985ce9c952d20fd5",
+          "original_job_log_sha256": "4e7f1c9c329631db89b4f0127cf2dfa3a1a2cd9bd3a3b3b72e5b7dfa53727604",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-14T07:59:12.6582608Z",
+              "run_id": "weather-icon-eu-20261014T00Z"
+            }
+          ],
+          "scientific_validation": {
+            "ok": true,
+            "checks_passed": [
+              "axis_monotonic[steps]",
+              "axis_complete[steps]",
+              "step_coverage[wind_u_kt]",
+              "physical_range[wind_u_kt]",
+              "interior_missing[wind_u_kt]",
+              "step_coverage[wind_v_kt]",
+              "physical_range[wind_v_kt]",
+              "interior_missing[wind_v_kt]",
+              "step_coverage[gust_kt]",
+              "physical_range[gust_kt]",
+              "interior_missing[gust_kt]",
+              "statistic_windows[gust_kt]",
+              "gust_ge_wind[gust_kt]"
+            ],
+            "failure_count": 0
+          }
+        }
+      ],
+      "root_attempts": [
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38477763902",
+          "run_id": 38477763902,
+          "path": ".github/workflows/ingest-weather.yml",
+          "display_title": "ingest-weather 20261013T18",
+          "event": "workflow_dispatch",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-13T23:04:17.7375863Z",
+              "message": "published weather-20261013T18Z to R2 (648 tiles, 830.3 MB, 896.7s; previous=weather-20261013T12Z, deleted=['weather-20261013T06Z'], commit attempts=1)"
+            }
+          ],
+          "pauses": [],
+          "already_published_skip": false,
+          "original_job_log_sha256": "6413312225d1472a47d7ce10cb84c286005246bbed17103c77df05ad5520bd02",
+          "outcome": "published"
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38481586871",
+          "run_id": 38481586871,
+          "path": ".github/workflows/ingest-waves.yml",
+          "display_title": "ingest-waves 20261013T18",
+          "event": "workflow_dispatch",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-13T23:29:30.1101218Z",
+              "message": "published waves-20261013T18Z to R2 (520 tiles, 500.9 MB, 965.0s; previous=waves-20261013T12Z, deleted=['waves-20261013T06Z'], commit attempts=1)"
+            }
+          ],
+          "pauses": [],
+          "already_published_skip": false,
+          "original_job_log_sha256": "880b361998102adade86ab03bc783596a3436244d0033459053903e1f9e2bf3a",
+          "outcome": "published"
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486567629",
+          "run_id": 38486567629,
+          "path": ".github/workflows/ingest-currents.yml",
+          "display_title": "ingest-currents scheduled",
+          "event": "schedule",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "original_job_log_sha256": "c3d0facba871ef39dd279a0c62bdbdcc0b8ad9ae20abaf2b99a6561bc5b6453a",
+          "outcome": "already_published"
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486607831",
+          "run_id": 38486607831,
+          "path": ".github/workflows/ingest-waves.yml",
+          "display_title": "ingest-waves scheduled",
+          "event": "schedule",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "original_job_log_sha256": "2bf9a90dcc2cd26bb050bb8502de6a070ac393863b77ee928ccc40819f089b4a",
+          "outcome": "already_published"
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486626864",
+          "run_id": 38486626864,
+          "path": ".github/workflows/ingest-weather-ecmwf-short.yml",
+          "display_title": "ingest-weather-ecmwf-short scheduled",
+          "event": "schedule",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": false,
+          "original_job_log_sha256": "7767d0dc5a8d61dc8d06db47a0fcd399419a715167959e59eed6d498c3a6cd9a",
+          "outcome": "source_unavailable",
+          "source_unavailable_evidence": [
+            {
+              "confirmed_at": "2026-10-13T23:50:21.7558321Z",
+              "message": "ingest weather-ecmwf-short: cycle not available yet, skipping (ECMWF cycle 20261013T18Z not published to 144 h yet (latest 20261012T18Z))"
+            }
+          ],
+          "publication_status": "not confirmed; exit zero gives no publication credit",
+          "cycle": null
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486640742",
+          "run_id": 38486640742,
+          "path": ".github/workflows/ingest-weather.yml",
+          "display_title": "ingest-weather scheduled",
+          "event": "schedule",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "original_job_log_sha256": "696d430638909c1ee9dfd365e0c679e988e0dd58797848a39a19eddf48fc2cff",
+          "outcome": "already_published"
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486686018",
+          "run_id": 38486686018,
+          "path": ".github/workflows/ingest-currents-ibi.yml",
+          "display_title": "ingest-currents-ibi scheduled",
+          "event": "schedule",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "failure",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": false,
+          "original_job_log_sha256": "4ef3b2fbe33216626135a73f3da64e764e916e9d78f74d026f8306a901b08883",
+          "outcome": "provider_authentication_failed",
+          "source_unavailable_evidence": [],
+          "publication_status": "not confirmed; exit zero gives no publication credit",
+          "cycle": null,
+          "exception_type": "CouldNotConnectToAuthenticationSystem",
+          "actual_publication_confirmed": false,
+          "retry_backoff": "three toolbox calls with existing five/fifteen-minute outer backoff exhausted",
+          "no_invalid_publication": true,
+          "failure_phase": "resolve",
+          "no_inferred_cycle": true,
+          "no_admission_before_resolution_failure": true
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486693123",
+          "run_id": 38486693123,
+          "path": ".github/workflows/ingest-weather-ecmwf.yml",
+          "display_title": "ingest-weather-ecmwf scheduled",
+          "event": "schedule",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "original_job_log_sha256": "194bb0f41aecd37747d6b5be71523ccb48c77b0f9e4966ce136413ea66713301",
+          "outcome": "already_published"
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486722717",
+          "run_id": 38486722717,
+          "path": ".github/workflows/ingest-ensemble.yml",
+          "display_title": "ingest-ensemble scheduled",
+          "event": "schedule",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "original_job_log_sha256": "20e485e7253fab265c344db5c657ea1bcb5107ecbb6b8ffd36938803dc2662ca",
+          "outcome": "already_published"
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38489113949",
+          "run_id": 38489113949,
+          "path": ".github/workflows/ingest-ensemble.yml",
+          "display_title": "ingest-ensemble 20261013T18",
+          "event": "workflow_dispatch",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-14T01:02:49.2602082Z",
+              "message": "published ensemble-20261013T18Z to R2 (648 tiles, 1060.0 MB, 1142.2s; previous=ensemble-20261013T12Z, deleted=['ensemble-20261013T06Z'], commit attempts=1)"
+            }
+          ],
+          "pauses": [],
+          "already_published_skip": false,
+          "original_job_log_sha256": "562d6a4c8e2e6c09d551e02cf27b50bf6b6b30122f57f4b52179f19afb378145",
+          "outcome": "published"
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38489116168",
+          "run_id": 38489116168,
+          "path": ".github/workflows/ingest-weather-ecmwf-short.yml",
+          "display_title": "ingest-weather-ecmwf-short 20261013T18",
+          "event": "workflow_dispatch",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-14T00:41:30.1572443Z",
+              "message": "published weather-ecmwf-short-20261013T18Z to R2 (648 tiles, 195.3 MB, 816.5s; previous=weather-ecmwf-short-20261013T06Z, deleted=['weather-ecmwf-short-20261012T18Z'], commit attempts=1)"
+            }
+          ],
+          "pauses": [],
+          "already_published_skip": false,
+          "original_job_log_sha256": "588caffe9f59d86a92cd76f4fc1bcd175cdb72a70cfa868a1f10cd03997e667b",
+          "outcome": "published"
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38511310443",
+          "run_id": 38511310443,
+          "path": ".github/workflows/ingest-weather.yml",
+          "display_title": "ingest-weather 20261014T00",
+          "event": "workflow_dispatch",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-14T05:04:00.1850877Z",
+              "message": "published weather-20261014T00Z to R2 (648 tiles, 832.7 MB, 736.6s; previous=weather-20261013T18Z, deleted=['weather-20261013T12Z'], commit attempts=1)"
+            }
+          ],
+          "pauses": [],
+          "already_published_skip": false,
+          "original_job_log_sha256": "c32a296a0bdb4327471d929bc1fc7ea9c72586e4417329074b74aaa757ebdb6e",
+          "outcome": "published"
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38514354959",
+          "run_id": 38514354959,
+          "path": ".github/workflows/ingest-waves.yml",
+          "display_title": "ingest-waves 20261014T00",
+          "event": "workflow_dispatch",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-14T05:38:20.4188899Z",
+              "message": "published waves-20261014T00Z to R2 (520 tiles, 498.3 MB, 1529.2s; previous=waves-20261013T18Z, deleted=['waves-20261013T12Z'], commit attempts=1)"
+            }
+          ],
+          "pauses": [],
+          "already_published_skip": false,
+          "original_job_log_sha256": "5dc3fc4f898a78df2b2f0620791b5a3a8a2b2825ba52ab722744690644c23ae1",
+          "outcome": "published"
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38518353397",
+          "run_id": 38518353397,
+          "path": ".github/workflows/ingest-currents.yml",
+          "display_title": "ingest-currents 20261014T00",
+          "event": "workflow_dispatch",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "failure",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": false,
+          "original_job_log_sha256": "f62b1ad954ab68ee90d014685a57c65e0a6998894a2ab23a201e39d11f435866",
+          "outcome": "provider_authentication_failed",
+          "source_unavailable_evidence": [],
+          "publication_status": "not confirmed; exit zero gives no publication credit",
+          "cycle": "2026-10-14T00:00Z",
+          "exception_type": "CouldNotConnectToAuthenticationSystem",
+          "actual_publication_confirmed": false,
+          "retry_backoff": "three toolbox calls with existing five/fifteen-minute outer backoff exhausted",
+          "no_invalid_publication": true,
+          "normal_admission_charge_preserved": true,
+          "failure_phase": "build",
+          "daily_and_frequency_recovery_gates_closed": true
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38521160774",
+          "run_id": 38521160774,
+          "path": ".github/workflows/ingest-ensemble.yml",
+          "display_title": "ingest-ensemble 20261014T00",
+          "event": "workflow_dispatch",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "conclusion": "success",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-14T06:55:44.9792112Z",
+              "message": "published ensemble-20261014T00Z to R2 (648 tiles, 1059.1 MB, 1553.8s; previous=ensemble-20261013T18Z, deleted=['ensemble-20261013T12Z'], commit attempts=1)"
+            }
+          ],
+          "pauses": [],
+          "already_published_skip": false,
+          "original_job_log_sha256": "32c0de7349b77f95f6d70ab2a3a1fe452c7c3fffbe0a14170cbb879e4385d617",
+          "outcome": "published"
+        }
+      ],
+      "pending_jobs_at_history_snapshot": [
+        {
+          "run_id": 38527688752,
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38527688752",
+          "path": ".github/workflows/ingest-weather-ecmwf.yml",
+          "display_title": "ingest-weather-ecmwf 20261014T00",
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "status": "in_progress",
+          "publication_status": "unknown until original completed evidence is inspected"
+        }
+      ],
+      "capacity_attempts": [
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38531090347",
+          "run_attempt": 1,
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "status": "passed",
+          "checks": {
+            "approved_guard_unchanged": true,
+            "existing_reservation_unchanged": true,
+            "headroom_unchanged": true,
+            "physical_plus_upload_headroom_fits": true,
+            "complete_retained_overlap_fits": true,
+            "existing_reservation_sufficient": true,
+            "calculated_overlap_fits": true
+          },
+          "incomplete_historical_prefix_retained": "ensemble-20261004T18Z",
+          "account_figures_private": true
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38532356942",
+          "run_attempt": 1,
+          "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+          "status": "passed",
+          "checks": {
+            "approved_guard_unchanged": true,
+            "existing_reservation_unchanged": true,
+            "headroom_unchanged": true,
+            "physical_plus_upload_headroom_fits": true,
+            "complete_retained_overlap_fits": true,
+            "existing_reservation_sufficient": true,
+            "calculated_overlap_fits": true
+          },
+          "incomplete_historical_prefix_retained": "ensemble-20261004T18Z",
+          "account_figures_private": true
+        }
+      ],
+      "capacity_audit": {
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38532356942",
+        "run_attempt": 1,
+        "commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+        "status": "passed",
+        "checks": {
+          "approved_guard_unchanged": true,
+          "existing_reservation_unchanged": true,
+          "headroom_unchanged": true,
+          "physical_plus_upload_headroom_fits": true,
+          "complete_retained_overlap_fits": true,
+          "existing_reservation_sufficient": true,
+          "calculated_overlap_fits": true
+        },
+        "incomplete_historical_prefix_retained": "ensemble-20261004T18Z",
+        "account_figures_private": true
+      },
+      "source_restoration": {
+        "cycle": "2026-10-14T00:00:00+00:00",
+        "complete_now": true,
+        "created_at": "2026-10-14T03:42:13Z",
+        "source_record": {
+          "key": "data_run/dwd_icon_eu/2026/10/14/0000Z/meta.json",
+          "etag": "\"3feaa3d3bff049492b2afb426427ba2c\"",
+          "bytes": 4937
+        },
+        "valid_times": 93,
+        "registered_times": 93,
+        "required_wind_gust_variables_present": true,
+        "first_ready_at": "unknown; current metadata does not prove earlier readiness"
+      },
+      "source_http_readback": {
+        "checked_at": "2026-10-14T07:54:01.304408+00:00",
+        "url": "https://openmeteo.s3.amazonaws.com/data_run/dwd_icon_eu/2026/10/14/0000Z/meta.json",
+        "http_status": 200,
+        "headers": {
+          "Date": "Wed, 14 Oct 2026 07:54:02 GMT",
+          "Last-Modified": "Wed, 14 Oct 2026 04:41:45 GMT",
+          "ETag": "\"3feaa3d3bff049492b2afb426427ba2c\"",
+          "Server": "AmazonS3"
+        },
+        "first_ready_at": "unknown; response metadata cannot prove original availability"
+      },
+      "recovery_preflight": {
+        "checked_at": "2026-10-14T07:56:06.358283+00:00",
+        "requested_cycle": "20261014T00",
+        "source_commit": "5135084e22832ffac921e41aa5fc1028a149f2f9",
+        "checks": {
+          "frequency_available": true,
+          "daily_start_available": true,
+          "no_active_icon_lease": true,
+          "no_single_active_block": true,
+          "no_prior_charge_for_requested_cycle": true,
+          "next_slot_preserved": true,
+          "global_seconds_allowance": true,
+          "global_starts_allowance": true,
+          "runtime_limit_sufficient": true,
+          "source_complete": true,
+          "complete_capacity_envelope_fits": true,
+          "no_newer_publication": true
+        },
+        "no_policy_counters_or_lease_overridden": true,
+        "sequencing_note": "Workflow queued before the fresh authenticated read completed; workflow independently enforced admission gates; operator preflight followed actual admission and supplied no override.",
+        "actual_admitted_at": "2026-10-14T07:55:55.743840+00:00",
+        "operator_preflight_completed_before_actual_admission": false
+      },
+      "ledger_readback": {
+        "reviewed_at": "2026-10-12T20:54:16.272766+00:00",
+        "review_age_hours": 35.041,
+        "review_due": false,
+        "operator_pause": false,
+        "non_usage_control_fields_identical": true,
+        "charged_usage_and_all_prior_seen_and_daily_records_preserved": true,
+        "control_write_performed": false,
+        "period_rollover_applied": false,
+        "next_real_review_due_at": "2026-10-14T08:54:16.272766+00:00",
+        "review_expiry_at": "2026-10-15T20:54:16.272766+00:00",
+        "operator_control_edit_performed": false,
+        "normal_recovery_admission_charge_confirmed": true,
+        "exactly_one_normal_recovery_start_and_reserved_duration": true,
+        "all_non_usage_fields_identical_after_recovery": true,
+        "all_prior_charged_identities_and_daily_records_preserved_after_recovery": true,
+        "manual_lease_released": true,
+        "next_icon_12z_frequency_and_daily_slot_available": true
+      },
+      "copernicus_access_probe": {
+        "checked_at": "2026-10-14T08:01:20.893743+00:00",
+        "probe": "one bounded token request using existing local Copernicus credentials; no data ingestion or account changes",
+        "local_probe_does_not_prove_github_runner_access": true,
+        "authenticated_local_probe_passed": false,
+        "exception_type": "ConnectionError"
+      },
+      "production_readback": {
+        "root": {
+          "schema_version": 1,
+          "layers": {
+            "weather": {
+              "run_id": "weather-20261014T00Z",
+              "previous_run_id": "weather-20261013T18Z",
+              "cycle": "2026-10-14T00:00Z",
+              "member_count": 1,
+              "published_at": "2026-10-14T04:55:35Z",
+              "cadence_hours": 6
+            },
+            "ensemble": {
+              "run_id": "ensemble-20261014T00Z",
+              "previous_run_id": "ensemble-20261013T18Z",
+              "cycle": "2026-10-14T00:00Z",
+              "member_count": 31,
+              "published_at": "2026-10-14T06:40:14Z",
+              "cadence_hours": 6
+            },
+            "waves": {
+              "run_id": "waves-20261014T00Z",
+              "previous_run_id": "waves-20261013T18Z",
+              "cycle": "2026-10-14T00:00Z",
+              "member_count": 1,
+              "published_at": "2026-10-14T05:31:03Z",
+              "cadence_hours": 6
+            },
+            "weather-ecmwf": {
+              "run_id": "weather-ecmwf-20261013T12Z",
+              "previous_run_id": "weather-ecmwf-20261013T00Z",
+              "cycle": "2026-10-13T12:00Z",
+              "member_count": 1,
+              "published_at": "2026-10-13T19:38:50Z",
+              "cadence_hours": 12
+            },
+            "currents": {
+              "run_id": "currents-20261013T00Z",
+              "previous_run_id": "currents-20261012T00Z",
+              "cycle": "2026-10-13T00:00Z",
+              "member_count": 1,
+              "published_at": "2026-10-13T07:16:28Z",
+              "cadence_hours": 24
+            },
+            "currents-ibi": {
+              "run_id": "currents-ibi-20261013T00Z",
+              "previous_run_id": "currents-ibi-20261012T00Z",
+              "cycle": "2026-10-13T00:00Z",
+              "member_count": 1,
+              "published_at": "2026-10-13T10:10:04Z",
+              "cadence_hours": 24
+            },
+            "weather-ecmwf-short": {
+              "run_id": "weather-ecmwf-short-20261013T18Z",
+              "previous_run_id": "weather-ecmwf-short-20261013T06Z",
+              "cycle": "2026-10-13T18:00Z",
+              "member_count": 1,
+              "published_at": "2026-10-14T00:30:31Z",
+              "cadence_hours": 12
+            }
+          },
+          "updated_at": "2026-10-14T06:40:14Z"
+        },
+        "regional": {
+          "schema_version": 1,
+          "updated_at": "2026-10-14T07:57:01Z",
+          "layers": {
+            "weather-arome": {
+              "run_id": "weather-arome-20261014T03Z",
+              "previous_run_id": "weather-arome-20261013T15Z",
+              "cycle": "2026-10-14T03:00Z",
+              "member_count": 1,
+              "published_at": "2026-10-14T05:46:40Z",
+              "cadence_hours": 12
+            },
+            "weather-icon-eu": {
+              "run_id": "weather-icon-eu-20261014T00Z",
+              "previous_run_id": "weather-icon-eu-20261013T12Z",
+              "cycle": "2026-10-14T00:00Z",
+              "member_count": 1,
+              "published_at": "2026-10-14T07:57:01Z",
+              "cadence_hours": 12
+            },
+            "weather-ukv": {
+              "run_id": "weather-ukv-20261014T00Z",
+              "previous_run_id": "weather-ukv-20261013T12Z",
+              "cycle": "2026-10-14T00:00Z",
+              "member_count": 1,
+              "published_at": "2026-10-14T04:46:52Z",
+              "cadence_hours": 12
+            }
+          }
+        },
+        "cloudflare": {
+          "pages": {
+            "id": "34e556b1-0c6a-4db6-9783-fc751d53d5ee",
+            "commit": "a7cecaec43e8dafc48d7f603dccaadc59dea12c5",
+            "stage": {
+              "name": "deploy",
+              "started_on": "2026-10-13T08:01:21.953598Z",
+              "ended_on": "2026-10-13T08:01:31.532045Z",
+              "status": "success"
+            },
+            "models": {
+              "type": "plain_text",
+              "value": "weather-arome,weather-icon-eu,weather-ukv"
+            }
+          },
+          "worker": {
+            "DRY_RUN": "false",
+            "REGIONAL_MODELS": "weather-arome,weather-icon-eu,weather-ukv",
+            "REGIONAL_FULL_CADENCE": "false"
+          },
+          "github_secret_preserved": true
+        },
+        "github_full_cadence": false
+      },
+      "manifest_validation": {
+        "canonical_current_previous_manifests": 20,
+        "root_tiles": [
+          {
+            "layer": "weather",
+            "run_id": "weather-20261014T00Z",
+            "previous_run_id": "weather-20261013T18Z",
+            "tile_id": "N40W010",
+            "manifest_bytes_match": true,
+            "manifest_hash_match": true,
+            "pft1_decodes": true
+          },
+          {
+            "layer": "ensemble",
+            "run_id": "ensemble-20261014T00Z",
+            "previous_run_id": "ensemble-20261013T18Z",
+            "tile_id": "N40W010",
+            "manifest_bytes_match": true,
+            "manifest_hash_match": true,
+            "pft1_decodes": true
+          },
+          {
+            "layer": "waves",
+            "run_id": "waves-20261014T00Z",
+            "previous_run_id": "waves-20261013T18Z",
+            "tile_id": "N40W010",
+            "manifest_bytes_match": true,
+            "manifest_hash_match": true,
+            "pft1_decodes": true
+          },
+          {
+            "layer": "weather-ecmwf",
+            "run_id": "weather-ecmwf-20261013T12Z",
+            "previous_run_id": "weather-ecmwf-20261013T00Z",
+            "tile_id": "N40W010",
+            "manifest_bytes_match": true,
+            "manifest_hash_match": true,
+            "pft1_decodes": true
+          },
+          {
+            "layer": "currents",
+            "run_id": "currents-20261013T00Z",
+            "previous_run_id": "currents-20261012T00Z",
+            "tile_id": "N40W010",
+            "manifest_bytes_match": true,
+            "manifest_hash_match": true,
+            "pft1_decodes": true
+          },
+          {
+            "layer": "currents-ibi",
+            "run_id": "currents-ibi-20261013T00Z",
+            "previous_run_id": "currents-ibi-20261012T00Z",
+            "tile_id": "N40W010",
+            "manifest_bytes_match": true,
+            "manifest_hash_match": true,
+            "pft1_decodes": true
+          },
+          {
+            "layer": "weather-ecmwf-short",
+            "run_id": "weather-ecmwf-short-20261013T18Z",
+            "previous_run_id": "weather-ecmwf-short-20261013T06Z",
+            "tile_id": "N40W010",
+            "manifest_bytes_match": true,
+            "manifest_hash_match": true,
+            "pft1_decodes": true
+          }
+        ],
+        "regional_tiles": [
+          {
+            "run_id": "weather-arome-20261014T03Z",
+            "tile_id": "N45W005",
+            "manifest_bytes_match": true,
+            "manifest_hash_match": true,
+            "pft1_decodes": true
+          },
+          {
+            "run_id": "weather-icon-eu-20261014T00Z",
+            "tile_id": "N40W010",
+            "manifest_bytes_match": true,
+            "manifest_hash_match": true,
+            "pft1_decodes": true
+          },
+          {
+            "run_id": "weather-ukv-20261014T00Z",
+            "tile_id": "N48W006",
+            "manifest_bytes_match": true,
+            "manifest_hash_match": true,
+            "pft1_decodes": true
+          }
+        ],
+        "previously_recorded_manifests": {
+          "retained_known_manifests": [
+            "weather-ukv-20261013T12Z",
+            "weather-icon-eu-20261013T00Z",
+            "weather-icon-eu-20261013T12Z",
+            "weather-arome-20261013T15Z",
+            "weather-ecmwf-short-20261013T06Z",
+            "currents-ibi-20261012T00Z",
+            "currents-ibi-20261013T00Z",
+            "currents-20261012T00Z",
+            "currents-20261013T00Z",
+            "weather-ecmwf-20261013T00Z",
+            "weather-ecmwf-20261013T12Z"
+          ],
+          "all_byte_identical": true
+        }
+      },
+      "consumer_exports_retained_at": "2026-10-06",
+      "consumer_exports_refreshed_this_review": false,
+      "period_rollover_authorization_preserved": true,
+      "period_rollover_applied": false,
+      "full_cadence_enabled": false,
+      "acceptance_result": "UKV selected seven-day timeliness passes 14/14, with prior failed original window preserved. AROME selected window has two timely/twelve pending. ICON-EU October 14 00Z saw no source marker through its registered wait; actual exact recovery is valid and late, with normal charge and no timely credit. October 13 selected window is retained at one timely/one late/twelve pending (maximum 13/14). Routine separate post-restoration ICON window starts only after verified restoration/capacity, with fourteen pending and unchanged lag/wait/deadline. No root/consumer/validation gate is waived. CMEMS authentication failures remain retained: IBI failed before resolved-cycle admission; GLO12 failed during build with normal charge and closed daily/frequency gates. Local authenticated probe also failed ConnectionError; invalid credentials or a specific transport cause are not proven. Seven other root publications confirmed; full ECMWF 00Z is still in progress at the snapshot, no publication inferred. Whole-bucket capacity and unchanged reservation fit. No operator policy, review, period, usage refund or provider decision edit. Full cadence false."
     }
   ],
   "incidents": [
@@ -19710,38 +20973,85 @@
       },
       "scheduled_timely_credit": false,
       "invalid_publication": false
+    },
+    {
+      "recorded_at": "2026-10-14T08:09:33.154141+00:00",
+      "kind": "october14-icon-source-readiness-miss-and-valid-late-restoration",
+      "missed_cycle": "2026-10-14T00:00Z",
+      "scheduled_attempt_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38506176795",
+      "original_report_sha256": "0a6e99f984ae0326a14b3d731d77e6631e3b2a175e27588a27fd42c5cced2f66",
+      "scheduled_failure_phase": "resolve; no meta.json throughout registered wait, no admission",
+      "guarded_recovery_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38531546139",
+      "recovery_actual_publication_at": "2026-10-14T07:59:12.6582608Z",
+      "recovery_timely_credit": false,
+      "invalid_publication": false,
+      "failed_window_retained": "post-october13-retention-and-catchup-repair",
+      "separate_selected_window": "post-october14-source-restoration",
+      "profiles_limits_and_controls_unchanged": true
+    },
+    {
+      "recorded_at": "2026-10-14T08:09:33.154141+00:00",
+      "kind": "october14-root-cmems-authentication-failures",
+      "operational_gate": {
+        "kind": "october14-cmems-authentication-access-and-current-delivery-pending",
+        "recorded_at": "2026-10-14T08:09:33.154141+00:00",
+        "failed_workflow_urls": [
+          "https://github.com/deepregatta/forecast-tiles/actions/runs/38486686018",
+          "https://github.com/deepregatta/forecast-tiles/actions/runs/38518353397"
+        ],
+        "exception_type": "CouldNotConnectToAuthenticationSystem",
+        "prior_valid_current_runs": {
+          "currents": "currents-20261013T00Z",
+          "currents-ibi": "currents-ibi-20261013T00Z"
+        },
+        "glo12_cycle": "2026-10-14T00:00Z",
+        "glo12_normal_charge_preserved": true,
+        "glo12_daily_and_frequency_recovery_gates_closed": true,
+        "ibi_failure_before_cycle_resolution_and_admission": true,
+        "ibi_cycle": null,
+        "local_authenticated_probe": {
+          "checked_at": "2026-10-14T08:01:20.893743+00:00",
+          "probe": "one bounded token request using existing local Copernicus credentials; no data ingestion or account changes",
+          "local_probe_does_not_prove_github_runner_access": true,
+          "authenticated_local_probe_passed": false,
+          "exception_type": "ConnectionError"
+        },
+        "required_evidence": "Authenticated provider access and genuine current scheduled/manual publication through unchanged gates, canonical current/previous manifests and immutable readback. Do not bypass frequency/daily limits, refund usage, use another currents provider or replay an older cycle over newer data. Local access alone is not GitHub runner publication."
+      },
+      "no_invalid_publication": true,
+      "charged_glo12_attempt_preserved": true
     }
   ],
   "regional_readback": {
-    "verified_at": "2026-10-13T20:56:46.441401+00:00",
-    "catalogue_updated_at": "2026-10-13T19:01:18Z",
+    "verified_at": "2026-10-14T08:09:33.154141+00:00",
+    "catalogue_updated_at": "2026-10-14T07:57:01Z",
     "layers": {
       "weather-arome": {
-        "run_id": "weather-arome-20261013T15Z",
-        "previous_run_id": "weather-arome-20261013T03Z",
-        "cycle": "2026-10-13T15:00Z",
+        "run_id": "weather-arome-20261014T03Z",
+        "previous_run_id": "weather-arome-20261013T15Z",
+        "cycle": "2026-10-14T03:00Z",
         "member_count": 1,
-        "published_at": "2026-10-13T19:01:18Z",
+        "published_at": "2026-10-14T05:46:40Z",
         "cadence_hours": 12
       },
       "weather-icon-eu": {
-        "run_id": "weather-icon-eu-20261013T12Z",
-        "previous_run_id": "weather-icon-eu-20261013T00Z",
-        "cycle": "2026-10-13T12:00Z",
+        "run_id": "weather-icon-eu-20261014T00Z",
+        "previous_run_id": "weather-icon-eu-20261013T12Z",
+        "cycle": "2026-10-14T00:00Z",
         "member_count": 1,
-        "published_at": "2026-10-13T16:00:38Z",
+        "published_at": "2026-10-14T07:57:01Z",
         "cadence_hours": 12
       },
       "weather-ukv": {
-        "run_id": "weather-ukv-20261013T12Z",
-        "previous_run_id": "weather-ukv-20261013T00Z",
-        "cycle": "2026-10-13T12:00Z",
+        "run_id": "weather-ukv-20261014T00Z",
+        "previous_run_id": "weather-ukv-20261013T12Z",
+        "cycle": "2026-10-14T00:00Z",
         "member_count": 1,
-        "published_at": "2026-10-13T16:32:16Z",
+        "published_at": "2026-10-14T04:46:52Z",
         "cadence_hours": 12
       }
     },
-    "result": "AROME October 13 15Z, ICON-EU 12Z and UKV 12Z are scientifically valid and timely by original publication logs/reports; current/previous replacement and immutable samples pass. UKV 14/14 timely still awaits seven elapsed days; two other selected windows continue. Late recovery and all prior misses remain retained."
+    "result": "UKV October 14 00Z and AROME 03Z are timely/valid; ICON-EU exact 00Z recovery is scientifically valid, immutable and late. Current 00Z/previous October 13 12Z verified. Original source wait/miss and all prior windows remain retained; selected new window receives no recovery credit."
   },
   "unresolved_validation": [],
   "reviewed_receipts": [
@@ -21514,6 +22824,76 @@
       "finished_at": "2026-10-13T20:21:44.399848+00:00",
       "pointer_commit_confirmed": null,
       "report_sha256": "2c334df20c953ee1668a88fb091b028fcb5dfb5a9cf6637fece089ddfc471daa"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486937733",
+      "artifact": "weather-arome-attempt-38486937733-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-13T15:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-13T23:53:41.884649+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "1b48b23e111080ec2a10cdaa9b702e79772fc7b84d2dbc62084d6bf0b171f4e2"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486937733",
+      "artifact": "weather-icon-eu-attempt-38486937733-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-13T12:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-13T23:53:55.465731+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "36624f1cf416350532a948a4b987fd0acd58db1bab76c15482e222e9303c08ad"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38486937733",
+      "artifact": "weather-ukv-attempt-38486937733-1",
+      "layer": "weather-ukv",
+      "cycle": "2026-10-13T12:00Z",
+      "outcome": "already_published",
+      "finished_at": "2026-10-13T23:54:10.044765+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "52bd0f8f24cfb6b7d2bcd3b6e058d67b700b37a40346318da3535ae57832aa5c"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38506176795",
+      "artifact": "weather-icon-eu-attempt-38506176795-1",
+      "layer": "weather-icon-eu",
+      "cycle": null,
+      "outcome": "source_wait_expired",
+      "finished_at": "2026-10-14T04:10:55.746793+00:00",
+      "pointer_commit_confirmed": null,
+      "report_sha256": "0a6e99f984ae0326a14b3d731d77e6631e3b2a175e27588a27fd42c5cced2f66"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38510455991",
+      "artifact": "weather-ukv-attempt-38510455991-1",
+      "layer": "weather-ukv",
+      "cycle": "2026-10-14T00:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-14T04:48:29.506079+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "8ea4670f978df24abc682e46d0f65862fecf23ce1f3390a4adf1f1f03e413c30"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38518355717",
+      "artifact": "weather-arome-attempt-38518355717-1",
+      "layer": "weather-arome",
+      "cycle": "2026-10-14T03:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-14T05:47:55.279493+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "4e5be7bbdcc6bc95cd3369aca1aaf1b314b75e60ff8975483ef3bef05a49d8db"
+    },
+    {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38531546139",
+      "artifact": "weather-icon-eu-attempt-38531546139-1",
+      "layer": "weather-icon-eu",
+      "cycle": "2026-10-14T00:00Z",
+      "outcome": "published",
+      "finished_at": "2026-10-14T07:59:12.664291+00:00",
+      "pointer_commit_confirmed": true,
+      "report_sha256": "15ffa1d73fc72a7ca1f9f71d96f8a7d70c3ebf7f5d1589df985ce9c952d20fd5"
     }
   ],
   "acceptance_authorization": {
@@ -21629,19 +23009,22 @@
       "recorded_at": "2026-10-11T08:04:12.332272+00:00",
       "layer": "weather-icon-eu",
       "prior_failed_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38020540755",
-      "failed_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38108364455",
-      "guarded_recovery_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38122902805",
+      "failed_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38506176795",
+      "guarded_recovery_workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38531546139",
       "restoration_verified_at": "2026-10-11T08:00:53.855171+00:00",
-      "status": "Two consecutive 00Z scheduled source waits expired with required u/v/gust variables missing. Valid late recovery restores data availability; it does not prove the recurring upstream source-timeliness problem repaired. No transport/cache cause or software defect is proven.",
+      "status": "October 14 00Z original scheduled job exhausted registered wait with no meta.json through 04:10 UTC. Source complete now; exact valid recovery is late and receives no timely credit. Earlier source misses and charged capacity/frequency failures remain retained. A new separate window after restoration does not prove upstream timing repaired.",
       "required_evidence": "Confirm a subsequent actual scheduled ICON-EU 00Z on-time publication from its original artifact/log, passing source/scientific validation and fresh canonical current/previous manifests plus immutable tile readback. Every selected window still requires all fourteen timely cycles and seven elapsed days.",
-      "selected_window": "post-october13-retention-and-catchup-repair",
+      "selected_window": "post-october14-source-restoration",
       "registered_source_lag_wait_deadline_profiles_and_limits_unchanged": true,
       "late_manual_recovery_receives_timely_credit": false,
       "invalid_publication": false,
       "prior_selected_window": "post-october11-source-restoration",
-      "last_checked_at": "2026-10-13T20:56:46.441401+00:00",
+      "last_checked_at": "2026-10-14T08:09:33.154141+00:00",
       "latest_12z_publication_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/38422033845",
-      "latest_12z_does_not_resolve_00z_gate": true
+      "latest_12z_does_not_resolve_00z_gate": true,
+      "retained_failed_workflow_urls": [
+        "https://github.com/deepregatta/forecast-tiles/actions/runs/38108364455"
+      ]
     },
     {
       "kind": "october20-owner-approved-period-rollover-application-pending",
@@ -21651,6 +23034,32 @@
       "scheduled_follow_up_at": "2026-10-20T02:10:00+02:00",
       "automation_id": "october-20-paid-work-period-rollover",
       "application_status": "Not applied; future date and fresh billing evidence required."
+    },
+    {
+      "kind": "october14-cmems-authentication-access-and-current-delivery-pending",
+      "recorded_at": "2026-10-14T08:09:33.154141+00:00",
+      "failed_workflow_urls": [
+        "https://github.com/deepregatta/forecast-tiles/actions/runs/38486686018",
+        "https://github.com/deepregatta/forecast-tiles/actions/runs/38518353397"
+      ],
+      "exception_type": "CouldNotConnectToAuthenticationSystem",
+      "prior_valid_current_runs": {
+        "currents": "currents-20261013T00Z",
+        "currents-ibi": "currents-ibi-20261013T00Z"
+      },
+      "glo12_cycle": "2026-10-14T00:00Z",
+      "glo12_normal_charge_preserved": true,
+      "glo12_daily_and_frequency_recovery_gates_closed": true,
+      "ibi_failure_before_cycle_resolution_and_admission": true,
+      "ibi_cycle": null,
+      "local_authenticated_probe": {
+        "checked_at": "2026-10-14T08:01:20.893743+00:00",
+        "probe": "one bounded token request using existing local Copernicus credentials; no data ingestion or account changes",
+        "local_probe_does_not_prove_github_runner_access": true,
+        "authenticated_local_probe_passed": false,
+        "exception_type": "ConnectionError"
+      },
+      "required_evidence": "Authenticated provider access and genuine current scheduled/manual publication through unchanged gates, canonical current/previous manifests and immutable readback. Do not bypass frequency/daily limits, refund usage, use another currents provider or replay an older cycle over newer data. Local access alone is not GitHub runner publication."
     }
   ],
   "resolved_operational_gates": [

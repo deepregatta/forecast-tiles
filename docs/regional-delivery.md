@@ -2452,3 +2452,81 @@ Passage deployment **34e556b1-0c6a-4db6-9783-fc751d53d5ee** still serves
 provider deployment remain separate from consumer evidence. October 4/6 exports
 and physical-device evidence remain dated; fresh current exports/attribution are
 required before promotion. No acceptance requirement has been relaxed.
+
+
+### October 14: UKV timeliness passes; ICON source miss and CMEMS access failures retained
+
+UKV's selected **October 6-13** window now has **seven elapsed days and 14/14
+on-time scheduled cycles**, so its timeliness gate passes. Its original window's
+billing-review miss remains separate and failed. AROME's selected October 13-20
+window has **two timely/twelve pending**. Neither result waives current consumer,
+capacity, existing-layer delivery or full-release acceptance requirements.
+
+[ICON-EU October 14 00Z 38506176795](https://github.com/deepregatta/forecast-tiles/actions/runs/38506176795)
+exhausted its registered 45-minute source wait at **04:10:55.746793 UTC**. Original
+logs record no `meta.json` at the first and last of 24 readiness checks; no source
+cycle resolved and no admission/upload occurred. Current source metadata is now
+complete with all 93 registered times and required wind/gust variables. Its internal
+creation time and current S3 Last-Modified cannot establish first availability;
+no transport/cache cause or code defect is proven. Lag, wait and delivery deadline
+remain unchanged.
+
+[Exact guarded recovery 38531546139](https://github.com/deepregatta/forecast-tiles/actions/runs/38531546139)
+on verified main confirmed publication at **07:59:12.6582608 UTC**. Original source/
+scientific checks, report and current 00Z/previous October 13 12Z canonical manifests
+plus immutable samples pass. It is **late**, supplies no timely credit and retains
+one normal charged start/reserved duration without refund. Earlier identities,
+daily records and all non-usage control fields remain exact; lease released and
+next 12Z frequency/daily slot preserved. The workflow was queued before the last
+operator read/preflight completed; its own actual admission guards remained enforced.
+The sequencing error is retained separately from publication validity.
+
+ICON's October 13-20 window remains failed at **one timely/one late/twelve pending**,
+maximum **13/14**. The original scheduled failure is retained even though its cycle
+now scores late. After verified restoration and capacity, a separate owner-authorized
+routine window **2026-10-14T08:06:57.260579+00:00 to 2026-10-21T08:06:57.260579+00:00** starts with fourteen pending slots,
+from October 14 12Z through October 21 00Z. No bootstrap/prior start was reset.
+This new observation does not prove recurring upstream 00Z timing repaired.
+
+Seven history pages reach the earliest original observation start. **184 original
+regional reports**, including seven new reports (three publications, three skips,
+one source-wait failure), are retained with all 177 earlier hashes/fields exact.
+UKV 00Z [38510455991](https://github.com/deepregatta/forecast-tiles/actions/runs/38510455991)
+and AROME 03Z [38518355717](https://github.com/deepregatta/forecast-tiles/actions/runs/38518355717)
+confirm actual timely publication at **04:48:29.4996677** and **05:47:55.2762226 UTC**.
+UKV's October 14 publication lies after its completed selected window and supplies
+no extra slot to that fixed fourteen-cycle score. Twenty canonical current/previous
+manifests, ten sampled immutable tiles and eleven previously retained manifests
+pass; seven root and three regional layers remain present.
+
+Two root attempts failed at Copernicus authentication after the existing three
+calls with five/fifteen-minute outer backoff: [IBI catch-up 38486686018](https://github.com/deepregatta/forecast-tiles/actions/runs/38486686018)
+failed during resolution before admission, with no inferred cycle; [GLO12 October 14 00Z 38518353397](https://github.com/deepregatta/forecast-tiles/actions/runs/38518353397)
+failed during build with its normal charge retained. Both original logs end in
+`CouldNotConnectToAuthenticationSystem`. A bounded authenticated probe from this
+PC also failed with `ConnectionError`; neither invalid credentials nor a specific
+transport/global outage cause is proven. Both previous October 13 current runs
+remain valid and served. GLO12's daily/frequency recovery gates are closed;
+IBI's next scheduled admission remains available. No retry bypass, usage refund
+or alternate currents provider is used. Fresh existing-layer delivery is an
+unresolved promotion gate. Seven other new root publications are confirmed;
+five already-published skips and one early short-ECMWF source-unavailable exit
+receive no inferred publication credit. Full ECMWF October 14 00Z remains in
+progress at the snapshot; workflow status supplies no publication evidence.
+
+Read-only whole-bucket audits [38531090347](https://github.com/deepregatta/forecast-tiles/actions/runs/38531090347)
+and post-recovery [38532356942](https://github.com/deepregatta/forecast-tiles/actions/runs/38532356942)
+pass every unchanged physical/upload/headroom and complete retained-overlap
+comparison. Existing reservation remains sufficient; all unreferenced objects,
+including historical incomplete GEFS, are retained. No cleanup or allocation
+change occurred; exact account figures stay private. The actual October 12 billing
+review is about **35 hours** old, not yet due. Real review is due October 14
+08:54:16.272766 UTC, before October 15 20:54:16.272766 UTC expiry. No timestamp-only
+renewal, period rollover, policy/decision edit or counter reset occurred.
+
+The specifically approved October 20-November 20 rollover remains scheduled for
+its single October 20 02:10 Paris follow-up with actual started-period billing and
+exact preservation required. Passage production deployment and both full-cadence
+flags remain unchanged. October 4/6 exports and physical-device evidence remain
+dated; refresh consumer exports/attribution and required hosted validation before
+promotion. UKV timeliness alone does not complete Release 1 acceptance.
