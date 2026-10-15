@@ -2647,3 +2647,113 @@ the October 4/6 exports and physical-device proof remain dated history and must
 be refreshed before promotion. Required validation failures remain retained as
 resolved history; `unresolved_validation` is still empty. Both producer and
 consumer release gates remain separate from the selected live timing windows.
+
+
+### October 15 morning: repeated ICON 00Z source miss and metadata diagnostics
+
+[ICON-EU scheduled 00Z 38676193025](https://github.com/deepregatta/forecast-tiles/actions/runs/38676193025)
+exhausted the unchanged 45-minute source wait at **04:10:52.035020 UTC**. Its first
+original diagnostic at **03:25:52.0461490 UTC** reported no `meta.json`; the last
+of 24 checks reported metadata lacking the three registered wind/gust variables.
+The exact requested 00Z slot is retained, although source cycle resolution did
+not complete. No admission, charge, upload or invalid publication occurred in
+that failed attempt.
+
+[Ordinary automatic catch-up 38700686932](https://github.com/deepregatta/forecast-tiles/actions/runs/38700686932)
+confirmed scientifically valid ICON-EU 00Z publication at **07:47:11.5056661 UTC**,
+after its **04:20 UTC** deadline. Original report, log, source downloads, thirteen
+scientific checks and canonical current/previous immutable readback pass; it earns
+**no timely credit**. No manual producer recovery, charge refund, admission retry,
+earlier-cycle replay or policy override was used.
+
+The selected October 14 evening window remains retained with **one late/thirteen
+pending**, maximum **13/14**, and cannot pass. Every earlier start, bootstrap,
+window and miss remains separate. After valid source/immutable/capacity restoration,
+the authorized separate `post-october15-source-restoration` window spans **2026-10-15T07:55:46.698792+00:00 to 2026-10-22T07:55:46.698792+00:00**,
+with fourteen future scheduled slots from October 15 12Z through October 22 00Z.
+This requires seven elapsed days and all fourteen timely slots; it does not prove
+source schedule timing repaired. Source lag, wait, deadline, allowance and the
+two-cycle profile remain unchanged. A further miss would prevent this window
+passing too; this is a conditional observation end, not a promised release date.
+
+Current public source metadata has `created_at=2026-10-15T03:41:02Z`, all three
+required variables and the registered 93-step axis. Its observed HTTP
+`Last-Modified` is **04:48:52 UTC**; ETag
+`f90f52e4b98d7bd8dd58e3cbc758a94a` matches the published report. Neither the internal
+creation time nor the currently observed modification time proves first complete
+availability. The failed scheduled reads did not record their metadata revision,
+so a cache/transport cause or specific source timing defect remains unproven.
+
+Diagnostic change **2ca6ad9a8ef5bfacf6facb31fae0a66b9d50c4f9** adds the observed
+metadata **ETag, byte count and upstream creation field** to incomplete-readiness
+errors as bounded single-line JSON. It uses the same failed read, with no extra
+request, and preserves all completeness, reference-time, axis and retry behavior.
+Future scheduled failures can be compared with the later successful source
+revision. This is diagnostic evidence collection, not a source timing repair.
+The new regression failed before the change and verifies that an incomplete
+revision remains rejected, its actual identity is retained without another read,
+control characters remain escaped, and a later complete revision can resolve.
+**44 focused tests, 551 full Python tests, all local shared-contract/storage/
+lint/format checks and 60 dispatcher tests passed**. Both required hosted jobs
+passed in [CI 38701920929](https://github.com/deepregatta/forecast-tiles/actions/runs/38701920929).
+
+[UKV 00Z 38680525483](https://github.com/deepregatta/forecast-tiles/actions/runs/38680525483)
+published at **04:30:08.3637940 UTC** and
+[AROME 03Z 38688520396](https://github.com/deepregatta/forecast-tiles/actions/runs/38688520396)
+at **05:51:46.8692712 UTC**, both timely and scientifically valid. AROME's selected
+October 13-20 window now has **four timely/ten pending**. UKV's fixed October 6-13
+window remains passed with **seven elapsed days and 14/14 timely slots**; later
+publications add no slots to it and its original failed window remains retained.
+
+Eight paginated Actions history pages reach the earliest original observation
+start. **205 original regional reports** are retained, nine new: three confirmed
+publications, five already-published skips and one source-wait expiration. Every
+one of the **196 earlier receipt fields and report hashes** is exact; no original
+report is missing. Skips, unknown timing and cycle-unspecified catch-ups never
+receive inferred publication or timeliness credit. No invalid publication is
+observed.
+
+Nineteen newly completed root attempts retain original job logs and hashes:
+**seven actual publications, nine already-published skips, two short-ECMWF
+source-unavailable outcomes and one GLO12 duplicate-work pause**. GFS, waves and
+GEFS October 14 18Z/October 15 00Z and short ECMWF October 14 18Z publications are
+confirmed from original logs. The GLO12
+[duplicate pause 38653746925](https://github.com/deepregatta/forecast-tiles/actions/runs/38653746925)
+is retained without publication credit. GLO12 October 13 current/October 12
+previous and IBI October 14 current/October 13 previous remain valid. The prior
+GLO12 charged failure and IBI authentication failures/restoration remain intact.
+
+At the history checkpoint, [GLO12 October 15 38688517466](https://github.com/deepregatta/forecast-tiles/actions/runs/38688517466)
+and [full ECMWF 00Z 38698088804](https://github.com/deepregatta/forecast-tiles/actions/runs/38698088804)
+are **still in progress**, with their fallback jobs pending. Neither failure nor
+publication is inferred, and no competing manual recovery is dispatched. Genuine
+subsequent current GLO12 delivery remains required; IBI success proves no specific
+GLO12 provider/credential/transport cause.
+
+Production retains **seven root/three regional layers**, all **twenty canonical
+current/previous manifests** and ten current sampled tiles with matching manifest
+bytes/hash and gzip/PFT1 decoding. Ten previously recorded manifests are
+byte-identical. [Read-only whole-bucket audit 38701263813](https://github.com/deepregatta/forecast-tiles/actions/runs/38701263813)
+passes physical plus upload/headroom, complete retained/calculated overlap and
+reservation sufficiency under the **unchanged approved guard and reservation**.
+All unreferenced objects, including historical incomplete GEFS October 4 18Z,
+remain accounted for. No cleanup or allocation change occurred; account figures
+stay private.
+
+After the existing CLI login refreshed, authenticated control read-back confirmed
+the actual **October 14 21:09:12.823597 UTC** billing review is about eleven hours
+old, not due and not renewed. Every non-usage policy field is identical and all
+earlier charged counters, identities and daily records remain preserved. The next
+real account-wide review is due **October 16 09:09:12.823597 UTC**, before the
+unchanged **October 17 21:09:12.823597 UTC** expiry. No operator/control/period/
+provider-decision write was made. The specific October 20-November 20 rollover
+and single October 20 02:10 Paris follow-up remain future and conditional, with
+no early application or usage reset.
+
+GitHub `OPENMETEO_FULL_CADENCE=false`, Worker `REGIONAL_FULL_CADENCE=false` and
+Passage deployment `34e556b1-0c6a-4db6-9783-fc751d53d5ee` on
+`a7cecaec43e8dafc48d7f603dccaadc59dea12c5` remain verified. October 4/6 exports
+and physical-device evidence remain dated and require fresh consumer/attribution
+checks before promotion. `unresolved_validation` remains empty, historical failed
+checks remain retained, and every software, consumer, scientific, capacity and
+live acceptance gate stays separate. Release 1 acceptance is still incomplete.
