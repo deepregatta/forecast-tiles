@@ -188,6 +188,32 @@ def test_explicit_cycle_with_early_metadata_is_not_ready():
         catalog.resolve(AROME, CYCLE, session=session)
 
 
+def test_readiness_failure_identifies_the_incomplete_revision_before_later_success():
+    early = json.loads(meta_doc(variables=["temperature_2m"]))
+    early["created_at"] = "2026-10-02T05:47:40Z\nupstream text"
+    body = json.dumps(early).encode()
+    session = FakeSession(
+        {
+            "0300Z/meta.json": [
+                FakeResponse(body=body, headers={"ETag": '"early-revision"'}),
+                FakeResponse(body=meta_doc(), headers={"ETag": '"complete-revision"'}),
+            ]
+        }
+    )
+    with pytest.raises(CycleNotAvailableError, match="wind_u_component_10m") as failure:
+        catalog.resolve(AROME, CYCLE, session=session)
+    # The failed read, rather than a later request, supplies the evidence.
+    message = str(failure.value)
+    snapshot = json.loads(message.split("; metadata=", 1)[1])
+    assert snapshot["etag"] == '"early-revision"'
+    assert snapshot["bytes"] == len(body)
+    assert snapshot["created_at"] == early["created_at"]
+    assert len(message.splitlines()) == 1
+    assert len(session.calls) == 1
+    assert catalog.resolve(AROME, CYCLE, session=session) == CYCLE
+    assert len(session.calls) == 2
+
+
 def test_automatic_selection_skips_incomplete_newer_metadata():
     newer = CYCLE.replace(hour=9)
     session = FakeSession(

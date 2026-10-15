@@ -16,6 +16,7 @@ stable completion marker alone does not prove the files were not rewritten.
 from __future__ import annotations
 
 import hashlib
+import json
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -112,7 +113,16 @@ def _require_ready(product: Product, meta: RunMeta) -> None:
     except RunIncomplete as exc:
         # Only incomplete inventory/axis is retryable. Wrong reference time,
         # geometry or later file identity still fails immediately.
-        raise CycleNotAvailableError(str(exc)) from exc
+        # Identify this failed read without another request. A later complete
+        # marker's created_at does not establish when it first became ready.
+        snapshot = {
+            "etag": str(meta.record.etag)[:160],
+            "bytes": meta.record.bytes,
+            "created_at": str(meta.created_at)[:80],
+        }
+        raise CycleNotAvailableError(
+            f"{exc}; metadata={json.dumps(snapshot, ensure_ascii=True)}"
+        ) from exc
 
 
 def resolve(
