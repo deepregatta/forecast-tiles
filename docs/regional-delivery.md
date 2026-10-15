@@ -2757,3 +2757,117 @@ and physical-device evidence remain dated and require fresh consumer/attribution
 checks before promotion. `unresolved_validation` remains empty, historical failed
 checks remain retained, and every software, consumer, scientific, capacity and
 live acceptance gate stays separate. Release 1 acceptance is still incomplete.
+
+
+### October 15 evening: ICON 12Z source miss and pre-upload capacity refusal
+
+[Scheduled ICON-EU 12Z 38760199165](https://github.com/deepregatta/forecast-tiles/actions/runs/38760199165)
+exhausted the unchanged 45-minute source wait at **16:10:55.261993 UTC**. The first
+original check reported no metadata; the last of 24 checks still lacked all three
+required wind/gust variables. New diagnostics captured that incomplete revision:
+ETag `58d70b05ade6e4f2f002d3d124efc017`, **2,550 bytes**, upstream creation field
+**15:22:46 UTC**. No admission/upload occurred in that scheduled attempt.
+
+[Ordinary catch-up 38787413158](https://github.com/deepregatta/forecast-tiles/actions/runs/38787413158)
+later resolved 12Z, downloaded all three source files and passed all thirteen
+scientific checks. Its complete source revision has ETag
+`e10ccc0af9f62d98e91b6d9c4b4aa886`, **4,937 bytes**, creation field **15:39:21 UTC**
+and the registered 93-step axis. Fresh HTTP readback matches that complete revision
+and reports current `Last-Modified=16:45:57 UTC`. The scheduled partial revision
+and later complete revision are demonstrably different; this does **not** establish
+first complete availability, a cache/transport cause or a source timing repair.
+Lag, wait, deadline, allowance and profile are unchanged.
+
+At **18:41:31.033235 UTC**, catch-up reported `publication_failed` /
+`StorageGuardError`: the **reserved peak** exceeded the approved guard. Physical
+plus upload/headroom was below it, but both checks are mandatory. The original
+log explicitly confirms **refusal before upload**; no tile/pointer publication or
+invalid publication occurred. Its **normal charged attempt and seen identity
+remain retained**. Exact capacity/account quantities stay private. ICON's current
+is still October 15 00Z, previous October 14 12Z; the missing 12Z is not restoration.
+
+A fresh authenticated control snapshot and an offline invocation of the unchanged
+admission guard confirm **duplicate, frequency and daily-start recovery gates are
+closed**. The original 12Z charge/identity is present. The earliest frequency/daily
+cooldown is **October 16 00:40:01.593981 UTC**, but another charge then would block
+the next scheduled **03:25 UTC** 00Z dispatch. The duplicate identity gate also
+remains closed after cooldown. No recovery was dispatched, identity removed,
+counter refunded, pause/lease/limit modified or uncertain PUT repeated. Regional
+`--force` remains unsupported; changing identity to evade admission is not a repair.
+
+The selected `post-october15-source-restoration` window is retained with **one
+failed/thirteen pending**, maximum **13/14**, so its October 22 end **cannot yield
+95% acceptance**. Every original/bootstrap/prior window and miss remains intact.
+**No replacement observation window is opened while production restoration is
+unverified**, and no new promotion date is promised. Subsequent genuine newer
+scheduled delivery through unchanged controls is required; never replay an older
+missing cycle over a newer published run.
+
+[UKV 12Z 38767466867](https://github.com/deepregatta/forecast-tiles/actions/runs/38767466867)
+published at **16:30:45.2463776 UTC** and
+[AROME 15Z 38788270394](https://github.com/deepregatta/forecast-tiles/actions/runs/38788270394)
+at **19:03:56.6664844 UTC**, both timely and scientifically valid. AROME's selected
+October 13-20 window now has **five timely/nine pending**. UKV's fixed October 6-13
+window remains passed with **seven elapsed days and 14/14 timely slots**; its
+original failed window and all later dated publications remain separate.
+
+Eight paginated Actions history pages reach the earliest original start. **214
+original regional reports** are retained, nine new: two publications, five
+already-published skips, one source-wait expiration and one pre-upload publication
+failure. All **205 earlier receipt fields and report hashes** are exact and no
+original report is missing. Scratch, skips, unknown timing or cycle-unspecified
+jobs receive no inferred publication/timeliness credit. No invalid publication
+is observed.
+
+Twenty-seven newly completed root jobs retain original logs/hashes: **eleven
+actual publications, fifteen already-published skips and one short-ECMWF
+source-unavailable outcome**. The original
+[GLO12 October 15 job 38688517466](https://github.com/deepregatta/forecast-tiles/actions/runs/38688517466)
+confirmed publication at **08:47:49.1396985 UTC**. Fresh October 15 current/October
+13 previous canonical manifests and immutable samples restore the current-delivery
+gate; the **October 14 charged failure remains a historical gap**, without a
+backfill or refund. [Full ECMWF 00Z 38698088804](https://github.com/deepregatta/forecast-tiles/actions/runs/38698088804)
+published at **08:47:57.1481322 UTC**, resolving its earlier in-progress snapshot.
+[IBI October 15 38715298099](https://github.com/deepregatta/forecast-tiles/actions/runs/38715298099)
+published at **11:36:40.6390581 UTC** and
+[full ECMWF 12Z 38793100485](https://github.com/deepregatta/forecast-tiles/actions/runs/38793100485)
+at **19:46:42.9244654 UTC**. GFS/waves/GEFS 06Z/12Z and short ECMWF 06Z original
+publications are separately retained. Every prior provider failure, pause and
+partial-byte proof remains; a credential/transport cause is not inferred.
+
+Production retains **seven root and three regional layers**, **twenty canonical
+current/previous manifests** and ten current sampled tiles matching manifest
+bytes/hash and gzip/PFT1 decoding. Seven previously recorded manifests remain
+byte-identical. The later [read-only whole-bucket audit 38804377220](https://github.com/deepregatta/forecast-tiles/actions/runs/38804377220)
+passes physical plus upload/headroom, full retained/calculated overlap and existing
+reservation sufficiency after root publication/retention. Guard, reservation and
+headroom are **unchanged**; every unreferenced object, including historical
+incomplete GEFS October 4 18Z, is accounted for. This passing later checkpoint
+does not erase the earlier reserved-peak refusal or establish delivery restoration.
+No cleanup or allocation edit was made.
+
+One additional **read-only** capacity checkpoint is scheduled for **October 16
+20:40 Paris (18:40 UTC)**, during the expected normal GEFS 12Z upload period:
+`regional-concurrent-upload-capacity-checkpoint`, one occurrence only. It must
+verify actual upload overlap or label the limitation, preserve all controls and
+original evidence, and never manufacture a peak by triggering ingestion. The
+ordinary twice-daily acceptance heartbeat and specific October 20 02:10 Paris
+period-rollover follow-up remain unchanged.
+
+Authenticated control retains the actual **October 14 21:09:12.823597 UTC** billing
+review, about 24 hours old, not due and not renewed. All non-usage policy fields
+are identical, every earlier charged counter/identity/daily record is preserved,
+and no lease, period, provider decision or monetary policy was changed. The next
+real review is due **October 16 09:09:12.823597 UTC**, before unchanged **October 17
+21:09:12.823597 UTC** expiry. Future period rollover still requires actual
+started-period billing evidence and exact preservation; no early date/usage reset.
+
+GitHub `OPENMETEO_FULL_CADENCE=false`, Worker `REGIONAL_FULL_CADENCE=false` and
+Passage deployment `34e556b1-0c6a-4db6-9783-fc751d53d5ee` on
+`a7cecaec43e8dafc48d7f603dccaadc59dea12c5` remain verified. The new diagnostics
+remain on validated source `2ca6ad9a8ef5bfacf6facb31fae0a66b9d50c4f9`; no software
+fix or provider-timing repair is claimed for this capacity refusal. Current
+`unresolved_validation` is empty and every historical failed check remains retained.
+October 4/6 exports and physical-device evidence remain dated, with fresh consumer,
+attribution and hosted validation still required before promotion. Release 1
+acceptance remains incomplete.
