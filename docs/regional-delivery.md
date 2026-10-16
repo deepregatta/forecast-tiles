@@ -3049,3 +3049,51 @@ dates remained exactly preserved. Next actual review is due
 **2026-10-18T08:43:28.889671+00:00**, before the unchanged 72-hour expiry
 **2026-10-19T20:43:28.889671+00:00**. No future period rollover was applied.
 Both full-cadence flags remain **false**; no acceptance gate was relaxed.
+
+
+### Ordinary acceptance follow-up, 2026-10-16 20:47 UTC invocation
+
+The ordinary twice-daily heartbeat found no newly completed regional attempt
+since the additional checkpoint. Nine paginated Actions history pages reach the
+earliest original start; **all 232 retained original report hashes** verify,
+with no missing/restored report. Every original and named window was separately
+re-scored: AROME remains **7 timely / 7 pending**, UKV's selected fixed window
+remains **14/14 and seven elapsed days, passed**, and ICON-EU remains **zero
+timely / two late / one failed / eleven pending** in its retained failed window.
+No replacement window, timely recovery credit or acceptance relaxation occurred.
+
+Twenty-five original root job logs were reviewed, including the two GEFS 12Z
+logs already retained by the additional checkpoint. They confirm **ten actual
+publications**, **fourteen already-published skips**, and one short-ECMWF
+source-unavailable exit. Full ECMWF [00Z 38866548586](https://github.com/deepregatta/forecast-tiles/actions/runs/38866548586)
+confirmed publication at **09:01:46.7167094 UTC**, resolving its earlier
+in-progress snapshot; [12Z 38954154302](https://github.com/deepregatta/forecast-tiles/actions/runs/38954154302)
+confirmed at **19:49:02.4182358 UTC**. [IBI 38882597558](https://github.com/deepregatta/forecast-tiles/actions/runs/38882597558)
+confirmed at **11:09:49.4911580 UTC**. Original logs separately confirm GFS,
+waves and GEFS 06/12Z and short ECMWF 06Z. Short ECMWF
+[38946343393](https://github.com/deepregatta/forecast-tiles/actions/runs/38946343393)
+reported source unavailable; its exit-zero status supplies no inferred cycle
+or publication. No new root failure, pause or older-cycle replay was observed.
+
+Current/previous pointers are identical to the additional checkpoint. Seven
+root and three regional layers retain **twenty valid canonical manifests**;
+ten current sampled tiles match bytes/hash and decode gzip/PFT1. All twenty
+manifests remain byte-identical to that checkpoint. The completed
+[read-only audit 38963968565](https://github.com/deepregatta/forecast-tiles/actions/runs/38963968565)
+is reused as a dated audit from minutes earlier, with unchanged pointers and no
+active producer. Inventory was not re-enumerated. Every
+unreferenced object remains accounted for by that audit; guard and reservation
+are unchanged and no duplicate audit was dispatched.
+Its post-upload limitation remains: **actual concurrent-upload peak evidence
+is still unproven**. No cleanup is inferred from age or partial inventory.
+
+Fresh authenticated control is **exactly identical** to the read-back after
+[renewal 38964297523](https://github.com/deepregatta/forecast-tiles/actions/runs/38964297523);
+its actual review is minutes old, below the 36-hour review threshold. No billing,
+control, usage or future-period write was made by this ordinary heartbeat.
+Passage deployment and both full-cadence flags are unchanged and verified;
+required forecast CI [38964629637](https://github.com/deepregatta/forecast-tiles/actions/runs/38964629637)
+passed both jobs on **09e1c5a88fcd617928516d8d15b9766beaee1b0c**. Dated consumer
+exports/device evidence remain dated and need refresh before promotion.
+The extra one-off is consumed; ordinary acceptance and the separately authorized
+October 20 rollover follow-up remain unchanged. No new recurrence was created.
