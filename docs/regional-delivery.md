@@ -2979,3 +2979,73 @@ Passage deployment `34e556b1-0c6a-4db6-9783-fc751d53d5ee` on
 4/6 exports and physical-device proof remain dated; fresh consumer exports,
 bilingual attribution/gust semantics and required hosted validation remain
 separate pre-promotion gates. Release 1 acceptance is incomplete.
+
+
+## Additional capacity checkpoint, 2026-10-16 evening
+
+The single extra follow-up arrived at **20:40:27 UTC / 22:40 Paris**, two hours
+after its recorded **18:40 UTC / 20:40 Paris** target. Both producer-state brackets
+showed **no active ingestion**. [GEFS 12Z 38945887237](https://github.com/deepregatta/forecast-tiles/actions/runs/38945887237)
+had already confirmed publication from its original job log at
+**18:48:40.2524540 UTC**; fallback 38946489568 was an already-published skip.
+The root and regional current/previous pointers stayed identical across the
+measurement. No producer was triggered to manufacture an overlap.
+
+[Read-only whole-bucket audit 38963968565](https://github.com/deepregatta/forecast-tiles/actions/runs/38963968565) on verified
+main **76683b160bbec11e335ab7eba43a660453561baf**, whose two required hosted CI
+jobs passed in [38870466995](https://github.com/deepregatta/forecast-tiles/actions/runs/38870466995),
+measured **20:41:10.462073–20:41:28.946562 UTC**. Physical plus upload/headroom,
+complete retained/calculated overlap, root variation and existing reservation
+sufficiency all fit the **unchanged** approved guard. All unreferenced objects,
+including incomplete `ensemble-20261004T18Z`, remain counted. No damaged
+references, cleanup, guard or reservation change was observed. Exact account
+figures and original audit logs remain private.
+
+This is a complete dated **post-upload snapshot**. It establishes neither an
+actual concurrent-upload peak nor inventory immutability within the scan.
+Representative concurrent-upload evidence therefore remains **unknown/open**;
+the October 15 capacity refusal, charged identity and unpublished 12Z cycle
+remain retained. No new recurrence was created. The single extra occurrence is
+consumed; ordinary twice-daily acceptance and the October 20 rollover follow-up
+remain unchanged.
+
+Nine new original regional reports, retained at their workflow/artifact paths
+and hashes, bring the total to **232 unique reports**. Nine paginated Actions
+history pages reach the earliest original observation start; none are missing,
+and every prior receipt/hash remains unchanged. Three valid publications,
+five already-published skips and one source-wait expiry stay distinct.
+ICON-EU [12Z scheduled attempt 38923770149](https://github.com/deepregatta/forecast-tiles/actions/runs/38923770149)
+expired its source wait at **16:10:33.520220 UTC**. Ordinary automatic catch-up
+[38946631320](https://github.com/deepregatta/forecast-tiles/actions/runs/38946631320)
+confirmed valid publication only at **18:24:24.8873254 UTC**, after its
+**16:20 UTC** deadline: **late, no timely credit**. Its recurring source timing
+is not repaired. The selected failed window remains at **zero timely, two late,
+one failed and eleven pending**, maximum **11/14**. No replacement window was
+opened. AROME's selected window advances to **7 timely / 7 pending**; UKV's
+fixed completed window remains **14/14 and seven elapsed days, passed**.
+Every original and separate historical window was scored and preserved.
+
+Production has seven root and three regional layers, twenty valid canonical
+current/previous manifests and ten current sampled immutable tiles with matching
+bytes/hash and gzip/PFT1 decoding. Seven retained known manifests remain
+byte-identical. These are delivery checks; dated consumer export/device proof
+was not relabelled as current and still needs refresh before promotion.
+
+A real owner-authenticated **account-wide R2 billing review** completed at
+**2026-10-16T20:43:28.889671+00:00** after the capacity snapshot. R2 family/all three
+storage/Class A/Class B products, blank cost bounds, reported/projected costs,
+matching current provider period, outstanding work/no active leases, unchanged
+owner policy and the existing alert were inspected. The
+[October 16 ECB reference](https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html)
+and existing conservative conversion/tax provisions support the private review;
+final invoice tax and delayed billing remain unknown. No financial threshold,
+plan, payment or alert changed.
+
+[Timestamp-only renewal 38964297523](https://github.com/deepregatta/forecast-tiles/actions/runs/38964297523) on that verified
+main passed with **one CAS and exact authenticated read-back**. Only
+`reviewed_at` changed; every counter, seen identity, daily record, allocation,
+lease, pause, runtime/frequency/start limit, provider decision and both period
+dates remained exactly preserved. Next actual review is due
+**2026-10-18T08:43:28.889671+00:00**, before the unchanged 72-hour expiry
+**2026-10-19T20:43:28.889671+00:00**. No future period rollover was applied.
+Both full-cadence flags remain **false**; no acceptance gate was relaxed.
