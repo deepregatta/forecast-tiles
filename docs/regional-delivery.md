@@ -3179,3 +3179,91 @@ Passage deployment remains unchanged with all three model gates; dated consumer
 exports/device evidence remains dated and must be refreshed before promotion.
 GitHub `OPENMETEO_FULL_CADENCE=false` and Worker `REGIONAL_FULL_CADENCE=false`
 remain verified. No new recurrence, acceptance window or promotion occurred.
+
+
+## New AROME source miss and acceptance checkpoint, 2026-10-17 evening
+
+Nine paginated Actions history pages reach the earliest original start.
+**Nine new original regional reports** bring the retained total to **250**;
+all prior 241 receipts/hashes verify, none are missing/restored. Two actual
+publications, five already-published skips and two source-wait expiries stay
+distinct. Every original and named acceptance window was separately re-scored
+with unchanged starts, bootstrap times, profiles and ingestion allowance.
+
+AROME [15Z scheduled 39059467188](https://github.com/deepregatta/forecast-tiles/actions/runs/39059467188)
+exhausted **90 minutes / 46 checks** at **20:15:26.933675 UTC**, still reporting no
+`meta.json`. The **20:25 UTC deadline was missed**, with no admission/publication.
+At **20:45:19 UTC**, the normal catalogue still found no marker. A bounded public
+S3 listing at **20:45:40.800079 UTC** of the exact registered run prefix returned
+**zero objects, not truncated**. This establishes that snapshot's upstream
+source absence; no broader provider cause is inferred.
+
+A read-only offline preflight used the authenticated current ledger and existing
+`Guard.acquire` code with the unchanged **canary** profile and registered
+**October 18 05:45 UTC next dispatch**. The existing paid-work and next-slot checks
+allow a normal charge at that time; no actual PUT/admission was made. **No manual
+producer was dispatched because source was incomplete.** Normal catch-up remains
+behind the same source, admission, capacity and next-slot protections. Retain
+AROME 03Z current/previous until a genuine valid current/newer publication;
+never replay an older cycle or erase a charge/identity.
+
+AROME's selected October 13 window now has **eight timely, one failed, five
+pending**, maximum **13/14**, so it **cannot reach 95%**. Its recorded end remains
+October 20 as historical window data; it is no longer a viable completion target.
+No replacement window opens before verified restoration. The owner already
+authorized separate rechecks after verified restoration/fixes, with every earlier
+window/miss retained. No deadline, wait, allowance or profile was relaxed.
+
+ICON-EU [12Z scheduled 39044954275](https://github.com/deepregatta/forecast-tiles/actions/runs/39044954275)
+exhausted source waiting at **16:10:39.273404 UTC**. Ordinary catch-up
+[39054208974](https://github.com/deepregatta/forecast-tiles/actions/runs/39054208974)
+confirmed valid publication at **17:36:14.0914418 UTC**, after **16:20 UTC deadline**:
+**late, no timely credit**. First/last failed metadata revisions are identical;
+later successful revision differs, proving neither first complete availability
+nor a transport/cache cause or source-timing repair. The selected failed ICON
+window remains **zero timely, four late, one failed, nine pending**, maximum
+**9/14**. No new ICON window was opened. UKV [12Z 39048589698](https://github.com/deepregatta/forecast-tiles/actions/runs/39048589698)
+confirmed at **16:35:23.8870659 UTC**; its fixed selected window remains
+**14/14 and seven elapsed days, passed**. Every earlier miss and the original
+charged/unpublished October 15 ICON12Z cycle remain retained.
+
+Twenty-four original root logs distinguish **ten actual publications** and
+**fourteen already-published skips**, with no new root failure/pause. Full ECMWF
+[00Z 39013240502](https://github.com/deepregatta/forecast-tiles/actions/runs/39013240502)
+confirmed at **08:46:48.9453361 UTC**, resolving its earlier in-progress snapshot;
+[12Z 39062012272](https://github.com/deepregatta/forecast-tiles/actions/runs/39062012272)
+confirmed at **19:49:54.0137724 UTC**. [IBI 39022309411](https://github.com/deepregatta/forecast-tiles/actions/runs/39022309411)
+confirmed at **10:28:04.4108264 UTC**; original GFS/waves/GEFS 06/12Z and short
+ECMWF 06Z publications are separately retained. Existing root delivery is healthy.
+
+Production seven root and three regional layers and all **twenty canonical current/previous
+manifests** pass; ten immutable current tile samples match bytes/hash and decode
+gzip/PFT1. Eight previously recorded manifests stay byte-identical. Both pointers
+were stable across the audit; AROME 15Z publication is not inferred from its
+healthy retained 03Z data.
+
+[Read-only whole-bucket audit 39067925814](https://github.com/deepregatta/forecast-tiles/actions/runs/39067925814) on verified
+main **ebb6c896aa1929328de2aca6aae799eeced119a7**, with both required CI jobs
+passed in [39015178861](https://github.com/deepregatta/forecast-tiles/actions/runs/39015178861),
+measured **20:43:55.992556–20:44:14.614688 UTC**. Physical plus upload/headroom,
+complete retained/calculated overlap, root variation and existing reservation
+sufficiency fit the **unchanged approved guard**. All unreferenced objects,
+including incomplete `ensemble-20261004T18Z`, remain counted; no damaged
+references or cleanup observed. There was no active producer in either bracket:
+**actual concurrent-upload peak evidence stays unproven**, as does inventory
+immutability within the scan. The October 15 refusal and every earlier audit
+remain preserved. Account figures and audit logs remain private.
+
+Authenticated control retains actual billing review **2026-10-16T20:43:28.889671+00:00**,
+about **24 hours old**, not due. All non-usage policy fields are identical and all
+charged counters/identities/daily records preserved. Next real review is due
+**2026-10-18T08:43:28.889671+00:00**, before unchanged 72-hour expiry
+**2026-10-19T20:43:28.889671+00:00**. No billing/control/period write or future
+rollover occurred. Existing separate schedules remain unchanged, with no new
+recurrence. The top-level acceptance summary now reflects current failures and
+review dates; its prior wording is retained in this review's history.
+
+Both full-cadence flags remain **false**. Passage deployment remains unchanged;
+dated exports/device evidence remain dated and must be refreshed before
+promotion. There is **no confirmed promotion date** while AROME source restoration,
+regional timeliness and actual-upload capacity evidence remain unresolved.
