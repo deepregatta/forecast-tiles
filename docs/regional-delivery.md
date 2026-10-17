@@ -3097,3 +3097,85 @@ passed both jobs on **09e1c5a88fcd617928516d8d15b9766beaee1b0c**. Dated consumer
 exports/device evidence remain dated and need refresh before promotion.
 The extra one-off is consumed; ordinary acceptance and the separately authorized
 October 20 rollover follow-up remain unchanged. No new recurrence was created.
+
+
+## Overnight acceptance checkpoint, 2026-10-17 morning
+
+Nine paginated Actions history pages reach the earliest original observation
+start. **Nine new original regional reports** bring the retained total to
+**241 unique reports**; every prior receipt/hash verifies and no report is
+missing or restored. Three confirmed publications, five already-published
+skips and one source-wait expiry remain distinct. All original and named
+acceptance windows were separately re-scored at their recorded starts and
+unchanged ingestion allowance; bootstrap/profile/recheck history is preserved.
+
+ICON-EU [00Z scheduled attempt 38998698345](https://github.com/deepregatta/forecast-tiles/actions/runs/38998698345)
+expired its unchanged source wait at **04:10:27.808509 UTC**. The first failed
+read at **03:25:27.8758294 UTC** and last at **04:10:27.8079486 UTC** returned the
+same incomplete metadata revision, lacking the three registered wind/gust
+variables. Later successful metadata is a different revision, created at
+**03:37:29 UTC**; its timestamp does not prove first complete availability or
+a transport/cache cause. Ordinary automatic catch-up
+[39012705345](https://github.com/deepregatta/forecast-tiles/actions/runs/39012705345)
+confirmed actual valid publication only at **07:14:42.0649654 UTC**, after the
+**04:20 UTC** deadline. Scientific validation, canonical current/previous
+manifests and immutable tile read-back pass, but the cycle is **late, with no
+timely credit**. No source-timing repair is proven.
+
+The selected ICON window remains retained at **zero timely, three late, one
+failed and ten pending**, maximum **10/14**; it cannot reach 95%. No replacement
+window was opened. The charged/unpublished October 15 12Z cycle and all earlier
+windows/misses remain intact. AROME [03Z 39007408598](https://github.com/deepregatta/forecast-tiles/actions/runs/39007408598)
+confirmed at **05:51:36.6243725 UTC**, advancing its selected window to
+**8 timely / 6 pending**. UKV [00Z 39001856818](https://github.com/deepregatta/forecast-tiles/actions/runs/39001856818)
+confirmed at **04:33:03.8661001 UTC**; its fixed selected window remains
+**14/14 and seven elapsed days, passed**. Later publications add no slots to
+that completed window. No seven-day gate or deadline changed.
+
+Twenty-two original root job logs distinguish **eight actual publications**,
+**twelve already-published skips** and **two source-unavailable short-ECMWF
+exits** (38978879744 and 39012594928, with no inferred cycle/publication credit).
+Actual GFS/waves/GEFS October 16 18Z and October 17 00Z, short ECMWF October 16
+18Z, and GLO12 October 17 are confirmed. GLO12
+[39007406970](https://github.com/deepregatta/forecast-tiles/actions/runs/39007406970)
+confirmed at **06:42:57.5564528 UTC**; all historical current-layer gaps remain
+retained. Full ECMWF [00Z 39013240502](https://github.com/deepregatta/forecast-tiles/actions/runs/39013240502)
+is still **in progress** in both producer brackets; neither its publication nor
+failure is inferred. No manual older-cycle replay or new root pause/failure
+was observed.
+
+Production root retains seven existing layers and regional retains all three.
+All **twenty canonical current/previous manifests** are valid; **ten current
+sampled immutable tiles** match manifest bytes/hash and decode gzip/PFT1.
+Nine previously recorded manifests remain byte-identical. Both pointers stayed
+identical across the capacity measurement.
+
+[Read-only whole-bucket audit 39014909999](https://github.com/deepregatta/forecast-tiles/actions/runs/39014909999) on verified
+main **a91661119847f4ceb4905d2d14eb8389f99d7270**, with both required hosted CI
+jobs passed in [38965220081](https://github.com/deepregatta/forecast-tiles/actions/runs/38965220081),
+measured **07:47:18.466795–07:47:38.031246 UTC**. Physical plus upload/headroom,
+complete retained/calculated overlap, root variation and existing reservation
+sufficiency fit the **unchanged** approved guard. Every unreferenced object,
+including historical incomplete `ensemble-20261004T18Z`, remains counted;
+no damaged references or cleanup are observed. Account figures/logs stay private.
+
+Although the normal full-ECMWF job was running, **no new October 17 ECMWF run
+prefix was present** in that complete inventory. A running job is not evidence
+of an active tile upload. The audit therefore does **not** establish an actual
+concurrent-upload peak or inventory immutability within the scan. That gate
+stays **unknown/open**, retaining the original October 15 refusal and all prior
+snapshots. No producer was triggered to manufacture overlap, and no guard,
+reservation, allocation or follow-up schedule changed.
+
+Fresh authenticated control retains review timestamp
+**2026-10-16T20:43:28.889671+00:00**, about **eleven hours old**, below the 36-hour
+review threshold. Every non-usage control field is identical to the prior
+read-back; all charged seconds/starts, identities and daily records are
+preserved. No billing/control/period write occurred. Next actual review is due
+**2026-10-18T08:43:28.889671+00:00**, with the unchanged 72-hour expiry
+**2026-10-19T20:43:28.889671+00:00**. The separately owner-authorized October 20
+rollover remains future and conditional; no period or usage reset was applied.
+Passage deployment remains unchanged with all three model gates; dated consumer
+exports/device evidence remains dated and must be refreshed before promotion.
+GitHub `OPENMETEO_FULL_CADENCE=false` and Worker `REGIONAL_FULL_CADENCE=false`
+remain verified. No new recurrence, acceptance window or promotion occurred.
