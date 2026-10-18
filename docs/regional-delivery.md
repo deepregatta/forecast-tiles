@@ -3374,3 +3374,78 @@ dated exports/device evidence stay dated and need required refresh before
 promotion. AROME's new window end is an individual conditional acceptance date,
 not a confirmed overall promotion date while ICON timing and complete upload-
 peak evidence remain unresolved.
+
+
+## Timely afternoon delivery and billing access gate, 2026-10-18 evening
+
+Ten paginated Actions history pages reach the earliest original observation
+start. **Nine new original reports** bring the retained total to **268**;
+all 259 earlier receipts and hashes verify, none missing or restored. Three
+actual publications and six already-published skips remain distinct. All
+original and retained named windows were separately scored with unchanged
+starts, bootstrap times, two-cycle profiles and ingestion allowance.
+
+AROME [15Z 39155588447](https://github.com/deepregatta/forecast-tiles/actions/runs/39155588447)
+confirmed publication at **19:11:09.0281541 UTC**, before **20:25 UTC**. This is the
+first selected slot in its prospective October 18 window: **one timely, thirteen
+pending**, ending **October 25 at 07:47:09.374466 UTC**. All fourteen timely cycles
+and seven elapsed days remain mandatory. The old October 13 window now has
+ten timely, one late and three pending (maximum 13/14); the October 17 15Z miss
+and every earlier window remain retained. This cycle alone does not prove
+future source readiness.
+
+ICON-EU [12Z 39140383782](https://github.com/deepregatta/forecast-tiles/actions/runs/39140383782)
+confirmed at **15:46:51.3119154 UTC**, before **16:20 UTC**. Its selected October 15
+window is now **one timely, five late, one failed and seven pending**, maximum
+**8/14**, so it still cannot pass. Today's 12Z success does not resolve recurring
+scheduled 00Z readiness; no new ICON window, schedule/wait/deadline repair or
+retrospective timely credit is claimed. UKV [12Z 39144143678](https://github.com/deepregatta/forecast-tiles/actions/runs/39144143678)
+confirmed at **16:28:35.7239809 UTC**; its completed fixed window remains
+**14/14 and seven elapsed days, passed**. All three original reports confirm
+source/scientific validation and pointer commits, independently of green
+workflow conclusions.
+
+Twenty-three original root logs distinguish **nine actual publications** from
+**fourteen already-published skips**, with no new pause/failure. IBI, GFS/waves/
+GEFS 06Z and 12Z, short ECMWF 06Z and full ECMWF 12Z publications are verified.
+Full ECMWF [39158286335](https://github.com/deepregatta/forecast-tiles/actions/runs/39158286335)
+confirmed at **19:48:50.8537271 UTC**. Fresh production readback retains all seven
+root and three regional layers, **twenty canonical current/previous manifests**,
+ten immutable current tile samples matching manifest bytes/hashes and gzip/PFT1,
+and eight byte-identical previously recorded manifests. All earlier root gaps,
+charged failures, pauses, recoveries and partial-byte evidence stay retained.
+
+[Read-only audit 39165214245](https://github.com/deepregatta/forecast-tiles/actions/runs/39165214245) on verified main
+**e77827b02596887a21a41aa7abe969958516647e**, whose required Python and dispatcher
+jobs passed in [39109728544](https://github.com/deepregatta/forecast-tiles/actions/runs/39109728544),
+measured **2026-10-18T20:51:54.326698+00:00–2026-10-18T20:52:20.018035+00:00**. Physical plus
+upload/headroom, complete retained/calculated overlap, root variation and
+reservation sufficiency fit the **unchanged approved guard**. All unreferenced
+objects, including incomplete `ensemble-20261004T18Z`, remain counted; no damaged
+references were found. Pointers were stable and no producer was active in either
+bracket. This is a dated complete **post-publication** envelope, not a concurrent
+peak or proof of within-scan immutability. The morning actual-upload/moving-
+inventory receipts and unreconciled complete physical peak bound remain explicit.
+The original October 15 charged refusal remains retained. No operator cleanup,
+manual producer, capacity-control edit or new recurrence occurred. Account
+quantities and original audit logs remain private.
+
+The authenticated control still records the actual billing review at
+**2026-10-16T20:43:28.889671+00:00**, about **48 hours old**, so a real review is
+**due**. The in-app dashboard failed to load; fallback Chrome is signed out.
+Owner access was requested for actual account-wide R2 storage/Class A/Class B
+costs, provider period, conversion/tax provisions, outstanding work and existing
+policy. **No new review is claimed and no timestamp renewal was dispatched.**
+The unchanged 72-hour expiry is **2026-10-19T20:43:28.889671+00:00**,
+**22:43 Paris time**. Delivery is still admitted by the current control until
+that expiry, subject to every other unchanged gate. All non-usage policy fields
+are identical and all charged counters, identities and daily records preserved.
+Actual evidence is required before a timestamp-only one-CAS renewal; no period,
+usage, plan, payment, alert or provider-decision change occurred.
+
+The separately authorized October 20 rollover remains future/conditional with
+its existing follow-up, never an early reset. Both full-cadence flags stay
+**false**. Passage deployment is unchanged; October 6 exports and October 2
+device proof remain dated history and need required refresh before promotion.
+There is no confirmed overall promotion date while ICON 00Z timing, actual
+billing access and consistent complete upload-peak evidence remain unresolved.
