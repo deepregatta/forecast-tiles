@@ -3556,3 +3556,101 @@ the prescribed refresh before promotion. Individual prospective window ends
 are conditional earliest dates, not an overall promotion commitment. Scientific/
 live acceptance, current consumer attribution/gust semantics, capacity, fresh
 required validation and replacement/outage/disable/rollback remain separate gates.
+
+
+## Timely delivery, original-cache restoration and rollover readiness, 2026-10-19 evening
+
+Ten paginated Actions history pages reach the earliest original observation
+start. The temporary cache had disappeared. **All 274 earlier original artifact
+files were downloaded again from GitHub and matched their recorded SHA-256
+hashes** at the required workflow/artifact paths; no prior receipt is missing
+or changed. **Eight new original reports** bring the retained total to **282**:
+three confirmed publications and five already-published skips. Every original
+and named acceptance window was separately scored with unchanged starts,
+bootstrap times, two-cycle profiles and ingestion allowance.
+
+AROME [15Z 39305139633](https://github.com/deepregatta/forecast-tiles/actions/runs/39305139633)
+confirmed valid publication at **19:03:29.9485290 UTC**, before **20:25 UTC**.
+Its selected window is **three timely, eleven pending**, ending **October 25
+07:47:09.374466 UTC**. ICON-EU's independent automatic catch-up
+[39281129617](https://github.com/deepregatta/forecast-tiles/actions/runs/39281129617)
+confirmed valid 12Z publication at **15:55:54.4440327 UTC**, before **16:20 UTC**.
+Its selected window is **one timely, thirteen pending**, ending **October 26
+07:48:35.289859 UTC**. UKV [12Z 39283968997](https://github.com/deepregatta/forecast-tiles/actions/runs/39283968997)
+confirmed at **16:34:31.2239931 UTC**; its fixed selected window remains
+**14/14 and seven elapsed days, passed**. All three original publication reports
+confirm source/scientific validation and pointer commits. All fourteen timely
+and seven elapsed days remain mandatory for each prospective window; every
+earlier window and miss remains retained, with no new window or past recovery credit.
+
+### Cancelled planner retained separately from timely catch-up
+
+The first scheduled ICON [12Z workflow 39277777181](https://github.com/deepregatta/forecast-tiles/actions/runs/39277777181)
+is **cancelled**, with its ingest job **skipped and zero steps**. No original
+attempt artifact exists: its report and attempt timing remain **unknown**;
+no admission, charge or publication is inferred and no replacement report is
+synthesized. Original planner logs and GitHub job metadata/annotations are
+retained. GitHub reports **“The job has exceeded the maximum execution time of
+5m0s”**, although visible planner steps/logs end around **15:25:23 UTC** and job
+metadata records completion at **15:30:15 UTC**. The underlying discrepancy/cause
+is unresolved; no source, transport or software cause is asserted.
+
+The separate ordinary automatic catch-up's original report/log confirms the
+same requested cycle's scientifically valid publication before its deadline.
+That independent evidence gives the cycle timely credit; the cancelled attempt
+itself receives none and is never erased. No manual recovery, charged identity
+change, frequency/start override or replay was needed for this delivered cycle.
+
+Twenty-four original root logs distinguish **ten actual publications**,
+**thirteen already-published skips** and **one source-unavailable short-ECMWF
+exit** (39220047166, unspecified cycle, no inferred publication). Full ECMWF
+[00Z 39215309567](https://github.com/deepregatta/forecast-tiles/actions/runs/39215309567)
+confirmed at **07:54:43.2284927 UTC**, completing the morning in-progress record;
+[12Z 39310103579](https://github.com/deepregatta/forecast-tiles/actions/runs/39310103579)
+confirmed at **19:45:32.1354408 UTC**. IBI, GFS/waves/GEFS 06Z and 12Z, and short
+ECMWF 06Z publications are also verified. Fresh production readback retains all
+seven root and three regional layers, **twenty canonical current/previous
+manifests** and ten current immutable tile samples matching manifest bytes/hash
+and gzip/PFT1. Earlier private manifest/control snapshot bytes were also lost;
+this review does **not** claim direct historical manifest byte equality or full
+ledger equality from an absent cache. Current authenticated snapshots are
+retained privately; all previous verified public receipts/history remain unchanged.
+
+[Read-only whole-bucket audit 39322057896](https://github.com/deepregatta/forecast-tiles/actions/runs/39322057896) measured
+**2026-10-19T20:46:29.135353+00:00–2026-10-19T20:46:51.602737+00:00** on verified main
+**37b923e1ef4186e2789846e5af3856139b5088ca**, with both required jobs passed in
+[39218722270](https://github.com/deepregatta/forecast-tiles/actions/runs/39218722270).
+Physical plus upload/headroom, complete retained/calculated overlap, root
+variation and reservation sufficiency fit the **unchanged approved guard**.
+Authenticated GitHub variable modification times confirm that guard, reservation
+and headroom have not changed since the preceding reviewed checkpoint. All
+unreferenced objects, including incomplete `ensemble-20261004T18Z`, remain counted;
+no damaged references were found. Pointers stayed stable and no producer was
+active in either bracket. This is a dated complete inventory comparison, **not
+a proved concurrent peak or within-scan immutability**. Earlier actual-upload/
+moving-inventory uncertainty and the original charged ICON refusal remain open.
+No operator cleanup, manufactured upload or capacity-control edit occurred.
+Exact account figures and original logs remain private.
+
+Authenticated control retains actual billing review
+**2026-10-19T07:47:16.327704+00:00**, about **thirteen hours old**, not due. Next
+real review is due **2026-10-20T19:47:16.327704+00:00**, with unchanged 72-hour expiry
+**2026-10-22T07:47:16.327704+00:00**. The internal period still ends
+**October 20 at 00:00 UTC**, a separate gate. No review timestamp, period, usage,
+identity, lease, allowance, pause or provider decision was edited. Historical
+exact control comparisons remain dated evidence; absent cached snapshots do not
+justify reconstructing or rewriting any ledger field.
+
+Read-back confirms the existing single **October 20 at 02:10 Paris** rollover
+follow-up and ordinary twice-daily acceptance heartbeat are **active and
+unchanged**. No new recurrence was created. No rollover is applied tonight:
+after **October 20 00:00 UTC**, actual authenticated started-period account-wide
+billing evidence and verified passing main are required before the approved
+October 20-November 20 date change, one CAS/exact readback and every usage field
+preserved. The morning review cannot be relabelled as new-period evidence.
+
+Both full-cadence flags remain **false**. Passage deployment is unchanged;
+October 6 exports and October 2 device evidence remain dated history, requiring
+the prescribed refresh before promotion. Current software checks, scientific/
+live acceptance, consumer attribution/gust semantics, capacity and replacement/
+outage/disable/rollback remain separate gates. No promotion occurred.
