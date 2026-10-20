@@ -3654,3 +3654,90 @@ October 6 exports and October 2 device evidence remain dated history, requiring
 the prescribed refresh before promotion. Current software checks, scientific/
 live acceptance, consumer attribution/gust semantics, capacity and replacement/
 outage/disable/rollback remain separate gates. No promotion occurred.
+
+
+## Approved period rollover, 2026-10-20
+
+The owner's specific October 13 approval for **October 20-November 20** was
+applied by [rollover-paid-work 39357902406](https://github.com/deepregatta/forecast-tiles/actions/runs/39357902406) on verified
+main **56e832aac1ae998083f263a4007e56cbcb3d2cc0**, whose Python and dispatcher jobs both passed
+in [39322768106](https://github.com/deepregatta/forecast-tiles/actions/runs/39322768106).
+The original log confirms **one If-Match PUT and exact readback**. A separate
+fresh authenticated comparison against the pre-write snapshot confirms that
+**only** these fields changed:
+
+- `period_start=2026-10-20T00:00:00Z`
+- `period_end=2026-11-20T00:00:00Z`
+- `reviewed_at=2026-10-20T02:15:10.824902+00:00`
+
+Every other field is identical: charged counters, seen identities, daily
+records, leases, pause, allocations, allowances, runtime/frequency/start
+limits and explicit provider decisions. **Usage was never reset.** The original
+job log and private before/after snapshot hashes are retained. No conflict or
+uncertain PUT was retried, no monetary threshold was expanded, and no plan,
+payment or alert changed.
+
+### Actual started-period billing review and its limits
+
+The authenticated Billing view showed the started **October 20-November 19
+inclusive** cycle, equivalent to **October 20-November 20 exclusive**. The R2
+account overview independently displayed October 20-November 20, actual Class A
+and Class B account usage, total storage and a current storage/billable charge.
+These are fresh started-period observations, not relabelled October 19 evidence.
+
+The Billing usage table had **no product breakdown** and a lower summary than
+the R2 overview. The provisional review used the **higher R2 summary**, retaining
+the conflicting views and unknown cause; the empty table is not evidence of
+zero charges. Separately settled operation charges were not reported. Actual
+account counters, [published R2 pricing](https://developers.cloudflare.com/r2/pricing/),
+storage charges, outstanding work and the existing owner policy were reviewed.
+The latest [ECB reference](https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html)
+was dated October 19 and remains informational, not a charged exchange rate.
+Existing conservative exchange/tax provisions and the broader delayed-billing
+reserve remain unchanged. Final invoice, assessed tax and delayed charges stay
+unknown. Exact account figures, category counters and review receipts remain
+private; existing paid-work provider decisions and the saved budget alert remain
+unchanged.
+
+The real review was completed at **2026-10-20T02:15:10.824902+00:00**, after the new period
+started and less than fifteen minutes before application. Operator pause was
+false; all existing provider decisions already permitted work. Fresh control
+was read immediately before dispatch. No prior rollover had run and the old
+dates were still present, so this was one application, not a replay.
+
+Next real 36-hour review is due **2026-10-21T14:15:10.824902+00:00**, before
+the unchanged 72-hour expiry **2026-10-23T02:15:10.824902+00:00**. The next
+internal period end is November 20; no automatic future period or usage reset
+is authorized by this application.
+
+### Late invocation and two root pauses remain retained
+
+This single invocation arrived at **02:10:00.314 UTC / 04:10 Paris**, two hours
+after its recorded **00:10 UTC / 02:10 Paris** target. The underlying scheduler
+delay is unproven. Before it arrived, [GEFS 39346570234](https://github.com/deepregatta/forecast-tiles/actions/runs/39346570234)
+and [short ECMWF 39346573694](https://github.com/deepregatta/forecast-tiles/actions/runs/39346573694)
+reported **period requires review** at **00:15:46.1199027 UTC** and
+**00:15:47.2085997 UTC**. Their original logs/hashes remain retained. A green
+workflow exit did not publish either requested cycle. The rollover restores
+their period gate; it does **not** establish subsequent forecast delivery.
+
+Eleven original root logs distinguish two actual GFS/wave publications,
+six already-published skips, one source-unavailable exit and those two period
+pauses. No cycle is inferred for an unspecified source-unavailable exit. The
+seven root and three regional catalogue layers remain present. This readback
+alone supplies no new manifest/scientific/consumer acceptance.
+
+Application completed at **2026-10-20T02:15:26Z**, before the upcoming
+**03:25 UTC ICON 00Z** and **05:45 UTC AROME 03Z** dispatches. A read-only comparison
+shows frequency alone need not block a new root admission now; this is not full
+recovery admission proof. No manual ingestion or extra admission PUT occurred
+in this three-field-only follow-up. Ordinary acceptance must verify actual
+subsequent scheduled delivery or a fully guarded recovery, preserve all missed
+requests and charges, and never replay an older cycle over a newer current.
+
+This rollover supplies **no timely credit**, erases no miss/window/receipt and
+does not complete seven-day acceptance. Both full-cadence flags remain **false**;
+the outstanding capacity, consumer and other independent gates remain intact.
+The single follow-up is consumed and is to be paused after the scoped evidence
+commit and required hosted checks. The separate twice-daily regional acceptance
+heartbeat remains active and unchanged.

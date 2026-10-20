@@ -908,10 +908,12 @@
     "AROME selected October 18 window has three timely and eleven pending, fixed end October 25 at 07:47:09.374466 UTC. ICON selected October 19 window has one timely and thirteen pending, fixed end October 26 at 07:48:35.289859 UTC. Each needs all fourteen timely and seven elapsed days. UKV fixed selected window remains fourteen timely/seven elapsed days passed. Every original/bootstrap/profile/start, failed earlier window and miss remains intact; no new window or retrospective recovery credit.",
     "October 19 ICON 12Z scheduled workflow 39277777181 was cancelled at the planner, with ingest skipped and no original attempt artifact. Its report/timing remain unknown, no admission/publication is inferred, and GitHub timeout annotation versus short visible planner logs is unresolved. Independent ordinary automatic catch-up 39281129617 confirms valid publication at 15:55:54.4440327 UTC before 16:20 deadline. This timely cycle does not erase the cancelled attempt. No manual retry, charge override or new operational gate is needed for this already-delivered cycle.",
     "All 274 earlier original artifact files were restored from GitHub after temporary-cache loss and verified against their recorded SHA-256 hashes. Eight new original reports bring the total to 282. No prior receipt is missing or altered. One newly cancelled workflow has no report and remains explicit unknown; no synthetic receipt was created. Earlier private control and manifest snapshot bytes are unavailable, so direct historical full-ledger equality and retained-manifest byte equality are not claimed in this review. Current authenticated ledger and immutable manifest/tile hashes are retained; prior verified history remains unchanged.",
-    "Actual billing review remains October 19 at 07:47:16.327704 UTC, about thirteen hours old and not due. Next real review due October 20 at 19:47:16.327704 UTC, unchanged review expiry October 22 at 07:47:16.327704 UTC. Internal period expiry October 20 is separate. No timestamp, period or control write today; all counters/identities/leases/allowances/pauses/decisions retained without modification.",
-    "The existing single October 20 02:10 Paris rollover follow-up and twice-daily acceptance heartbeat are verified active and unchanged. No application before October 20 00:00 UTC. Approved October 20-November 20 dates require actual authenticated started-period account-wide billing evidence and passing verified main; one CAS/exact readback changing only dates/reviewed_at, every usage field intact. Do not apply early or infer fresh-period evidence from the prior review.",
     "Read-only audit 39322057896 fits physical plus upload/headroom, complete retained/calculated overlap, root variation and reservation, counting all unreferenced objects including incomplete ensemble-20261004T18Z. Authenticated GitHub variable modification times confirm guard/reservation/headroom unchanged since the preceding reviewed checkpoint. Pointers stable, no active producer; complete concurrent-upload peak/within-scan consistency still unproven. Preserve earlier actual upload/moving-inventory evidence and the October 15 charged refusal/gap. No cleanup or reservation/guard edit.",
-    "Ten actual root publications, thirteen already-published skips and one source-unavailable short-ECMWF exit are verified from twenty-four original logs, including completed full ECMWF 00Z and 12Z. Seven root/three regional layers, twenty canonical current/previous manifests and ten current immutable tile samples pass. Preserve all earlier failures, pauses, recoveries and partial-byte proof. Both full-cadence flags remain false. Dated October 6 exports and October 2 device proof need required refresh before promotion; software/hosted checks, live/scientific acceptance, consumer attribution/gust semantics, capacity and replacement/outage/disable/rollback are separate gates."
+    "Ten actual root publications, thirteen already-published skips and one source-unavailable short-ECMWF exit are verified from twenty-four original logs, including completed full ECMWF 00Z and 12Z. Seven root/three regional layers, twenty canonical current/previous manifests and ten current immutable tile samples pass. Preserve all earlier failures, pauses, recoveries and partial-byte proof. Both full-cadence flags remain false. Dated October 6 exports and October 2 device proof need required refresh before promotion; software/hosted checks, live/scientific acceptance, consumer attribution/gust semantics, capacity and replacement/outage/disable/rollback are separate gates.",
+    "Approved October 20-November 20 period rollover is applied: original workflow 39357902406 confirms one CAS/exact readback; independent authenticated comparison shows only period_start, period_end and reviewed_at changed. Every counter, seen identity, daily record, lease, pause, allocation, runtime/frequency/start limit and provider decision is exactly preserved. Actual started-period review completed 2026-10-20T02:15:10.824902+00:00; next 36-hour review due 2026-10-21T14:15:10.824902+00:00, unchanged 72-hour expiry 2026-10-23T02:15:10.824902+00:00. No usage reset or timely credit.",
+    "Started-period R2 account overview provided storage charge, Class A/B counters and October 20-November 20 dates. Billing usage table had no product breakdown and a lower summary; the higher R2 amount was used provisionally, with discrepancy and unreported separately settled operation charges retained as unknown. Published pricing, existing exchange/tax and broader delayed-billing provisions, outstanding work and owner policy were reviewed without changing monetary/provider controls. Final invoice, tax and delayed charges are not claimed.",
+    "Invocation arrived at October 20 02:10 UTC (04:10 Paris), two hours after the recorded 02:10 Paris target; underlying scheduler delay is unproven. GEFS and short ECMWF 00:15 jobs had already paused for period review. Their original logs are retained and no publication is inferred. Rollover completed before ICON 03:25 UTC and AROME 05:45 UTC dispatches. This date-only follow-up did not ingest/retry cycles. Ordinary acceptance must verify actual subsequent root publication; preserve missed requests and every charge, never overwrite a newer current with older data.",
+    "The single period-rollover follow-up is consumed and will be paused after scoped evidence commit and required hosted checks. Separate twice-daily regional acceptance heartbeat stays active. Every original/window/miss/receipt and all independent acceptance gates remain intact; full cadence stays false."
   ],
   "capacity_audit_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39322057896",
   "root_readback": {
@@ -36002,6 +36004,298 @@
       "full_cadence_enabled": false,
       "follow_up_schedules_verified_active_and_unchanged": true,
       "acceptance_result": "Three afternoon cycles valid and timely; AROME selected three timely/eleven pending, ICON one timely/thirteen pending, UKV fixed window passed. Original scheduled ICON planner cancelled with ingest skipped and no report; timing/cause stay unknown, while independent automatic catch-up published before deadline. All 274 historical original files restored and SHA-matched; eight new receipts retained. Ten original root publications confirmed, no root failure. Current full capacity comparisons fit unchanged guard/reservation; no actual concurrent peak or historical private snapshot equality inferred. Billing review thirteen hours old, not due. Existing rollover follow-up active; no early period write, cleanup, guard/control change, manual retry, new recurrence or promotion."
+    },
+    {
+      "reviewed_at": "2026-10-20T02:19:26.231301+00:00",
+      "purpose": "Apply the specifically owner-approved October 20-November 20 internal period after real started-period review, preserving every charged usage and policy field",
+      "prior_remaining_acceptance_preserved": [
+        "AROME selected October 18 window has three timely and eleven pending, fixed end October 25 at 07:47:09.374466 UTC. ICON selected October 19 window has one timely and thirteen pending, fixed end October 26 at 07:48:35.289859 UTC. Each needs all fourteen timely and seven elapsed days. UKV fixed selected window remains fourteen timely/seven elapsed days passed. Every original/bootstrap/profile/start, failed earlier window and miss remains intact; no new window or retrospective recovery credit.",
+        "October 19 ICON 12Z scheduled workflow 39277777181 was cancelled at the planner, with ingest skipped and no original attempt artifact. Its report/timing remain unknown, no admission/publication is inferred, and GitHub timeout annotation versus short visible planner logs is unresolved. Independent ordinary automatic catch-up 39281129617 confirms valid publication at 15:55:54.4440327 UTC before 16:20 deadline. This timely cycle does not erase the cancelled attempt. No manual retry, charge override or new operational gate is needed for this already-delivered cycle.",
+        "All 274 earlier original artifact files were restored from GitHub after temporary-cache loss and verified against their recorded SHA-256 hashes. Eight new original reports bring the total to 282. No prior receipt is missing or altered. One newly cancelled workflow has no report and remains explicit unknown; no synthetic receipt was created. Earlier private control and manifest snapshot bytes are unavailable, so direct historical full-ledger equality and retained-manifest byte equality are not claimed in this review. Current authenticated ledger and immutable manifest/tile hashes are retained; prior verified history remains unchanged.",
+        "Actual billing review remains October 19 at 07:47:16.327704 UTC, about thirteen hours old and not due. Next real review due October 20 at 19:47:16.327704 UTC, unchanged review expiry October 22 at 07:47:16.327704 UTC. Internal period expiry October 20 is separate. No timestamp, period or control write today; all counters/identities/leases/allowances/pauses/decisions retained without modification.",
+        "The existing single October 20 02:10 Paris rollover follow-up and twice-daily acceptance heartbeat are verified active and unchanged. No application before October 20 00:00 UTC. Approved October 20-November 20 dates require actual authenticated started-period account-wide billing evidence and passing verified main; one CAS/exact readback changing only dates/reviewed_at, every usage field intact. Do not apply early or infer fresh-period evidence from the prior review.",
+        "Read-only audit 39322057896 fits physical plus upload/headroom, complete retained/calculated overlap, root variation and reservation, counting all unreferenced objects including incomplete ensemble-20261004T18Z. Authenticated GitHub variable modification times confirm guard/reservation/headroom unchanged since the preceding reviewed checkpoint. Pointers stable, no active producer; complete concurrent-upload peak/within-scan consistency still unproven. Preserve earlier actual upload/moving-inventory evidence and the October 15 charged refusal/gap. No cleanup or reservation/guard edit.",
+        "Ten actual root publications, thirteen already-published skips and one source-unavailable short-ECMWF exit are verified from twenty-four original logs, including completed full ECMWF 00Z and 12Z. Seven root/three regional layers, twenty canonical current/previous manifests and ten current immutable tile samples pass. Preserve all earlier failures, pauses, recoveries and partial-byte proof. Both full-cadence flags remain false. Dated October 6 exports and October 2 device proof need required refresh before promotion; software/hosted checks, live/scientific acceptance, consumer attribution/gust semantics, capacity and replacement/outage/disable/rollback are separate gates."
+      ],
+      "period_rollover": {
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39357902406",
+        "source_commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+        "run_attempt": 1,
+        "completed_at": "2026-10-20T02:15:26Z",
+        "reviewed_at": "2026-10-20T02:15:10.824902+00:00",
+        "period_start": "2026-10-20T00:00:00Z",
+        "period_end": "2026-11-20T00:00:00Z",
+        "original_job_log_sha256": "5cb4d6a980e37847f80ed9b91ed9f15817bbb3844fa2583ffacda6f66ffc54b1",
+        "one_if_match_put_and_exact_readback_confirmed": true,
+        "charged_usage_preserved_by_workflow": true,
+        "conflict_or_uncertain_put_repeated": false,
+        "account_figures_private": true,
+        "independent_authenticated_readback_at": "2026-10-20T02:16:37.532135+00:00",
+        "changed_fields": [
+          "period_start",
+          "period_end",
+          "reviewed_at"
+        ],
+        "every_other_field_exactly_matches_prewrite_snapshot": true,
+        "all_charged_counters_seen_identities_daily_records_leases_exact": true,
+        "operator_pause_allocations_runtime_frequency_start_limits_provider_decisions_exact": true,
+        "independent_before_sha256": "69353c73153c8abd1f2fabd91b1f12de570dcce93e275765eff8ccbef6b1bebc",
+        "independent_after_sha256": "1f68fb0f6999c70d7d52c831a7439c82f4ea389dd07cbb7c5fc6d7298207a9aa",
+        "next_36_hour_review_due_at": "2026-10-21T14:15:10.824902+00:00",
+        "review_72_hour_expiry_at": "2026-10-23T02:15:10.824902+00:00",
+        "applied_before_icon_0325_dispatch": true,
+        "applied_before_arome_0545_dispatch": true,
+        "owner_specific_october13_approval_preserved": true,
+        "actual_started_provider_period_matches_approved_dates": true,
+        "billing_review_from_started_period_no_older_than_fifteen_minutes": true,
+        "no_usage_reset": true,
+        "no_provider_plan_payment_alert_threshold_or_decision_change": true,
+        "regional_timely_credit": false,
+        "acceptance_gate_relaxed": false,
+        "invocation_received_at": "2026-10-20T02:10:00.314Z",
+        "recorded_target_utc": "2026-10-20T00:10:00Z",
+        "invocation_two_hours_later_than_recorded_target": true,
+        "scheduler_delay_cause_proven": false,
+        "one_time_follow_up_consumed": true,
+        "single_follow_up_pause_after_required_checks": true,
+        "ordinary_acceptance_heartbeat_preserved": true
+      },
+      "billing_review": {
+        "actual_authenticated_started_period_review_completed": true,
+        "sources": [
+          "Cloudflare Billing > Billable usage",
+          "Cloudflare R2 account overview"
+        ],
+        "actual_provider_period_matches_approved_dates": true,
+        "class_a_class_b_account_usage_and_storage_charge_reviewed": true,
+        "billing_product_breakdown_available": false,
+        "separately_settled_operation_charges_reported": false,
+        "higher_current_r2_summary_used_provisionally": true,
+        "conflicting_summary_views_and_underlying_cause_unresolved": true,
+        "existing_policy_and_conversion_tax_delayed_billing_provisions_preserved": true,
+        "final_invoice_or_zero_cost_claimed": false,
+        "account_figures_private": true
+      },
+      "root_attempts": [
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39334856059",
+          "run_id": 39334856059,
+          "path": ".github/workflows/ingest-weather.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "workflow_dispatch",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-19T23:12:25.7115394Z",
+              "message": "published weather-20261019T18Z to R2 (648 tiles, 801.5 MB, 1111.1s; previous=weather-20261019T12Z, deleted=['weather-20261019T06Z'], commit attempts=1)"
+            }
+          ],
+          "pauses": [],
+          "already_published_skip": false,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "88be1e857ba82defeb408c18df683d265f6d3a675acbe2bffd6cacf02ac74a11",
+          "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39338806314",
+          "run_id": 39338806314,
+          "path": ".github/workflows/ingest-waves.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "workflow_dispatch",
+          "publications": [
+            {
+              "confirmed_at": "2026-10-19T23:32:22.7852961Z",
+              "message": "published waves-20261019T18Z to R2 (520 tiles, 497.5 MB, 1176.4s; previous=waves-20261019T12Z, deleted=['waves-20261019T06Z'], commit attempts=1)"
+            }
+          ],
+          "pauses": [],
+          "already_published_skip": false,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "14603e5e266f2be07164b81f3340bb739fbe706d19fe2cefbdd17c575576e023",
+          "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39344364050",
+          "run_id": 39344364050,
+          "path": ".github/workflows/ingest-currents.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "schedule",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "b74f8f3b8b29ff2dab9c823699ed5d3f9aeec946613847a5ea6b44d936057234",
+          "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39344414702",
+          "run_id": 39344414702,
+          "path": ".github/workflows/ingest-waves.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "schedule",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "bcce664e5e4baca0cbfe32a42bd220f0a9fbc28f365807fc013f69d1de194096",
+          "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39344450377",
+          "run_id": 39344450377,
+          "path": ".github/workflows/ingest-weather.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "schedule",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "e94900549da1c966b5534cc450f9484eb32744fdbcfa5598cddb179603b218e5",
+          "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39344451274",
+          "run_id": 39344451274,
+          "path": ".github/workflows/ingest-weather-ecmwf.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "schedule",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "107da02caf812a795618a142db581d4a9253d809ad2136a01dd935f0180021f1",
+          "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39344456450",
+          "run_id": 39344456450,
+          "path": ".github/workflows/ingest-currents-ibi.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "schedule",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "eeb6075a486e6bba8e4afdeecf49de2d7833490e8abf7406f19af135a00125a1",
+          "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39344458554",
+          "run_id": 39344458554,
+          "path": ".github/workflows/ingest-weather-ecmwf-short.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "schedule",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": false,
+          "source_unavailable_skip": true,
+          "cycle": null,
+          "original_job_log_sha256": "fc8927ad7251aa1374a5255c15afc27601e6f84e41ad6c1ab6e256a23d8e9854",
+          "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39344467314",
+          "run_id": 39344467314,
+          "path": ".github/workflows/ingest-ensemble.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "schedule",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "a7ef8f1b034c07cc19334e7dea506c188fbf2ce35dab160db52a161132ab8599",
+          "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39346570234",
+          "run_id": 39346570234,
+          "path": ".github/workflows/ingest-ensemble.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "workflow_dispatch",
+          "publications": [],
+          "pauses": [
+            "2026-10-20T00:15:46.1199027Z ingest ensemble: paused: period requires review; existing forecasts remain available"
+          ],
+          "already_published_skip": false,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "583fdffe93f1264f0434c14d952602805b06e01fb4ef8da450d58184be9fac6c",
+          "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39346573694",
+          "run_id": 39346573694,
+          "path": ".github/workflows/ingest-weather-ecmwf-short.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "workflow_dispatch",
+          "publications": [],
+          "pauses": [
+            "2026-10-20T00:15:47.2085997Z ingest weather-ecmwf-short: paused: period requires review; existing forecasts remain available"
+          ],
+          "already_published_skip": false,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "efba7a6999e858c219afbdea60c45806ae4fe49becb0a900ec9b838001ade879",
+          "unclassified": false
+        }
+      ],
+      "root_review_summary": {
+        "original_logs_reviewed": 11,
+        "actual_publications": 2,
+        "already_published_skips": 6,
+        "source_unavailable_exits": 1,
+        "period_review_pauses": 2,
+        "no_publication_inferred_from_exit_zero": true,
+        "actual_subsequent_delivery_still_pending": true
+      },
+      "production_catalogues_retained": {
+        "root_layers": [
+          "weather",
+          "ensemble",
+          "waves",
+          "weather-ecmwf",
+          "currents",
+          "currents-ibi",
+          "weather-ecmwf-short"
+        ],
+        "regional_layers": [
+          "weather-arome",
+          "weather-icon-eu",
+          "weather-ukv"
+        ],
+        "readback_only_not_publication_or_manifest_acceptance": true
+      },
+      "source_hosted_validation": {
+        "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39322768106",
+        "python": "success",
+        "dispatcher": "success"
+      },
+      "consumer_exports_refreshed_this_review": false,
+      "capacity_acceptance_gate_unchanged": true,
+      "original_models_windows_starts_misses_and_receipts_unchanged": true,
+      "regional_timely_credit": false,
+      "manual_producer_dispatched": false,
+      "full_cadence_enabled": false,
+      "acceptance_result": "Specific date rollover confirmed, only three approved fields changed with all usage/policy exact. No canary timing credit or promotion. Invocation was two hours later than target; two original root period pauses remain retained and subsequent actual delivery is pending. Independent acceptance and normal heartbeat continue; single follow-up consumed and pause follows required checks."
     }
   ],
   "incidents": [
@@ -38414,6 +38708,60 @@
       "manual_producer_dispatched": false,
       "required_operator_action": false,
       "limitation": "Original planner steps/logs end within seconds, while GitHub annotates a five-minute timeout and marks plan cancelled. Ingest was skipped with no steps or report. Preserve inconsistent timing and unknown underlying cause. The separate automatic catch-up original report/log confirms valid timely publication; it does not erase this cancellation."
+    },
+    {
+      "kind": "october20-period-expiry-root-pauses-before-delayed-rollover-invocation",
+      "recorded_at": "2026-10-20T02:19:26.231301+00:00",
+      "workflow_urls": [
+        "https://github.com/deepregatta/forecast-tiles/actions/runs/39346570234",
+        "https://github.com/deepregatta/forecast-tiles/actions/runs/39346573694"
+      ],
+      "original_pauses": [
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39346570234",
+          "run_id": 39346570234,
+          "path": ".github/workflows/ingest-ensemble.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "workflow_dispatch",
+          "publications": [],
+          "pauses": [
+            "2026-10-20T00:15:46.1199027Z ingest ensemble: paused: period requires review; existing forecasts remain available"
+          ],
+          "already_published_skip": false,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "583fdffe93f1264f0434c14d952602805b06e01fb4ef8da450d58184be9fac6c",
+          "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39346573694",
+          "run_id": 39346573694,
+          "path": ".github/workflows/ingest-weather-ecmwf-short.yml",
+          "commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+          "conclusion": "success",
+          "event": "workflow_dispatch",
+          "publications": [],
+          "pauses": [
+            "2026-10-20T00:15:47.2085997Z ingest weather-ecmwf-short: paused: period requires review; existing forecasts remain available"
+          ],
+          "already_published_skip": false,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "efba7a6999e858c219afbdea60c45806ae4fe49becb0a900ec9b838001ade879",
+          "unclassified": false
+        }
+      ],
+      "period_expired_at": "2026-10-20T00:00:00Z",
+      "actual_follow_up_invocation_at": "2026-10-20T02:10:00.314Z",
+      "recorded_follow_up_target_at": "2026-10-20T00:10:00Z",
+      "pause_gate_preserved": true,
+      "rollover_application": "https://github.com/deepregatta/forecast-tiles/actions/runs/39357902406",
+      "period_gate_now_restored": true,
+      "paused_jobs_publication_inferred": false,
+      "manual_recovery_dispatched": false,
+      "regional_timely_credit": false,
+      "limitation": "GEFS and short ECMWF jobs reported period requires review before this delayed invocation. Rollover restores their period gate but does not publish the missed requested cycles. No manual producer was dispatched in this three-field-only follow-up. Verify subsequent genuine delivery/recovery through unchanged controls; never replay an older cycle over a newer current."
     }
   ],
   "regional_readback": {
@@ -41358,15 +41706,6 @@
   "capacity_audit_last_completed_attempt": 1,
   "unresolved_operational_gates": [
     {
-      "kind": "october20-owner-approved-period-rollover-application-pending",
-      "recorded_at": "2026-10-13T20:45:10.757821+00:00",
-      "owner_approval_received": true,
-      "required_evidence": "After October 20 00:00 UTC, confirm actual started provider period and account-wide billing within unchanged policy. Use current verified main, exact fresh prior reviewed_at, completed real review no older than fifteen minutes, one CAS and exact authenticated readback. Preserve every field other than the two approved dates and reviewed_at. No write retry after conflict/uncertainty. Leave gate closed if any condition fails.",
-      "scheduled_follow_up_at": "2026-10-20T02:10:00+02:00",
-      "automation_id": "october-20-paid-work-period-rollover",
-      "application_status": "Not applied; future date and fresh billing evidence required."
-    },
-    {
       "kind": "october15-icon-12z-reserved-peak-capacity-refusal-and-production-restoration-pending",
       "recorded_at": "2026-10-15T20:56:32.626697+00:00",
       "layer": "weather-icon-eu",
@@ -41668,6 +42007,35 @@
         "account_figures_private": true,
         "limitation": "Three final immutable ECMWF tiles were written inside the profile interval, but the inventory crossed incomplete-prefix upload, manifest creation, pointer commit and normal producer retention. Passing raw aggregate comparisons are retained without asserting a consistent complete physical peak. No atomic inventory or complete peak bound is inferred."
       }
+    },
+    {
+      "kind": "october20-gefs-short-ecmwf-delivery-after-period-expiry-pauses-pending",
+      "recorded_at": "2026-10-20T02:19:26.231301+00:00",
+      "original_pauses": [
+        "https://github.com/deepregatta/forecast-tiles/actions/runs/39346570234",
+        "https://github.com/deepregatta/forecast-tiles/actions/runs/39346573694"
+      ],
+      "status": "Period gate restored by approved rollover; actual subsequent GEFS/short ECMWF publication remains pending. No manual producer or timely credit in this follow-up.",
+      "required_evidence": "Original producer log and fresh current/previous manifests for genuine subsequent scheduled delivery or guarded recovery. Preserve original pauses and every charge; do not replay an older requested cycle over a newer current or block its next registered dispatch.",
+      "period_rollover_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39357902406",
+      "root_next_slot_read_only_comparison": {
+        "ensemble": {
+          "checked_at": "2026-10-20T02:17:51.967009+00:00",
+          "next_registered_dispatch": "2026-10-20T06:15:00+00:00",
+          "a_new_admission_now_would_block_next_slot_by_frequency_alone": false,
+          "manual_producer_dispatched": false,
+          "no_admission_put_or_usage_edit": true
+        },
+        "weather-ecmwf-short": {
+          "checked_at": "2026-10-20T02:17:51.967009+00:00",
+          "next_registered_dispatch": "2026-10-20T12:15:00+00:00",
+          "a_new_admission_now_would_block_next_slot_by_frequency_alone": false,
+          "manual_producer_dispatched": false,
+          "no_admission_put_or_usage_edit": true
+        }
+      },
+      "frequency_alone_does_not_establish_full_recovery_admission": true,
+      "no_other_admission_put_performed": true
     }
   ],
   "resolved_operational_gates": [
@@ -42942,6 +43310,60 @@
         "account_figures_private": true,
         "period_rollover_applied": false
       }
+    },
+    {
+      "kind": "october20-owner-approved-period-rollover-application-pending",
+      "recorded_at": "2026-10-13T20:45:10.757821+00:00",
+      "owner_approval_received": true,
+      "required_evidence": "After October 20 00:00 UTC, confirm actual started provider period and account-wide billing within unchanged policy. Use current verified main, exact fresh prior reviewed_at, completed real review no older than fifteen minutes, one CAS and exact authenticated readback. Preserve every field other than the two approved dates and reviewed_at. No write retry after conflict/uncertainty. Leave gate closed if any condition fails.",
+      "scheduled_follow_up_at": "2026-10-20T02:10:00+02:00",
+      "automation_id": "october-20-paid-work-period-rollover",
+      "application_status": "Not applied; future date and fresh billing evidence required.",
+      "resolved_at": "2026-10-20T02:19:26.231301+00:00",
+      "resolution": "Specific approved period rollover confirmed after actual started-period authenticated billing review, with one If-Match PUT and exact independent readback. Every other field matches the fresh snapshot.",
+      "application": {
+        "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39357902406",
+        "source_commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+        "run_attempt": 1,
+        "completed_at": "2026-10-20T02:15:26Z",
+        "reviewed_at": "2026-10-20T02:15:10.824902+00:00",
+        "period_start": "2026-10-20T00:00:00Z",
+        "period_end": "2026-11-20T00:00:00Z",
+        "original_job_log_sha256": "5cb4d6a980e37847f80ed9b91ed9f15817bbb3844fa2583ffacda6f66ffc54b1",
+        "one_if_match_put_and_exact_readback_confirmed": true,
+        "charged_usage_preserved_by_workflow": true,
+        "conflict_or_uncertain_put_repeated": false,
+        "account_figures_private": true,
+        "independent_authenticated_readback_at": "2026-10-20T02:16:37.532135+00:00",
+        "changed_fields": [
+          "period_start",
+          "period_end",
+          "reviewed_at"
+        ],
+        "every_other_field_exactly_matches_prewrite_snapshot": true,
+        "all_charged_counters_seen_identities_daily_records_leases_exact": true,
+        "operator_pause_allocations_runtime_frequency_start_limits_provider_decisions_exact": true,
+        "independent_before_sha256": "69353c73153c8abd1f2fabd91b1f12de570dcce93e275765eff8ccbef6b1bebc",
+        "independent_after_sha256": "1f68fb0f6999c70d7d52c831a7439c82f4ea389dd07cbb7c5fc6d7298207a9aa",
+        "next_36_hour_review_due_at": "2026-10-21T14:15:10.824902+00:00",
+        "review_72_hour_expiry_at": "2026-10-23T02:15:10.824902+00:00",
+        "applied_before_icon_0325_dispatch": true,
+        "applied_before_arome_0545_dispatch": true,
+        "owner_specific_october13_approval_preserved": true,
+        "actual_started_provider_period_matches_approved_dates": true,
+        "billing_review_from_started_period_no_older_than_fifteen_minutes": true,
+        "no_usage_reset": true,
+        "no_provider_plan_payment_alert_threshold_or_decision_change": true,
+        "regional_timely_credit": false,
+        "acceptance_gate_relaxed": false,
+        "invocation_received_at": "2026-10-20T02:10:00.314Z",
+        "recorded_target_utc": "2026-10-20T00:10:00Z",
+        "invocation_two_hours_later_than_recorded_target": true,
+        "scheduler_delay_cause_proven": false,
+        "one_time_follow_up_consumed": true,
+        "single_follow_up_pause_after_required_checks": true,
+        "ordinary_acceptance_heartbeat_preserved": true
+      }
     }
   ],
   "period_rollover_authorization": {
@@ -42950,7 +43372,7 @@
     "owner_approval_source": "Direct owner yes in this chat to the specific October 20-November 20 proposal.",
     "approved_period_start": "2026-10-20T00:00:00Z",
     "approved_period_end": "2026-11-20T00:00:00Z",
-    "application_status": "Prepared and scheduled; not applied.",
+    "application_status": "Applied with one conditional write and exact readback; only approved dates and reviewed_at changed; all usage preserved.",
     "earliest_application_at": "2026-10-20T00:00:00Z",
     "follow_up_automation_id": "october-20-paid-work-period-rollover",
     "follow_up_at": "2026-10-20T02:10:00+02:00",
@@ -42979,6 +43401,49 @@
       "workflow_actionlint": "passed",
       "shared_contracts_lint_format_and_types": "passed",
       "live_control_write_performed": false
+    },
+    "application": {
+      "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39357902406",
+      "source_commit": "56e832aac1ae998083f263a4007e56cbcb3d2cc0",
+      "run_attempt": 1,
+      "completed_at": "2026-10-20T02:15:26Z",
+      "reviewed_at": "2026-10-20T02:15:10.824902+00:00",
+      "period_start": "2026-10-20T00:00:00Z",
+      "period_end": "2026-11-20T00:00:00Z",
+      "original_job_log_sha256": "5cb4d6a980e37847f80ed9b91ed9f15817bbb3844fa2583ffacda6f66ffc54b1",
+      "one_if_match_put_and_exact_readback_confirmed": true,
+      "charged_usage_preserved_by_workflow": true,
+      "conflict_or_uncertain_put_repeated": false,
+      "account_figures_private": true,
+      "independent_authenticated_readback_at": "2026-10-20T02:16:37.532135+00:00",
+      "changed_fields": [
+        "period_start",
+        "period_end",
+        "reviewed_at"
+      ],
+      "every_other_field_exactly_matches_prewrite_snapshot": true,
+      "all_charged_counters_seen_identities_daily_records_leases_exact": true,
+      "operator_pause_allocations_runtime_frequency_start_limits_provider_decisions_exact": true,
+      "independent_before_sha256": "69353c73153c8abd1f2fabd91b1f12de570dcce93e275765eff8ccbef6b1bebc",
+      "independent_after_sha256": "1f68fb0f6999c70d7d52c831a7439c82f4ea389dd07cbb7c5fc6d7298207a9aa",
+      "next_36_hour_review_due_at": "2026-10-21T14:15:10.824902+00:00",
+      "review_72_hour_expiry_at": "2026-10-23T02:15:10.824902+00:00",
+      "applied_before_icon_0325_dispatch": true,
+      "applied_before_arome_0545_dispatch": true,
+      "owner_specific_october13_approval_preserved": true,
+      "actual_started_provider_period_matches_approved_dates": true,
+      "billing_review_from_started_period_no_older_than_fifteen_minutes": true,
+      "no_usage_reset": true,
+      "no_provider_plan_payment_alert_threshold_or_decision_change": true,
+      "regional_timely_credit": false,
+      "acceptance_gate_relaxed": false,
+      "invocation_received_at": "2026-10-20T02:10:00.314Z",
+      "recorded_target_utc": "2026-10-20T00:10:00Z",
+      "invocation_two_hours_later_than_recorded_target": true,
+      "scheduler_delay_cause_proven": false,
+      "one_time_follow_up_consumed": true,
+      "single_follow_up_pause_after_required_checks": true,
+      "ordinary_acceptance_heartbeat_preserved": true
     }
   }
 }
