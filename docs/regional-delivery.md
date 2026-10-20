@@ -3836,3 +3836,12 @@ physical-device proof remain dated and require refresh before promotion.
 Both full-cadence flags remain **false**. Required hosted/software checks,
 consumer bilingual attribution/gust semantics, live/scientific acceptance,
 capacity and replacement/outage/disable/rollback remain independent gates.
+
+Final readback kept both pointers unchanged. The later GLO12 fallback
+[39389501640](https://github.com/deepregatta/forecast-tiles/actions/runs/39389501640)
+was an **already-published skip**, verified from its retained original log;
+it adds no publication. Six original root logs therefore distinguish the five
+actual publications above from this one skip. The scoped evidence checkpoint
+passed both required hosted jobs in
+[39389491878](https://github.com/deepregatta/forecast-tiles/actions/runs/39389491878);
+no additional regional report or control change occurred before final readback.

@@ -37099,12 +37099,27 @@
           "cycle": null,
           "original_job_log_sha256": "488fef2087cdadfc046e33c70e5d5fe85a0032552fdb73af66e81bedcdbed77d",
           "unclassified": false
+        },
+        {
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39389501640",
+          "run_id": 39389501640,
+          "path": ".github/workflows/ingest-currents.yml",
+          "commit": "aaed4b2da3b9ca041bd3bef3a67fbd0eb06f7613",
+          "conclusion": "success",
+          "event": "schedule",
+          "publications": [],
+          "pauses": [],
+          "already_published_skip": true,
+          "source_unavailable_skip": false,
+          "cycle": null,
+          "original_job_log_sha256": "f518f6193044f66ce25d5c0d91c91a53dac4a2be4a13128e8cd8ac0440d37838",
+          "unclassified": false
         }
       ],
       "root_review_summary": {
-        "original_logs_reviewed": 5,
+        "original_logs_reviewed": 6,
         "actual_publications": 5,
-        "already_published_skips": 0,
+        "already_published_skips": 1,
         "source_unavailable_exits": 0,
         "new_root_failure_or_pause": false,
         "gefs_actual_scheduled_delivery_restored": true,
@@ -37610,7 +37625,19 @@
           "configuration_edited_this_review": false
         }
       },
-      "acceptance_result": "Three scientifically valid timely regional publications; selected AROME four timely/ten pending, ICON two timely/twelve pending, UKV fixed window passed. GEFS current scheduled 00Z restored, short ECMWF still pending with next registered slot preserved. Five root publications confirmed from original logs and immutable current/previous readback. Both dated capacity comparisons fit unchanged controls; complete upload peak stays open. Real billing review not due, no control edit or rollover replay. No promotion or gate relaxation."
+      "acceptance_result": "Three scientifically valid timely regional publications; selected AROME four timely/ten pending, ICON two timely/twelve pending, UKV fixed window passed. GEFS current scheduled 00Z restored, short ECMWF still pending with next registered slot preserved. Five root publications confirmed from original logs and immutable current/previous readback. Both dated capacity comparisons fit unchanged controls; complete upload peak stays open. Real billing review not due, no control edit or rollover replay. No promotion or gate relaxation.",
+      "final_readback": {
+        "checked_at": "2026-10-20T07:54:14.275653+00:00",
+        "root_and_regional_pointers_unchanged": true,
+        "new_completed_regional_workflow_since_artifact_review": false,
+        "currents_fallback_already_published_skip_retained": "https://github.com/deepregatta/forecast-tiles/actions/runs/39389501640",
+        "documentation_commit_hosted_checks": {
+          "commit": "aaed4b2da3b9ca041bd3bef3a67fbd0eb06f7613",
+          "workflow_url": "https://github.com/deepregatta/forecast-tiles/actions/runs/39389491878",
+          "python": "success",
+          "dispatcher": "success"
+        }
+      }
     }
   ],
   "incidents": [
