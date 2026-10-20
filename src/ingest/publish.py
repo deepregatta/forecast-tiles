@@ -560,7 +560,7 @@ def _layer_runs(store, layer: str) -> dict[str, list[str]]:
     regex keeps `weather-…` from matching `weather-ecmwf-…` runs."""
     pattern = re.compile(rf"^forecast-runs/({re.escape(layer)}-{_RUN_ID_RE_TAIL})/")
     runs: dict[str, list[str]] = {}
-    for key in store.list_keys("forecast-runs/"):
+    for key in store.list_keys(f"forecast-runs/{layer}-"):
         if m := pattern.match(key):
             runs.setdefault(m.group(1), []).append(key)
     return dict(sorted(runs.items()))

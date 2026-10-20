@@ -317,6 +317,42 @@ def test_retention_deletes_only_older_runs_of_same_layer():
     assert latest["layers"]["weather-ecmwf"]["run_id"] == "weather-ecmwf-20260712T00Z"
 
 
+@pytest.mark.parametrize("layer", ["weather", "weather-ecmwf", "ensemble"])
+def test_retention_lists_only_its_layer_without_losing_safety_checks(layer):
+    from ingest.publish import apply_retention
+
+    class LayerListingStore(FakeStore):
+        def list_keys(self, prefix):
+            assert prefix == f"forecast-runs/{layer}-"
+            return super().list_keys(prefix)
+
+    store = LayerListingStore()
+    current = f"{layer}-20260713T06Z"
+    previous = f"{layer}-20260712T06Z"
+    older = f"{layer}-20260711T06Z"
+    incomplete = f"{layer}-20260710T06Z"
+    referenced = f"{layer}-20260709T06Z"
+    newer = f"{layer}-20260714T06Z"
+    other = f"{layer}-other-20260708T06Z"
+    for rid in (current, previous, older, referenced, newer, other):
+        seed_run(store, rid)
+    store.objects[f"forecast-runs/{incomplete}/tile.bin.gz"] = b"partial"
+    store.objects["latest.json"] = json.dumps(
+        {"layers": {layer: {"run_id": current, "previous_run_id": previous}}}
+    ).encode()
+    store.objects["latest-regional.json"] = json.dumps(
+        {"layers": {"preserved-reference": {"run_id": referenced}}}
+    ).encode()
+
+    deleted, kept = apply_retention(store, layer, current, previous)
+
+    assert deleted == [older]
+    assert {entry.split()[0] for entry in kept} == {incomplete, referenced, newer}
+    assert not any(key.startswith(f"forecast-runs/{older}/") for key in store.objects)
+    for rid in (current, previous, referenced, newer, other, incomplete):
+        assert any(key.startswith(f"forecast-runs/{rid}/") for key in store.objects)
+
+
 @pytest.mark.parametrize(
     "raw",
     [
