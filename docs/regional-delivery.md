@@ -3845,3 +3845,118 @@ actual publications above from this one skip. The scoped evidence checkpoint
 passed both required hosted jobs in
 [39389491878](https://github.com/deepregatta/forecast-tiles/actions/runs/39389491878);
 no additional regional report or control change occurred before final readback.
+
+
+## Regional capacity refusals and post-commit retention failures, 2026-10-20 evening
+
+All three scheduled afternoon regional attempts passed source/scientific
+validation but the **unchanged complete-overlap capacity guard refused before
+upload**: [ICON-EU 12Z 39448274917](https://github.com/deepregatta/forecast-tiles/actions/runs/39448274917)
+at **16:13:02.3618519 UTC**, [UKV 12Z 39455845254](https://github.com/deepregatta/forecast-tiles/actions/runs/39455845254)
+at **16:46:26.5585245 UTC**, and [AROME 15Z 39477546812](https://github.com/deepregatta/forecast-tiles/actions/runs/39477546812)
+at **19:05:07.7436715 UTC**. Original reports/logs/hashes and normal charged
+identities remain retained; no refund, identity deletion or replay occurred.
+Ordinary [catch-up 39477331506](https://github.com/deepregatta/forecast-tiles/actions/runs/39477331506)
+paused ICON/UKV for **duplicate work requires explicit recovery**, and skipped
+already-published morning AROME. These pauses supply no publication credit.
+
+Selected AROME now has **4 timely, 1 failed, 9 pending**; selected ICON has
+**2 timely, 1 failed, 11 pending**. Each maximum is **13/14**, so **neither can
+reach 95%**. Their unchanged starts, ends, failed slots and all earlier windows
+remain retained. No replacement window is opened while capacity/delivery remain
+unrestored. UKV's fixed historical window stays **14/14 and seven elapsed days,
+passed**; its present unpublished 12Z is a separate live-delivery failure.
+No invalid regional run was published; current data stays on the valid morning
+cycles, with all three canonical current/previous pairs and samples intact.
+
+### Failed root workflows did commit forecasts
+
+Original root logs confirm four pointer commits **before** retention's
+paginated `ListObjectsV2` raised `botocore.exceptions.ReadTimeoutError`:
+
+| Job | Cycle | Confirmed pointer commit UTC |
+| --- | --- | --- |
+| [GEFS 39420901937](https://github.com/deepregatta/forecast-tiles/actions/runs/39420901937) | October 20 06Z | 12:45:21.0341686 |
+| [Short ECMWF 39420905560](https://github.com/deepregatta/forecast-tiles/actions/runs/39420905560) | October 20 06Z | 12:38:10.2656723 |
+| [GEFS 39473181656](https://github.com/deepregatta/forecast-tiles/actions/runs/39473181656) | October 20 12Z | 18:48:26.8033805 |
+| [Full ECMWF 39482632786](https://github.com/deepregatta/forecast-tiles/actions/runs/39482632786) | October 20 12Z | 19:47:04.6428548 |
+
+The exception occurred in `apply_retention` while listing run keys, after
+post-upload checking and confirmed pointer CAS. The underlying timeout cause
+is **unproven**. These workflow failures and incomplete retention remain in the
+record. Fresh readback verifies the committed seven-layer root catalogue,
+fourteen canonical current/previous manifests and immutable current samples.
+Short ECMWF's subsequent scheduled delivery after its original period pause is
+therefore **restored**, separately from this new retention/capacity regression;
+its original pause is never erased. GEFS 06Z is now retained as previous to 12Z.
+
+Twenty-nine original root logs distinguish **five fully completed
+publications**, those **four additional confirmed pointer commits**, **eighteen
+already-published skips** and **two source-unavailable exits**. No cycle is
+inferred for an unspecified exit. The failed workflow status does not undo a
+confirmed commit, and the commit does not prove retention completed.
+
+### Complete retained envelope fails the unchanged guard
+
+[Read-only audit 39494410956](https://github.com/deepregatta/forecast-tiles/actions/runs/39494410956) completed successfully as a
+measurement on **bdc6eb585882354bc4ce8934888171249a5aeb51**, whose required hosted
+checks passed in [39389645092](https://github.com/deepregatta/forecast-tiles/actions/runs/39389645092).
+The full profile measured **2026-10-20T20:43:56.241812+00:00–2026-10-20T20:44:25.588347+00:00**.
+Pointers stayed stable and no producer was active in either bracket. It found
+no referenced damage, but its capacity comparisons show:
+
+- Physical usage plus regional upload/headroom **fits**.
+- Both fixed-reservation and calculated complete retained overlap **fail**.
+- The measured root reservation remains sufficient; reducing it would **not**
+  make calculated complete overlap fit the unchanged guard.
+
+Every unreferenced object remains counted, including superseded complete
+`ensemble-20261019T12Z`, `ensemble-20261020T00Z`,
+`weather-ecmwf-20261019T12Z`, `weather-ecmwf-short-20261018T18Z`, and incomplete
+historical `ensemble-20261004T18Z`. Original audit logs/hashes and exact account
+figures remain private. No deletion/cleanup, guard, reservation, headroom,
+allowance or control edit occurred. Neither this stable dated snapshot nor the
+earlier moving inventories establish a reconciled concurrent-upload peak.
+The live delivery/capacity gate remains **open and blocking**.
+
+### Narrow read mitigation; production recovery still pending
+
+Commit **c5ca6c89a26ef6c59385101f4280fcabd977e7f6** narrows retention's list request from all
+`forecast-runs/` objects to the publishing layer's prefix. The existing exact
+run/layer regex, retained current/previous, newer/incomplete checks and fresh
+both-pointer reference check before deletion remain unchanged. It changes no
+delete eligibility, SDK/control-read retries or uncertain-write handling.
+**Five focused regressions**, full **554 Python / 60 dispatcher tests**, and
+both required hosted jobs in [39494995552](https://github.com/deepregatta/forecast-tiles/actions/runs/39494995552) passed.
+
+This reduces unrelated listing work; it does **not** prove the underlying R2
+timeout cause or live retention restoration. No producer was triggered to
+manufacture proof, no charged regional cycle replayed, and no operator cleanup
+performed. Require actual subsequent scheduled retention, a fresh complete
+all-object envelope fitting the unchanged guard, and valid newer regional
+publication/immutable current-previous readback before any new prospective
+recheck. Every miss and prior window stays retained.
+
+Eleven paginated history pages reach the earliest original observation start.
+Temporary cache loss required restoring **all 288 earlier original reports**;
+each matched its recorded SHA-256. Fourteen newly reviewed originals bring the
+total to **302**: twelve observation-era reports (seven skips, three capacity
+failures, two pauses), plus two newly reviewed historical pre-observation
+reports (scratch publication and unspecified source-unavailable exit), which
+receive no production or timely credit. The cancelled October 19 planner
+still has no report; two other no-report historical workflows precede the
+observation start. Missing evidence stays unknown and no report was synthesized.
+Every original and named window was separately scored with unchanged allowance.
+
+Current authenticated control retains the actual **October 20 02:15:10.824902
+UTC** review, **18.5 hours old and not due**, approved period dates and all three
+charged failed-cycle identities. Next real review is due **October 21
+14:15:10.824902 UTC**, before unchanged **October 23 02:15:10.824902 UTC** expiry.
+No timestamp, period, counter, identity, lease, pause, limit or provider decision
+was edited. Prior private control/manifest snapshot files were lost; this
+review makes no direct historical full-ledger or manifest-byte-equality claim.
+Earlier verified receipts remain dated history. Full cadence stays **false**
+in GitHub and Worker, ordinary monitoring remains active, and the consumed
+rollover follow-up is separate. Passage deployment readback remains successful;
+October 6 consumer exports and October 2 device proof require refresh before
+promotion, independently of software, capacity and live/scientific acceptance.
