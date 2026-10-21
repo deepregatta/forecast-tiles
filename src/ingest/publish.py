@@ -152,6 +152,30 @@ def content_etag(data: bytes) -> str:
     return f'"{hashlib.md5(data, usedforsecurity=False).hexdigest()}"'
 
 
+def _retryable_inventory_read(error: Exception) -> bool:
+    from botocore.exceptions import (
+        ConnectionClosedError,
+        ConnectTimeoutError,
+        EndpointConnectionError,
+        ReadTimeoutError,
+        ResponseStreamingError,
+    )
+
+    response = getattr(error, "response", None)
+    metadata = response.get("ResponseMetadata") if isinstance(response, dict) else None
+    status = metadata.get("HTTPStatusCode") if isinstance(metadata, dict) else None
+    return status in (408, 429, 500, 502, 503, 504) or isinstance(
+        error,
+        (
+            ConnectionClosedError,
+            ConnectTimeoutError,
+            EndpointConnectionError,
+            ReadTimeoutError,
+            ResponseStreamingError,
+        ),
+    )
+
+
 class S3Store:
     """boto3-backed store for Cloudflare R2 (S3 API).
 
@@ -266,7 +290,17 @@ class S3Store:
             kwargs = {"Bucket": self.bucket, "Prefix": self._key(prefix)}
             if token:
                 kwargs["ContinuationToken"] = token
-            resp = self.client.list_objects_v2(**kwargs)
+            # Retry only this idempotent page, with the same continuation token.
+            # Nothing from a page is appended until it has been read successfully.
+            for attempt in range(3):
+                try:
+                    resp = self.client.list_objects_v2(**kwargs)
+                    break
+                except Exception as exc:
+                    if attempt == 2 or not _retryable_inventory_read(exc):
+                        raise
+                    print(f"r2: retrying inventory read ({attempt + 1}/3, {type(exc).__name__})")
+                    self.read_sleep(attempt + 1)
             if type(resp.get("IsTruncated")) is not bool:
                 raise StorageGuardError("physical inventory pagination state unknown")
             out += [

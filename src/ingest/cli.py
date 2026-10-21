@@ -389,21 +389,23 @@ def main(
             args.attempt.finish(code)
         return code
     finally:
-        if args.paid_guard and args.paid_token:
-            try:
-                args.paid_guard.finish(args.layer, args.paid_token)
-            except Paused as exc:
-                print(f"ingest {args.layer}: lease retained until expiry: {exc}")
-        if args.attempt:
-            try:
-                args.attempt.write()
-            except (OSError, ValueError) as exc:
-                # Publication may already be committed. A missing report is
-                # unknown evidence; do not mislabel that forecast as failed.
-                print(
-                    f"ingest {args.layer}: attempt report unavailable ({type(exc).__name__})",
-                    file=sys.stderr,
-                )
+        try:
+            if args.paid_guard and args.paid_token:
+                try:
+                    args.paid_guard.finish(args.layer, args.paid_token)
+                except Paused as exc:
+                    print(f"ingest {args.layer}: lease retained until expiry: {exc}")
+        finally:
+            if args.attempt:
+                try:
+                    args.attempt.write()
+                except (OSError, ValueError) as exc:
+                    # Publication may already be committed. A missing report is
+                    # unknown evidence; do not mislabel that forecast as failed.
+                    print(
+                        f"ingest {args.layer}: attempt report unavailable ({type(exc).__name__})",
+                        file=sys.stderr,
+                    )
 
 
 def _observe(args, phase: str | None = None, **fields):

@@ -1,4 +1,4 @@
-# Vendored from oscar/cloud/recompute/paid_work.py, 2026-10-13.
+# Vendored from oscar/cloud/recompute/paid_work.py, 2026-10-21.
 """Persistent admission control for optional producers; no data-path changes.
 
 The operator provisions one reviewed JSON document in R2. Policy and usage live
@@ -181,7 +181,9 @@ class Guard:
                 IfMatch=etag,
             )
         except Exception as exc:
-            status = getattr(exc, "response", {}).get("ResponseMetadata", {}).get("HTTPStatusCode")
+            response = getattr(exc, "response", None)
+            metadata = response.get("ResponseMetadata") if isinstance(response, dict) else None
+            status = metadata.get("HTTPStatusCode") if isinstance(metadata, dict) else None
             if status == 412:
                 return False
             raise Paused("reservation outcome unknown; review before retry") from exc

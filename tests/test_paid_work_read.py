@@ -108,3 +108,23 @@ def test_current_sdk_read_timeout_is_retryable(paid, monkeypatch):
     client = ReadClient([errors.ReadTimeoutError(endpoint_url="https://private.invalid"), b"{}"])
     assert paid.Guard(client, "scratch").read()[0] == {}
     assert client.calls == 2
+
+
+@pytest.mark.parametrize(
+    "response", [None, {"ResponseMetadata": None}, {"ResponseMetadata": {"HTTPStatusCode": 503}}]
+)
+def test_uncertain_write_with_missing_sdk_metadata_stops_after_one_put(paid, response):
+    writes = []
+    error = RuntimeError("private endpoint")
+    error.response = response
+
+    def lost_response(**kwargs):
+        writes.append(kwargs)
+        raise error
+
+    guard = paid.Guard(SimpleNamespace(put_object=lost_response), "scratch")
+    with pytest.raises(paid.Paused, match="outcome unknown") as caught:
+        guard.write({"usage": {"seconds": 9000}}, '"previous"')
+    assert len(writes) == 1
+    assert caught.value.__cause__ is error
+    assert "private endpoint" not in str(caught.value)

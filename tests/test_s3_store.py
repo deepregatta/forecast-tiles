@@ -202,3 +202,67 @@ def test_nontransient_get_is_not_retried(client, status):
             S3Store(client, "b", read_sleep=sleeps.append).get("latest.json")
         stub.assert_no_pending_responses()
     assert sleeps == []
+
+
+def test_inventory_retries_only_failed_page_without_duplicate_objects(client, monkeypatch):
+    calls, sleeps = [], []
+    events = iter(
+        [
+            {
+                "IsTruncated": True,
+                "NextContinuationToken": "next",
+                "Contents": [{"Key": "p/a", "Size": 1}],
+            },
+            ReadTimeoutError(endpoint_url="https://private.invalid"),
+            {"IsTruncated": False, "Contents": [{"Key": "p/b", "Size": 2}]},
+        ]
+    )
+
+    def page(**kwargs):
+        calls.append(kwargs)
+        event = next(events)
+        if isinstance(event, Exception):
+            raise event
+        return event
+
+    monkeypatch.setattr(client, "list_objects_v2", page)
+    objects = S3Store(client, "b", prefix="p/", read_sleep=sleeps.append).list_objects("")
+    assert [(obj["key"], obj["bytes"]) for obj in objects] == [("a", 1), ("b", 2)]
+    assert [call.get("ContinuationToken") for call in calls] == [None, "next", "next"]
+    assert all(call["Prefix"] == "p/" for call in calls) and sleeps == [1]
+
+
+def test_inventory_exhaustion_never_returns_the_successful_partial_prefix(client, monkeypatch):
+    calls, sleeps = [], []
+
+    def page(**kwargs):
+        calls.append(kwargs)
+        if len(calls) == 1:
+            return {
+                "IsTruncated": True,
+                "NextContinuationToken": "next",
+                "Contents": [{"Key": "a", "Size": 1}],
+            }
+        raise ReadTimeoutError(endpoint_url="https://private.invalid")
+
+    monkeypatch.setattr(client, "list_objects_v2", page)
+    with pytest.raises(ReadTimeoutError):
+        S3Store(client, "b", read_sleep=sleeps.append).list_objects("")
+    assert [call.get("ContinuationToken") for call in calls] == [None, "next", "next", "next"]
+    assert sleeps == [1, 2]
+
+
+@pytest.mark.parametrize("status", [403, 503])
+def test_inventory_http_retry_is_limited_to_transient_responses(client, status):
+    sleeps = []
+    with Stubber(client) as stub:
+        stub.add_client_error("list_objects_v2", "Unavailable", http_status_code=status)
+        if status == 503:
+            stub.add_response("list_objects_v2", {"IsTruncated": False, "Contents": []})
+            assert S3Store(client, "b", read_sleep=sleeps.append).list_objects("") == []
+            assert sleeps == [1]
+        else:
+            with pytest.raises(client.exceptions.ClientError):
+                S3Store(client, "b", read_sleep=sleeps.append).list_objects("")
+            assert sleeps == []
+        stub.assert_no_pending_responses()

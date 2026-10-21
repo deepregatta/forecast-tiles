@@ -256,3 +256,25 @@ def test_parser_rejection_keeps_actual_nonzero_exit_code(regional):
     data = json.loads(report.read_text())
     assert data["exit_code"] == 2 and data["failure_category"] == "configuration"
     assert data["pointer_commit_confirmed"] is None
+
+
+def test_original_attempt_is_written_even_if_lease_finalization_crashes(regional, monkeypatch):
+    from types import SimpleNamespace
+
+    _, _, _, report, args = regional
+
+    def cleanup_failure(*_):
+        raise RuntimeError("lease cleanup failed")
+
+    def inventory_failure(args, *_a, **_kw):
+        args.paid_guard = SimpleNamespace(finish=cleanup_failure)
+        args.paid_token = "scratch-token"
+        raise TimeoutError("private inventory endpoint")
+
+    monkeypatch.setattr(cli, "_run_forecast", inventory_failure)
+    with pytest.raises(RuntimeError, match="lease cleanup failed"):
+        cli.main(args + ["--attempt-report", str(report)])
+    data = json.loads(report.read_text())
+    assert data["outcome"] == "failed" and data["error_type"] == "TimeoutError"
+    assert data["exit_code"] == 1 and data["pointer_commit_confirmed"] is None
+    assert "private inventory endpoint" not in report.read_text()
