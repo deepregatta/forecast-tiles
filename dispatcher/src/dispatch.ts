@@ -18,7 +18,7 @@ export interface Env {
   DRY_RUN?: string;
   /** Comma-separated regional model allowlist. Empty disables all regionals. */
   REGIONAL_MODELS?: string;
-  /** Only "true" enables four cycles; otherwise use the two-cycle canary. */
+  /** Only "true" enables four cycles; otherwise use the two-cycle production profile. */
   REGIONAL_FULL_CADENCE?: string;
 }
 

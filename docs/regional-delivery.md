@@ -169,9 +169,12 @@ needed no further decode for either named read.
    simultaneous root uploads, including their manifests) and
    `REGIONAL_HEADROOM_BYTES`. Admission adds all nonreferenced bucket bytes
    (routing data, pointers, metadata and orphans), three capped runs per enabled
-   regional, and headroom. Both reserved and physical upload peaks must fit the
+   regional, and headroom. Since 2026-10-21 a root or enabled regional run
+   written within the last four hours is treated as an in-flight upload those
+   reservations already hold, not counted twice. Both reserved and physical upload peaks must fit the
    reviewed guard. Its code fallback was 8,000,000,000 bytes at activation and
-   has matched the rechecked 14,000,000,000-byte setting since 2026-10-04
+   has matched the approved setting since 2026-10-04 (15,000,000,000 bytes
+   from 2026-10-21)
    ([storage admission](storage-admission.md)); the approved repository capacity
    override is applied as recorded below. Run caps include manifests.
 4. Deploy Passage with `VITE_REGIONAL_MODELS` naming only the tested model,
@@ -4093,3 +4096,47 @@ gates remain independent.
 The later IBI [October 21 00Z job 39579435890](https://github.com/deepregatta/forecast-tiles/actions/runs/39579435890)
 was still in progress at final readback; no publication is inferred for it.
 The current IBI pointer remains the previously confirmed cycle.
+
+## Canary process stopped; two cycles/day is production, 2026-10-21
+
+**Owner decision (2026-10-21 evening):** traffic to Passage and its GRIB
+exports is low, so the seven-day canary process is stopped rather than passed.
+AROME (03/15Z), ICON-EU and UKV (00/12Z) stay in production at that reduced
+cadence, with Passage's regional comparison and GRIB export left enabled; the
+live bundle carries all three models. Full cadence (`OPENMETEO_FULL_CADENCE`,
+Worker `REGIONAL_FULL_CADENCE`) stays false and Release 2 stays unbuilt until
+traffic justifies them. The twice-daily acceptance heartbeat was paused
+earlier the same day; the windows, receipts and misses above remain history.
+At the stop, UKV had passed one fixed window (14/14) and AROME/ICON-EU none.
+
+### ICON-EU and UKV 12Z refused by a capacity double count
+
+[ICON-EU 12Z 39625555811](https://github.com/deepregatta/forecast-tiles/actions/runs/39625555811)
+and [UKV 12Z 39633152243](https://github.com/deepregatta/forecast-tiles/actions/runs/39633152243)
+downloaded and validated complete runs, then regional admission refused them
+before upload: the reserved peak exceeded the guard while physical usage was
+well inside it. Each refusal coincided with 12Z root uploads. Those unreferenced
+in-flight runs were counted as "other" bytes on top of the fixed root
+reservation that already holds simultaneous root ingestion, adding about 1 GB.
+The fix ([003fb87](https://github.com/deepregatta/forecast-tiles/commit/003fb8782e3f4cf6e5ed2ef86d18d76ba4b48add))
+no longer counts root or enabled regional runs written within a job's
+four-hour lifetime twice; older abandoned uploads, stray keys and the physical
+check are unchanged. AROME 15Z published normally. ICON-EU remains on its
+October 20 00Z run until its next scheduled cycle; no charged cycle was replayed.
+
+### Unattended operation settings
+
+Applied with owner approval and read back on 2026-10-21 at 21:17 UTC:
+
+- `PAID_WORK_ENFORCE=0` in forecast-tiles and Passage. The 72-hour billing
+  review had been renewed by the paused heartbeat and would have stopped every
+  forecast producer at its October 23 02:15 UTC expiry
+  ([spending controls](paid-work.md)).
+- `MAX_BUCKET_BYTES` raised from 14,000,000,000 to 15,000,000,000 bytes, with
+  matching code and workflow fallbacks. Without in-flight double counting the
+  quiet reservation fit the old guard by only a few hundred MB. R2 bills
+  actual storage, not the guard.
+
+An earlier review the same day re-checked the Phase 0–2 implementation and
+fixed the reader's retry of bodies cut short mid-stream
+([d353a3a](https://github.com/deepregatta/forecast-tiles/commit/d353a3af6c5579dbb16b2861aeca36ba3c68cec5)).

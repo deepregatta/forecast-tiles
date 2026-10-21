@@ -1,5 +1,5 @@
 {
-  "status": "October 21 morning: normal root retention and current complete capacity fit restored unchanged; AROME/UKV scheduled publications valid/timely; ICON source-readiness miss followed by charged recovery inventory timeout, no original attempt artifact and no publication; software guard/report/inventory-read fixes and required hosted checks pass, failed audit repaired; new AROME prospective window only, ICON failed window retained, UKV fixed pass; full cadence false",
+  "status": "Canary process stopped by owner decision on 2026-10-21 (not passed). AROME, ICON-EU and UKV stay in production at two cycles/day with Passage comparison and GRIB export enabled; full cadence false until traffic justifies it. Windows, receipts and misses below are history.",
   "started_on": "2026-10-02",
   "observation_days": 7,
   "minimum_on_time_fraction": 0.95,
@@ -1004,7 +1004,7 @@
   },
   "follow_up": {
     "cadence": "twice daily Codex heartbeat at 09:45 and 22:45 Europe/Paris",
-    "status": "active",
+    "status": "paused 2026-10-21T09:58:20Z; canary process stopped",
     "policy": "quiet while healthy or unchanged; report failures, required action and acceptance completion",
     "one_time_recovery": {
       "automation_id": "ecmwf-00z-recovery-follow-up",
@@ -49787,5 +49787,27 @@
       "single_follow_up_pause_after_required_checks": true,
       "ordinary_acceptance_heartbeat_preserved": true
     }
+  },
+  "acceptance_stopped": {
+    "decided_at": "2026-10-21",
+    "decision": "Owner: low Passage/GRIB traffic, so keep the reduced cadence in production, fix what is needed and stop the canaries. Full cadence and Release 2 deferred until traffic grows.",
+    "passed_windows_at_stop": {
+      "weather-arome": 0,
+      "weather-icon-eu": 0,
+      "weather-ukv": 1
+    },
+    "heartbeat_paused_at": "2026-10-21T09:58:20Z",
+    "settings_applied_at": "2026-10-21T21:17:15Z",
+    "settings": {
+      "PAID_WORK_ENFORCE": "0 in forecast-tiles and Passage (billing review no longer required)",
+      "MAX_BUCKET_BYTES": "15000000000 (code and workflow fallbacks match)",
+      "OPENMETEO_FULL_CADENCE": "false (unchanged)",
+      "REGIONAL_FULL_CADENCE": "false (unchanged)"
+    },
+    "fixes": [
+      "d353a3af6c5579dbb16b2861aeca36ba3c68cec5: retry Open-Meteo bodies cut short mid-stream",
+      "003fb8782e3f4cf6e5ed2ef86d18d76ba4b48add: stop double-counting in-flight uploads in regional capacity"
+    ],
+    "record": "docs/regional-delivery.md#canary-process-stopped-two-cyclesday-is-production-2026-10-21"
   }
 }

@@ -50,7 +50,7 @@ Configuration and delivery evidence answer different questions:
 | Capability | Checked-in configuration | Available operational evidence |
 |---|---|---|
 | Seven root forecast layers | Dedicated workflows; dispatcher `DRY_RUN="false"`; six-hourly :37 fallback crons | Dated 1–3 October dispatcher checkpoint below; current live operation requires fresh logs and publication read-back |
-| AROME, ICON-EU, UKV | Registry production gates enabled; Worker allowlist includes all three; full cadence off; manual workflow dry run defaults on; :47 catch-up cron | [2–3 October publication receipts and read-back](docs/regional-canary-status.json); seven-day acceptance remains open |
+| AROME, ICON-EU, UKV | Registry production gates enabled; Worker allowlist includes all three; two cycles/day (full cadence off by owner decision); manual workflow dry run defaults on; :47 catch-up cron | [Dated publication receipts](docs/regional-canary-status.json); canary acceptance stopped 2026-10-21, see [regional delivery](docs/regional-delivery.md) |
 | Current layers | `currents`: CMEMS GLO12, six-hourly samples to 240 h; `currents-ibi`: CMEMS IBI, hourly means to 120 h | Dated provider timings in the dispatcher table; no alternate provider is supported |
 | Routing index | One-shot `ingest land`, manual workflow only | [Versioned index and reproducibility evidence](docs/land-index-format.md) |
 
@@ -62,8 +62,8 @@ production gate or omitted activation allowlist; it does not disable scratch
 validation. The GitHub and deployment flags in the dated record are evidence
 at that checkpoint, not a read-back of current settings. Current provider,
 Worker and publication health are **unverified** until checked; neither config
-nor a successful job alone proves that a new forecast was published. Seven-day
-acceptance and any full-cadence promotion are separate from local/hosted CI.
+nor a successful job alone proves that a new forecast was published. Any later
+full-cadence promotion is separate from local/hosted CI.
 
 After installing the lockfile-managed dependencies (`uv sync --all-extras`
 and `(cd dispatcher && npm ci)`), run the same gates used by CI:
@@ -84,7 +84,7 @@ deployment or provider writes are performed by the wrapper.
 Maintained documentation: [shared contract ownership and drift checks](docs/shared-contracts.md),
 [GitHub Actions pins, verified updates and proposed main protection](docs/github-actions.md),
 [regional operations and evidence](docs/regional-delivery.md),
-[canary status](docs/regional-canary-status.json),
+[canary history](docs/regional-canary-status.json),
 [regional implementation plan](docs/open-meteo-bulk-implementation-plan.md),
 [IBI geometry and horizon](docs/ibi-currents.md),
 [spending controls](docs/paid-work.md),
@@ -211,7 +211,7 @@ The Phase 0 size-measurement prototype is still runnable:
    `PutObject`, which the `latest.json` commit relies on.
 
 The storage guard refuses to publish when retained runs + the new run would
-exceed `MAX_BUCKET_BYTES` (default 14 GB). It counts tile bytes after retention
+exceed `MAX_BUCKET_BYTES` (default 15 GB). It counts tile bytes after retention
 across both forecast pointers, and refuses before uploading if a retained
 manifest is missing, unreadable, or has invalid/inconsistent size metadata.
 Reconcile those references using verified information before retrying. This
@@ -262,7 +262,7 @@ column at the end of the western tile. IBI keeps the provider's own regular
 0.02777863° lattice, which sits up to 0.0013° off the 1/36° lines
 ([docs/ibi-currents.md](docs/ibi-currents.md)).
 
-### Regional layers (reduced-cadence production canaries)
+### Regional layers (two cycles/day in production)
 
 Phases 1–4 of the [Open-Meteo bulk plan](docs/open-meteo-bulk-implementation-plan.md)
 add regional deterministic models from Open-Meteo's public AWS files
@@ -302,20 +302,21 @@ Earlier wind-only dry runs of AROME 09Z and ICON-EU 06Z wrote 48.4 MB (28 tiles)
 and 105.6 MB (60 tiles). Fresh verified-gust AROME 09Z / ICON-EU 12Z runs wrote
 73.3 / 169.8 MB in 28 / 60 tiles. Coordinated Passage support, browser
 admission, immutable regional creation, capacity reservations, scheduling and
-regional-only disable/rollback are implemented. Reduced-cadence production
-canaries were activated for AROME, ICON-EU and UKV on 2026-10-02:
-see [regional delivery evidence and activation gates](docs/regional-delivery.md).
+regional-only disable/rollback are implemented. AROME, ICON-EU and UKV were
+activated at reduced cadence on 2026-10-02. On 2026-10-21 the owner stopped the
+seven-day canary process and kept that cadence as production while traffic is
+low: see [regional delivery evidence](docs/regional-delivery.md).
 
 The `ingest-openmeteo` workflow normalizes manual and scheduled catch-up jobs
 into per-layer concurrency groups; manual dry runs default on. The Worker has
-AROME/ICON-EU/UKV entries with all three in `REGIONAL_MODELS`. Canary profiles
-select AROME 03/15Z and ICON-EU/UKV 00/12Z. Existing-layer timetable entries
+AROME/ICON-EU/UKV entries with all three in `REGIONAL_MODELS`. The reduced
+("canary") profiles select AROME 03/15Z and ICON-EU/UKV 00/12Z. Existing-layer timetable entries
 remain unchanged. Full cadence needs both the GitHub
 `OPENMETEO_FULL_CADENCE` variable and Worker `REGIONAL_FULL_CADENCE` setting.
 Deployment and publications are recorded in the dated evidence; this does
 not establish current live health. Worker full cadence is false in checked-in
 config and the GitHub setting was false at the latest recorded checkpoint.
-Both must remain off until the plan's seven-day gates pass.
+Both stay off by owner decision until traffic justifies four cycles a day.
 
 Regional jobs save a separate attempt JSON artifact for 30 days, including
 failure category, prior successful run, source identities/bytes and metadata
@@ -354,7 +355,7 @@ The existing layers keep 18 dispatches from 16 provider slots per day. Two
 layers share the 00:15 and 12:15 fires; each is dispatched independently.
 The same five cron expressions now include regional hours, as shown in
 `dispatcher/wrangler.toml`; the table above describes the original provider
-slots rather than the extended expressions. Reduced-cadence regional canaries
+slots rather than the extended expressions. Reduced-cadence regional runs
 add AROME at 05:45/18:45, ICON-EU at 03:25/15:25 and UKV at 04:15/16:15 UTC.
 That totals 24 dispatched jobs per day, with six further regional-only fires
 filtered out while full cadence is off. No additional Cron Trigger was added.
@@ -523,7 +524,7 @@ dependency, not vendored or redistributed here.
 - Met Office UKV via Open-Meteo: CC BY-SA 4.0 for transformed tiles and
   cropped fixtures. Attribution, licence link and modifications are recorded;
   see [DATA-LICENSES.md](DATA-LICENSES.md). Reduced-cadence production was
-  activated on 2026-10-02; full-cadence acceptance remains open.
+  activated on 2026-10-02 and kept as production on 2026-10-21.
 - GSHHG shoreline: LGPL-3.0-or-later, with permission to use, copy, modify and
   distribute given attribution — Wessel, P., and W. H. F. Smith (1996), *A
   global, self-consistent, hierarchical, high-resolution shoreline database*,

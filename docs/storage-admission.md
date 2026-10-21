@@ -20,8 +20,9 @@ native-only and legacy-writer gates. Preparation does not authorize activation.
 
 ## Two independent controls
 
-`MAX_BUCKET_BYTES` remains the retained forecast tile guard. Its fallback now
-matches the rechecked 14,000,000,000-byte setting; it is neither the universal
+`MAX_BUCKET_BYTES` remains the retained forecast tile guard. Its fallback
+matches the owner-approved setting (14,000,000,000 bytes from 2026-10-04,
+15,000,000,000 bytes from 2026-10-21); it is neither the universal
 physical bucket cap nor a monetary cap. Missing/inconsistent retained forecast
 manifests still fail closed. The regional calculation still checks its physical
 inventory, registered per-run caps and configured simultaneous-upload envelope.

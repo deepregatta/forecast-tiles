@@ -6,6 +6,13 @@ of the same name; its absent/default value is `0`. Activation requires a
 reviewed `ops/paid-work.json` in the existing R2 bucket. No new credential,
 paid plan, forecast format or consumer change is required.
 
+**Status, 2026-10-21: off.** By owner decision, `PAID_WORK_ENFORCE` is `0` in
+forecast-tiles and Passage, so production no longer depends on a billing
+review every 72 hours or a period rollover. The storage guard, regional
+capacity check, GitHub zero-spend budgets and fixed schedules remain. The
+ledger is left unchanged; re-enabling first needs a fresh review and a
+current period, or every producer pauses.
+
 The implementation is vendored from `oscar/cloud/recompute/paid_work.py`
 (2026-10-03). Passage's prepared-run uploader uses the same protocol and
 object in the shared forecast bucket. Keep the three implementations in sync.

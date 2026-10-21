@@ -16,12 +16,14 @@ Release 1 is not complete. See the evidence and operations
 in [regional-delivery.md](regional-delivery.md). Historical review measurements
 below remain attributed to the earlier review.
 
-Status, 2026-10-21: per [regional-canary-status.json](regional-canary-status.json),
-UKV's fixed 2026-10-06–13 window passed timeliness (14/14 on time, no invalid
-run). AROME and ICON-EU have not yet passed a seven-day window. Replacement,
-outage and rollback remain separately tracked gates, and full cadence stays off.
-A review of the Phase 0–2 code against this plan found one reader gap, now
-fixed (see Verification status).
+**Owner decision, 2026-10-21:** the seven-day canary process is stopped, not
+passed. AROME, ICON-EU and UKV stay in production at two cycles a day, with
+Passage's regional comparison and GRIB export enabled. Full cadence and
+Release 2 wait until traffic justifies them. At that point only UKV had passed
+a timeliness window (14/14, 2026-10-06–13); see
+[regional-canary-status.json](regional-canary-status.json) and
+[regional-delivery.md](regional-delivery.md). A review of the Phase 0–2 code
+against this plan found one reader gap, now fixed (see Verification status).
 
 Add new deterministic weather models from Open-Meteo's public AWS files while
 keeping every existing layer on its current provider, with its current fields,
@@ -514,9 +516,9 @@ immutable run as part of normal migration.
 
 The root publisher's retained-tile guard is `MAX_BUCKET_BYTES`, with an
 owner-approved GitHub variable applied consistently across workflows. Since
-2026-10-04 its code and workflow fallbacks match the rechecked
-14,000,000,000-byte setting, replacing the historical 8,000,000,000 bytes
-([storage admission](storage-admission.md)). Regional admission additionally
+2026-10-04 its code and workflow fallbacks match the approved setting:
+14,000,000,000 bytes, then 15,000,000,000 bytes from 2026-10-21, replacing the
+historical 8,000,000,000 bytes ([storage admission](storage-admission.md)). Regional admission additionally
 reserves calculated root upload overlap, three capped runs per enabled model,
 all nonreferenced objects and explicit headroom. Both catalogues and the whole
 bucket inventory are required; unknown or damaged capacity fails closed.
@@ -546,8 +548,8 @@ That capacity approval was followed by owner-authorized model activation.
 Capacity was refreshed before activation; keep refreshing across representative
 cycles and preserve existing products. See the dated activation record in
 [regional-delivery.md](regional-delivery.md).
-The code fallback was 8 GB until 2026-10-04 and now matches the rechecked
-14 GB setting. It is neither a physical bucket cap nor a monetary cap, and
+The code fallback was 8 GB until 2026-10-04, then 14 GB, and 15 GB since
+2026-10-21. It is neither a physical bucket cap nor a monetary cap, and
 Release 1 admission still depends on the calculated regional reservation.
 
 **Release 2 decision:** do not enable ICON-D2, HRRR or HRDPS using the remaining
