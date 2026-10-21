@@ -16,6 +16,13 @@ Release 1 is not complete. See the evidence and operations
 in [regional-delivery.md](regional-delivery.md). Historical review measurements
 below remain attributed to the earlier review.
 
+Status, 2026-10-21: per [regional-canary-status.json](regional-canary-status.json),
+UKV's fixed 2026-10-06–13 window passed timeliness (14/14 on time, no invalid
+run). AROME and ICON-EU have not yet passed a seven-day window. Replacement,
+outage and rollback remain separately tracked gates, and full cadence stays off.
+A review of the Phase 0–2 code against this plan found one reader gap, now
+fixed (see Verification status).
+
 Add new deterministic weather models from Open-Meteo's public AWS files while
 keeping every existing layer on its current provider, with its current fields,
 grid, cycles, horizon, tile layout, retention and readiness/catch-up behavior. Release 1
@@ -128,6 +135,12 @@ does not establish the size of the proposed new delivery layout.
 - Browser budgets with the actual consumer and current combined storage
   headroom. Source completeness alone does not establish these. Known-point
   and mask fixtures now exist for AROME and ICON-EU (`tests/fixtures/openmeteo/`).
+- The 2026-10-21 review re-checked the Phase 0–2 code and tests against this
+  plan. A whole-file body cut short mid-stream reached the reader as
+  `requests` `ChunkedEncodingError`: urllib3 2 refuses it before the reader's
+  own length check. It was neither retried nor reported as a source error.
+  It is now retried within the same bounded attempts, then refused as a
+  `SourceError`; a loopback-socket test covers it.
 
 ## Model order and definitions
 
@@ -198,9 +211,10 @@ is accounted for. The manual `r2-audit` workflow performs this read-only check.
   merges only the publishing layer, writes with `If-Match` (`If-None-Match: *`
   on creation), and retries conflicts up to six times with jittered backoff.
   An older cycle is refused before upload and again at each attempt. A write
-  whose outcome is unknown (transport error, 5xx, or boto3's own retry hitting
-  412 after the first attempt landed) is settled by the next read, which
-  recognizes the exact entry by run ID and `published_at`.
+  whose outcome is unknown (transport error or 5xx) is settled by the next
+  read, which recognizes the exact entry by run ID and `published_at`. Since
+  2026-10-04 the R2 client makes one SDK attempt per PUT, so boto3's own retry
+  can no longer meet a 412 from a write that already landed.
 - `apply_retention` runs only after a confirmed commit and deletes only
   complete runs older than the retained previous, re-reading every pointer
   before each deletion and removing tiles before the manifest so an
@@ -498,9 +512,11 @@ immutable run as part of normal migration.
 
 ## Storage decision and costs
 
-The root publisher retains its historical 8,000,000,000-byte fallback guard,
-with an owner-approved GitHub variable override applied consistently across
-workflows. Regional admission additionally
+The root publisher's retained-tile guard is `MAX_BUCKET_BYTES`, with an
+owner-approved GitHub variable applied consistently across workflows. Since
+2026-10-04 its code and workflow fallbacks match the rechecked
+14,000,000,000-byte setting, replacing the historical 8,000,000,000 bytes
+([storage admission](storage-admission.md)). Regional admission additionally
 reserves calculated root upload overlap, three capped runs per enabled model,
 all nonreferenced objects and explicit headroom. Both catalogues and the whole
 bucket inventory are required; unknown or damaged capacity fails closed.
@@ -530,7 +546,9 @@ That capacity approval was followed by owner-authorized model activation.
 Capacity was refreshed before activation; keep refreshing across representative
 cycles and preserve existing products. See the dated activation record in
 [regional-delivery.md](regional-delivery.md).
-The code fallback remains 8 GB; Release 1 is not assumed to fit that fallback.
+The code fallback was 8 GB until 2026-10-04 and now matches the rechecked
+14 GB setting. It is neither a physical bucket cap nor a monetary cap, and
+Release 1 admission still depends on the calculated regional reservation.
 
 **Release 2 decision:** do not enable ICON-D2, HRRR or HRDPS using the remaining
 Release 1 allocation. Re-budget first. The review expects the full set to exceed

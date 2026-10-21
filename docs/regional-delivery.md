@@ -170,8 +170,10 @@ needed no further decode for either named read.
    `REGIONAL_HEADROOM_BYTES`. Admission adds all nonreferenced bucket bytes
    (routing data, pointers, metadata and orphans), three capped runs per enabled
    regional, and headroom. Both reserved and physical upload peaks must fit the
-   reviewed guard. Its code fallback is still 8,000,000,000 bytes; the approved
-   repository capacity override is applied as recorded below. Run caps include manifests.
+   reviewed guard. Its code fallback was 8,000,000,000 bytes at activation and
+   has matched the rechecked 14,000,000,000-byte setting since 2026-10-04
+   ([storage admission](storage-admission.md)); the approved repository capacity
+   override is applied as recorded below. Run caps include manifests.
 4. Deploy Passage with `VITE_REGIONAL_MODELS` naming only the tested model,
    open that model's registry production gate, and set the same model in GitHub
    `OPENMETEO_ENABLED_LAYERS` and Worker `REGIONAL_MODELS`. Direct CLI publication
