@@ -110,6 +110,53 @@ def test_a_truncated_body_is_retried_then_refused(tmp_path):
     assert len(session.calls) == reader.ATTEMPTS
 
 
+def test_a_short_body_from_a_real_socket_is_retried_then_refused(tmp_path, monkeypatch):
+    """urllib3 2 raises on a body shorter than its Content-Length before the
+    reader can count it; requests surfaces that as ChunkedEncodingError."""
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    import requests
+
+    served = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            served.append(self.path)
+            body = b"0123456789"
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("ETag", '"e1"')
+            self.end_headers()
+            self.wfile.write(body if len(served) > short_responses else body[:7])
+            self.close_connection = True
+
+        def log_message(self, *args):
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    monkeypatch.setattr(reader, "BUCKET_URL", f"http://127.0.0.1:{server.server_address[1]}")
+    try:
+        short_responses = 1
+        sleeps = []
+        with requests.Session() as session:
+            record = reader.download("k/u.om", tmp_path / "u", session=session, sleep=sleeps.append)
+        assert record == ObjectRecord("k/u.om", '"e1"', 10) and sleeps == [2]
+        assert (tmp_path / "u").read_bytes() == b"0123456789"
+
+        served.clear()
+        short_responses = reader.ATTEMPTS
+        with requests.Session() as session, pytest.raises(SourceError, match="after 4 attempts"):
+            reader.download("k/u.om", tmp_path / "u", session=session, sleep=no_sleep)
+        assert len(served) == reader.ATTEMPTS
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
+
+
 def test_throttling_and_server_errors_are_retried_with_a_bound(tmp_path):
     import requests
 

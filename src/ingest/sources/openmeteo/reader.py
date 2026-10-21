@@ -73,7 +73,14 @@ def _retrying(
             return attempt_fn()
         except NotFound:
             raise
-        except (requests.ConnectionError, requests.Timeout, _Transient) as exc:
+        # ChunkedEncodingError is a body cut short mid-stream: urllib3 refuses
+        # one shorter than its Content-Length before the length check sees it.
+        except (
+            requests.ConnectionError,
+            requests.Timeout,
+            requests.exceptions.ChunkedEncodingError,
+            _Transient,
+        ) as exc:
             if attempt == attempts:
                 raise SourceError(f"{what}: {exc} (after {attempts} attempts)") from exc
             delay = 2**attempt
