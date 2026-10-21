@@ -59,7 +59,7 @@ CACHE_MUTABLE = "public, max-age=300, must-revalidate"
 OCTET_STREAM = "application/octet-stream"
 APPLICATION_JSON = "application/json"
 
-DEFAULT_MAX_BUCKET_BYTES = 14_000_000_000  # retained tiles only; not an account spending cap
+DEFAULT_MAX_BUCKET_BYTES = 15_000_000_000  # retained tiles only; not an account spending cap
 
 LATEST_KEY = "latest.json"
 # Regional models (src/ingest/sources/openmeteo) have a pointer of their own,
