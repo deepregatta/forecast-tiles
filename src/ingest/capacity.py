@@ -13,6 +13,7 @@ import os
 import math
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 
 from ingest.publish import StorageGuardError
 from ingest.sources.openmeteo import registry
@@ -53,6 +54,24 @@ ROOT_LAYERS = (
     "currents",
     "currents-ibi",
 )
+
+# An ingest job is capped at four hours (ingest.audit). An unreferenced run of
+# a reserved layer written more recently may still be uploading, or is the
+# superseded run its own job is about to remove: one of the simultaneous runs
+# the fixed reservations already hold. Older ones are abandoned and stay counted.
+IN_FLIGHT_HOURS = 4
+
+
+def _in_flight_bytes(report, layers: tuple[str, ...], now: datetime) -> int:
+    cutoff = now - timedelta(hours=IN_FLIGHT_HOURS)
+    return sum(
+        run.bytes
+        for run in report.runs.values()
+        if not run.referenced_as
+        and run.run_id[: -len("-YYYYMMDDTHHZ")] in layers
+        and run.newest is not None
+        and run.newest > cutoff
+    )
 
 
 def capacity_profile(store, layers=registry.LAYERS, *, headroom_bytes=500_000_000):
@@ -135,12 +154,21 @@ class RegionalAllocation:
         return cls(peak, headroom, layers)
 
 
-def check_regional_capacity(store, new_run_bytes: int, limit: int, allocation: RegionalAllocation):
+def check_regional_capacity(
+    store,
+    new_run_bytes: int,
+    limit: int,
+    allocation: RegionalAllocation,
+    *,
+    now: datetime | None = None,
+):
     """Fail closed on damage, unknown inventory or either physical/reserved peak.
 
     Count all bucket objects (routing data, metadata and abandoned uploads too).
     Reserve three capped runs for each admitted regional model simultaneously.
-    The fixed root peak already covers its own simultaneous ingestion jobs.
+    The fixed root peak already covers its own simultaneous ingestion jobs, so
+    their in-flight uploads are not reserved a second time; physical bytes
+    always count in full.
     """
     from ingest.audit import audit_runs
 
@@ -158,7 +186,10 @@ def check_regional_capacity(store, new_run_bytes: int, limit: int, allocation: R
     # Everything else remains an additional allocation until actually deleted:
     # routing data, pointers, stray keys and complete/partial abandoned uploads.
     referenced = sum(run.bytes for run in report.runs.values() if run.referenced_as)
-    other_bytes = max(0, physical - referenced)
+    in_flight = _in_flight_bytes(
+        report, (*ROOT_LAYERS, *allocation.layers), now or datetime.now(timezone.utc)
+    )
+    other_bytes = max(0, physical - referenced - in_flight)
     existing_referenced = sum(
         run.bytes
         for run in report.runs.values()
@@ -177,4 +208,9 @@ def check_regional_capacity(store, new_run_bytes: int, limit: int, allocation: R
             f"regional capacity: reserved peak {reserved} B / physical plus upload and headroom "
             f"{physical_peak} B exceeds {limit} B; refusing before upload"
         )
-    return {"physical_bytes": physical, "other_bytes": other_bytes, "reserved_peak_bytes": reserved}
+    return {
+        "physical_bytes": physical,
+        "other_bytes": other_bytes,
+        "in_flight_bytes": in_flight,
+        "reserved_peak_bytes": reserved,
+    }

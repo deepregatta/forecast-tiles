@@ -21,11 +21,55 @@ def test_capacity_counts_all_objects_and_reserves_simultaneous_uploads(tmp_path,
         store.put(key, b"x" * 200, content_type="x", cache_control="x")
     allocation = RegionalAllocation(500, 50, ("weather-arome",))
     result = check_regional_capacity(store, 100, 1500, allocation)
-    assert result == {"physical_bytes": 600, "other_bytes": 600, "reserved_peak_bytes": 1450}
+    assert result == {
+        "physical_bytes": 600,
+        "other_bytes": 600,
+        "in_flight_bytes": 0,
+        "reserved_peak_bytes": 1450,
+    }
     with pytest.raises(StorageGuardError, match="reserved peak"):
         check_regional_capacity(store, 100, 1449, allocation)
     with pytest.raises(StorageGuardError, match="physical plus upload"):
         check_regional_capacity(store, 900, 1500, allocation)
+
+
+def test_in_flight_uploads_already_reserved_are_not_counted_twice(tmp_path, monkeypatch):
+    """2026-10-21: ICON-EU and UKV 12Z were refused while GFS 12Z uploaded.
+    A root or enabled regional run written within a job's lifetime is one of
+    the simultaneous runs the fixed reservations hold; older ones stay counted
+    as abandoned, and physical bytes always count."""
+    import os
+    from datetime import datetime, timedelta, timezone
+
+    monkeypatch.setitem(
+        registry.PRODUCTS, "weather-arome", replace(registry.AROME, max_run_bytes=100)
+    )
+    store = DirStore(tmp_path)
+    now = datetime(2026, 10, 21, 16, 5, tzinfo=timezone.utc)
+    objects = {
+        "forecast-runs/weather-20261021T12Z/tile": (1000, timedelta(minutes=10)),  # uploading
+        "forecast-runs/weather-arome-20261021T15Z/tile": (50, timedelta(hours=1)),  # partial
+        "forecast-runs/ensemble-20261004T18Z/tile": (300, timedelta(days=17)),  # abandoned
+        "forecast-runs/weather-ukv-20261021T12Z/tile": (70, timedelta(minutes=5)),  # not enabled
+        "land-index/data": (200, timedelta(days=30)),
+    }
+    for key, (size, age) in objects.items():
+        store.put(key, b"x" * size, content_type="x", cache_control="x")
+        os.utime(tmp_path / key, ((now - age).timestamp(),) * 2)
+    allocation = RegionalAllocation(5000, 50, ("weather-arome",))
+
+    result = check_regional_capacity(store, 100, 6000, allocation, now=now)
+    assert result == {
+        "physical_bytes": 1620,
+        "other_bytes": 570,
+        "in_flight_bytes": 1050,
+        "reserved_peak_bytes": 5000 + 3 * 100 + 570 + 50,
+    }
+    with pytest.raises(StorageGuardError, match="reserved peak"):
+        check_regional_capacity(store, 100, 5919, allocation, now=now)
+    # Five hours later nothing can still be writing that upload: it counts.
+    later = check_regional_capacity(store, 100, 8000, allocation, now=now + timedelta(hours=5))
+    assert later["in_flight_bytes"] == 0 and later["other_bytes"] == 1620
 
 
 def test_admission_fails_closed_on_unknown_inventory_or_dangling_reference(tmp_path):
