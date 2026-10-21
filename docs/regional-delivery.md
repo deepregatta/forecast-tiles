@@ -3960,3 +3960,134 @@ in GitHub and Worker, ordinary monitoring remains active, and the consumed
 rollover follow-up is separate. Passage deployment readback remains successful;
 October 6 consumer exports and October 2 device proof require refresh before
 promotion, independently of software, capacity and live/scientific acceptance.
+
+
+## Root retention restored; ICON readiness and missing-receipt failures, 2026-10-21
+
+Actual scheduled GEFS [18Z 39520227499](https://github.com/deepregatta/forecast-tiles/actions/runs/39520227499)
+confirmed at **01:16:30.3130302 UTC**, reporting normal retention of superseded
+runs left by the earlier failures. Short ECMWF [18Z 39520230092](https://github.com/deepregatta/forecast-tiles/actions/runs/39520230092)
+confirmed at **00:43:04.4519830 UTC**; full ECMWF [00Z 39561299950](https://github.com/deepregatta/forecast-tiles/actions/runs/39561299950)
+confirmed at **07:53:15.5518229 UTC**, also completing normal retention on the
+narrowed read. The four original October 20 post-commit failures remain retained;
+no permanent underlying timeout cause is claimed. Original logs distinguish nine
+actual publications from skips and unspecified source-unavailable exits. Fresh
+readback retains all seven root and three regional layers, twenty canonical
+current/previous manifests and ten immutable current tile samples. Known retained
+manifest bytes match the prior private snapshot.
+
+AROME [03Z 39551378109](https://github.com/deepregatta/forecast-tiles/actions/runs/39551378109)
+published valid data at **05:54:20.6270025 UTC**, before **07:25**. UKV
+[00Z 39543048718](https://github.com/deepregatta/forecast-tiles/actions/runs/39543048718)
+confirmed at **04:34:24.3038876 UTC**, before **05:10**.
+
+### ICON source miss and one charged failed recovery
+
+[Scheduled ICON 00Z 39538499309](https://github.com/deepregatta/forecast-tiles/actions/runs/39538499309)
+exhausted its unchanged 45-minute wait at **04:10:59.2168551 UTC**, observing no
+required wind/gust variables and missing the **04:20 UTC** deadline. Its last
+observation named metadata created at **03:19:17 UTC**. A later complete probe
+saw a changed ETag and **03:36:48 UTC** creation time; that timestamp is **not**
+proof that complete data were available to the scheduled reader in time. The
+source/metadata discrepancy and underlying cause remain unproven.
+
+Read-only preflight verified complete source metadata, current policy, passing
+main CI and a full capacity envelope fitting unchanged controls. It protected
+the actual active two-cycle profile's next **15:25 UTC** dispatch; the registered
+four-cycle 06Z/09:25 slot is disabled while both full-cadence flags are false.
+The source wait had not charged this cycle. One [normal guarded recovery
+39565602787](https://github.com/deepregatta/forecast-tiles/actions/runs/39565602787)
+passed **13 scientific checks**, then failed before forecast upload during
+capacity audit `ListObjectsV2` with `ReadTimeoutError`. It supplies **no publication
+or timely credit**; current ICON remains **October 20 00Z**.
+
+Lease-finalization's single conditional PUT also lost its response. Missing SDK
+response metadata caused an `AttributeError`, which prevented the original
+attempt report's final write. GitHub explicitly reported **no artifact found**.
+The original job log/hash is retained, but the original report/outcome timing
+stays **unknown**; no report was synthesized. Readback shows the charged identity
+retained and the lease released; the uncertain PUT was **not repeated**. A later
+ordinary catch-up paused the duplicate identity. No refund, identity deletion,
+charged-cycle replay or extra recovery was performed.
+
+### Failure-handling and required-validation repairs
+
+The missing-metadata bug and missing-report path were reproduced by failing
+regressions before fixing them. The guard now safely classifies absent SDK
+metadata as an uncertain write with **one PUT**. Attempt-report writing executes
+in an independent `finally`, even if lease cleanup crashes. Read-only inventory
+pages retry only transient failures, with the same continuation token and at
+most **three attempts**; exhausted, malformed or incomplete pagination never
+returns a partial prefix. No admission-write retry or control-read bound changed.
+
+Forecast source **be5b10c24d52aeb32698f47a5d2247af52fec23c** passed **562 Python / 60
+dispatcher tests**, including 49 focused S3/guard/report checks, and both required
+hosted jobs [39577791608](https://github.com/deepregatta/forecast-tiles/actions/runs/39577791608). Canonical Oscar
+**4fd0692952d6bc573c7bc107aeedd4f087caf5f2** passed **1731 Python tests**, static checks and
+all required hosted jobs [39577748640](https://github.com/deepregatta/oscar/actions/runs/39577748640), including actual
+**recompute-image smoke**. The local Docker check failed because Docker is
+unavailable; that local failure is retained separately and is not labelled green.
+Passage's vendored guard uses the same fix. These are software checks, not proof
+that the original missing receipt was recovered or a new ICON run published.
+
+Passage required [CI 39577789349](https://github.com/deepregatta/passage/actions/runs/39577789349)
+failed its full npm audit for bundled `launch-editor` advisories
+[GHSA-698v-4r3x-3vcv](https://github.com/advisories/GHSA-698v-4r3x-3vcv),
+[GHSA-r825-w8mm-5pxw](https://github.com/advisories/GHSA-r825-w8mm-5pxw) and
+[GHSA-587h-7wmj-h5pm](https://github.com/advisories/GHSA-587h-7wmj-h5pm).
+The original failed job/log hash remains retained. A minimal **Vite 8.1.4 →
+8.1.6** dependency-floor/lockfile patch gives a clean full audit with **zero
+vulnerabilities**, lint, **518 engine / 635 viewer tests** and Pages build passing.
+All four required jobs pass in [the repaired CI](https://github.com/deepregatta/passage/actions/runs/39578850606) on
+**6bae963eff413dfa24a81c28ccee226d179a9a6c**. Passage's **564 Python tests** also passed.
+The older braces audit and every later failed checkpoint remain historical.
+
+### Capacity fits again; timing and current ICON delivery remain open
+
+Initial [39564407198](https://github.com/deepregatta/forecast-tiles/actions/runs/39564407198)
+and intermediate [39564835735](https://github.com/deepregatta/forecast-tiles/actions/runs/39564835735)
+inventories crossed normal full ECMWF upload/publication/retention and gave
+different raw comparisons. Both originals are retained without peak credit.
+Stable [pre-recovery 39565348703](https://github.com/deepregatta/forecast-tiles/actions/runs/39565348703)
+and [post-failure 39578069454](https://github.com/deepregatta/forecast-tiles/actions/runs/39578069454) audits fit physical plus
+upload/headroom, fixed and calculated complete retained overlap, root variation
+and existing reservation under the **unchanged guard**. The latter ran
+**2026-10-21T09:35:22.287902+00:00–2026-10-21T09:35:46.184404+00:00**, with pointers stable and no
+active producer in either bracket. Every unreferenced object—including historical
+incomplete `ensemble-20261004T18Z`—remains counted; no referenced damage was found.
+No reservation refresh, guard/headroom/allowance change or operator cleanup was
+needed or applied. Exact account figures and original logs/hashes stay private.
+A complete consistent concurrent-upload peak remains **unproven**.
+
+Only AROME receives a new separate prospective window after its verified
+scheduled restoration and fresh capacity/readback checks: **2026-10-21T09:50:34.157528+00:00–2026-10-28T09:50:34.157528+00:00**, with
+**fourteen future slots**, all timely and seven elapsed days required. Every
+original start, bootstrap/profile, earlier window and miss remains retained;
+current 03Z restoration precedes the new schedule and earns no slot. ICON keeps
+its failed October 19 window (**2 timely, 2 failed, 10 pending; maximum 12/14**);
+**no replacement ICON window** is opened while its delivery remains unrestored.
+UKV keeps its fixed **14/14 plus seven elapsed days, passed** window.
+
+Eleven paginated history pages reach the original observation boundary; earlier
+reviewed pre-observation originals are retained separately when that boundary
+moves. All **302 prior receipts/hashes** remain unchanged; nine new originals
+bring total to **311** (four pauses, one source-wait expiry, two publications,
+two skips). The original missing planner and recovery reports remain unknown.
+Every original/named window was scored with its unchanged ingestion allowance.
+
+Authenticated actual billing review remains **October 20 02:15:10.824902 UTC**,
+not yet due. Next real review is due **October 21 14:15:10.824902 UTC**, before
+unchanged **October 23 02:15:10.824902 UTC** expiry. Non-usage policy fields match
+the prior snapshot exactly; prior charged counters/identities/days remain
+monotonic, with the normal failed recovery charge retained. No timestamp,
+period, monetary/provider, pause, frequency/runtime/start limit or identity edit
+occurred. Current provider deployment readback is recorded independently from
+October 6 production exports and October 2 device proof, which remain dated and
+need refresh before promotion. Both full-cadence flags stay **false**; normal
+heartbeat and consumed rollover follow-up are unchanged. All other scientific,
+consumer, capacity, replacement/outage/disable/rollback and required validation
+gates remain independent.
+
+The later IBI [October 21 00Z job 39579435890](https://github.com/deepregatta/forecast-tiles/actions/runs/39579435890)
+was still in progress at final readback; no publication is inferred for it.
+The current IBI pointer remains the previously confirmed cycle.
