@@ -13,7 +13,7 @@
     },
     {
       "path": "contracts/storage-admission-v1.example.json",
-      "sha256": "fee39a7e508c19642863f31beee6b69d64147764d351ae43181eb1c015eae7a4"
+      "sha256": "a0cbf94bb8dcb9c3623f24e1a0832243a389ca7eeaa598dc27927ec35796dbfe"
     },
     {
       "path": "contracts/storage-admission-v1.vectors.json",

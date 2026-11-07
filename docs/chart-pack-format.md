@@ -275,7 +275,9 @@ charts kept after the publish); the chart bytes must also leave the regional
 forecasts' reserved peak under the same limit (`check_regional_room`, the
 calculation of `ingest.capacity.check_regional_capacity`); and with
 `CAPACITY_ENFORCE=1` the whole upload is reserved under the storage-admission
-owner `charts` ([storage admission](storage-admission.md)).
+owner `charts` ([storage admission](storage-admission.md)). `MAX_BUCKET_BYTES`
+is 20 GB since 2026-11-07 (Davi), leaving about 5.9 GB for charts beside the
+forecasts' reservation; the `charts` ceiling is 5.5 GB.
 
 ## 8. Sources and licences
 

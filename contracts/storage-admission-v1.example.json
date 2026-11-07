@@ -34,7 +34,7 @@
       "prefixes": [
         "charts/"
       ],
-      "ceiling_bytes": 8000000
+      "ceiling_bytes": 5500000
     },
     "prepared": {
       "mode": "unmanaged",

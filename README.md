@@ -227,7 +227,7 @@ The Phase 0 size-measurement prototype is still runnable:
    `PutObject`, which the `latest.json` commit relies on.
 
 The storage guard refuses to publish when retained runs + the new run would
-exceed `MAX_BUCKET_BYTES` (default 15 GB). It counts tile bytes after retention
+exceed `MAX_BUCKET_BYTES` (default 20 GB since 2026-11-07). It counts tile bytes after retention
 across both forecast pointers, and refuses before uploading if a retained
 manifest is missing, unreadable, or has invalid/inconsistent size metadata.
 Reconcile those references using verified information before retrying. This

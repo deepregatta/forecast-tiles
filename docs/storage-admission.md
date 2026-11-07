@@ -22,8 +22,11 @@ native-only and legacy-writer gates. Preparation does not authorize activation.
 
 `MAX_BUCKET_BYTES` remains the retained forecast tile guard. Its fallback
 matches the owner-approved setting (14,000,000,000 bytes from 2026-10-04,
-15,000,000,000 bytes from 2026-10-21); it is neither the universal
-physical bucket cap nor a monetary cap. Missing/inconsistent retained forecast
+15,000,000,000 bytes from 2026-10-21, 20,000,000,000 bytes from 2026-11-07
+for the display chart: Davi's decision); it is neither the universal
+physical bucket cap nor a monetary cap. The regional calculation keeps
+`MAX_BUCKET_BYTES` as its limit, so the regional reservation is unchanged and
+the 5 GB added is room beside it. Missing/inconsistent retained forecast
 manifests still fail closed. The regional calculation still checks its physical
 inventory, registered per-run caps and configured simultaneous-upload envelope.
 
@@ -49,11 +52,17 @@ inventory, not its zero baselines.
 The **`charts`** owner (managed, prefix `charts/`, added 2026-11-07 for the
 TCP1 display chart) is reserved by `publish_build` exactly as land is: the
 whole upload and manifest plus the 1 MiB pointer/status allowance, under the
-build id. Its ceiling is sized for Europe's and the UK's coasts: the current and
-previous builds (estimated 1.5–5 GB together) plus one build's upload overlap,
-**8 GB** until the European cell list measures it
-([chart format](chart-pack-format.md#7-publication)); the scratch example
-carries a synthetic 8 MB. Once `charts/` holds objects, a ledger without this
+build id. Its ceiling is sized for Europe's and the UK's coasts (estimated
+1.5–5 GB with the previous build kept) in the room the 20 GB limit leaves
+(2026-11-07, Davi). Measured by `r2-audit` that day: 8.40 GB physical, 7.32 GB
+referenced forecast runs, 1.08 GB other (0.72 GB of it incomplete regional
+runs). The regional calculation reserves 11.015 GB of root peak, 1.53 GB of
+three capped regional runs per model and 0.5 GB headroom, plus that other
+1.08 GB: 14.13 GB, leaving **5.87 GB** for charts under 20 GB. The `charts`
+ceiling is **5.5 GB**: every chart object kept plus the upload in flight. A
+5 GB European set at rest then admits a 0.5 GB upload of changed cells; a
+full rebuild at that size needs the incomplete runs reconciled first or the
+limit reviewed again. The scratch example carries a synthetic 5.5 MB. Once `charts/` holds objects, a ledger without this
 owner would close admission for every writer ("unclassified object growth"),
 so the owner goes in before `CAPACITY_ENFORCE=1`. Chart bytes also count as
 "other" objects in the regional peak calculation below; the chart publisher
