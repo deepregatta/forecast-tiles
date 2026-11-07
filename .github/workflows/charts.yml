@@ -3,10 +3,10 @@ name: charts
 # TCP1 chart archives (docs/chart-pack-format.md): the world overview and one
 # z6 cell per matrix job, then one publish job, the only one holding the R2
 # secrets. No schedule, on purpose (WP10 phase 6): Open Waters' dated Seamap
-# archive is read only in runs the owner approves, at the date the run names,
-# until Open Waters has been told about the monthly range reads. The monthly
-# run (the owner's cadence since 2026-11-07, not weekly) comes later, through
-# the dispatcher, and is not this workflow's job yet.
+# archive is read only in runs the owner approves, at the date the run names.
+# The owner told Open Waters about the monthly range reads on 2026-11-07. The
+# monthly run (the owner's cadence since 2026-11-07, not weekly) comes later,
+# through the dispatcher, and is not this workflow's job yet.
 on:
   workflow_dispatch:
     inputs:
