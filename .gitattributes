@@ -13,3 +13,7 @@ contracts/land-index-tile.schema.json text eol=lf
 tests/fixtures/land-index-raz/N48W005.bin.gz -text
 tests/fixtures/land-index-raz/expected.json text eol=lf
 tests/fixtures/land-index-raz/manifest.json text eol=lf
+contracts/charts-latest.schema.json text eol=lf
+contracts/charts-manifest.schema.json text eol=lf
+tests/fixtures/chart-pack-cherbourg/*.pmtiles -text
+tests/fixtures/chart-pack-cherbourg/*.json text eol=lf

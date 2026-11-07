@@ -34,3 +34,17 @@ Attribution and data terms are carried by each product's run manifest and
 cropped fixture metadata: Météo-France AROME and Deutscher Wetterdienst ICON-EU,
 distributed through Open-Meteo's CC BY 4.0 bulk catalogue. Consult the provider
 and catalogue links in the implementation plan when redistributing those data.
+
+## Display chart (TCP1)
+
+The chart archives under `charts/` and the golden fixture in
+`tests/fixtures/chart-pack-cherbourg/` are derived from OpenStreetMap data
+(ODbL 1.0, © OpenStreetMap contributors) through the Protomaps daily basemap
+build (© Protomaps) and Open Waters' Seamap tiles (© Open Waters: Seamap; tiles
+CC BY 4.0, being corrected to ODbL), from SHOM Balisage (Licence Ouverte 2.0,
+"Balisage © Shom") and from EMODnet Digital Bathymetry DTM 2024 (CC BY 4.0,
+EMODnet Bathymetry Consortium, "DO NOT USE FOR NAVIGATION"). As derivative
+databases they stay openly available under the ODbL. Each archive's own
+`sources`, `attribution` and `not_for_navigation` metadata names its inputs;
+[docs/chart-pack-format.md](docs/chart-pack-format.md#8-sources-and-licences)
+has the table. They are a picture for a crew, not a navigation chart.

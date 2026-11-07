@@ -206,6 +206,76 @@
       "sha256": "afc2cffa4c2cc5dac744e63ec5190acf52ab84f4ba51477bd189c134e72e4ad8",
       "representation": "exact",
       "intentional_divergence": null
+    },
+    {
+      "path": "contracts/charts-latest.schema.json",
+      "canonical_repository": "forecast-tiles",
+      "canonical_path": "contracts/charts-latest.schema.json",
+      "canonical_revision": "git-blob:57978ef1f8a31f9e3c1d26315df3a7bbd34a0564",
+      "contract": "TCP1/schema-1",
+      "producer": "forecast-tiles",
+      "consumers": [
+        "tactician"
+      ],
+      "sha256": "3657cb91e63b623c2682669e408fe04c3e6e6c7291fde46f9b5491ca1cdab758",
+      "representation": "exact",
+      "intentional_divergence": null
+    },
+    {
+      "path": "contracts/charts-manifest.schema.json",
+      "canonical_repository": "forecast-tiles",
+      "canonical_path": "contracts/charts-manifest.schema.json",
+      "canonical_revision": "git-blob:eb1f60e6e47e6b75643c17933745c830b6bb27df",
+      "contract": "TCP1/schema-1",
+      "producer": "forecast-tiles",
+      "consumers": [
+        "tactician"
+      ],
+      "sha256": "dbaa124ed7fdc63d09b96551e472f36197803e67ac422bf54df03ddd007c162c",
+      "representation": "exact",
+      "intentional_divergence": null
+    },
+    {
+      "path": "tests/fixtures/chart-pack-cherbourg/cherbourg-depth.pmtiles",
+      "canonical_repository": "forecast-tiles",
+      "canonical_path": "tests/fixtures/chart-pack-cherbourg/cherbourg-depth.pmtiles",
+      "canonical_revision": "git-blob:bf74c3ab32272e8bff4485e2dfccce3fe31ca554",
+      "contract": "TCP1/schema-1",
+      "producer": "forecast-tiles",
+      "consumers": [
+        "tactician"
+      ],
+      "sha256": "09ccc1c30b56615bd6eb3aec466c75af7e2d5d325737fcf1c63f00644f5981ca",
+      "representation": "exact",
+      "intentional_divergence": null
+    },
+    {
+      "path": "tests/fixtures/chart-pack-cherbourg/cherbourg.expected.json",
+      "canonical_repository": "forecast-tiles",
+      "canonical_path": "tests/fixtures/chart-pack-cherbourg/cherbourg.expected.json",
+      "canonical_revision": "git-blob:e58ee294bde4381a8874fa932f2318e767f8b424",
+      "contract": "TCP1/schema-1",
+      "producer": "forecast-tiles",
+      "consumers": [
+        "tactician"
+      ],
+      "sha256": "6f7e95eb49f8ecde0620dfcd6a4a6a12b359e9cc71310cbbc453d7f30ad119ec",
+      "representation": "exact",
+      "intentional_divergence": null
+    },
+    {
+      "path": "tests/fixtures/chart-pack-cherbourg/cherbourg.pmtiles",
+      "canonical_repository": "forecast-tiles",
+      "canonical_path": "tests/fixtures/chart-pack-cherbourg/cherbourg.pmtiles",
+      "canonical_revision": "git-blob:e40cd30b1bc8263b2b11d5d2976fb9d8dfb781e9",
+      "contract": "TCP1/schema-1",
+      "producer": "forecast-tiles",
+      "consumers": [
+        "tactician"
+      ],
+      "sha256": "60a2a7dc9a7e2acc8ae07e707d328ab8cc15932683e2854e511ad6f9a62ce085",
+      "representation": "exact",
+      "intentional_divergence": null
     }
   ]
 }

@@ -5,3 +5,4 @@ size_prototype_results.json
 data/
 dist/
 .land-cache/
+.charts-cache/

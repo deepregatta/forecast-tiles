@@ -1,0 +1,153 @@
+{
+  "generated_by": "tools/charts/style_fields.mjs",
+  "style_sources": {
+    "@openwaters/seamap": "0.3.2",
+    "@protomaps/basemaps": "5.7.2"
+  },
+  "protomaps_flavors": [
+    "light",
+    "dark"
+  ],
+  "protomaps_lang": "en",
+  "feature_ids": "dropped",
+  "layers": {
+    "seamark": [
+      "access",
+      "category",
+      "cell_rank",
+      "color",
+      "color_pattern",
+      "depth",
+      "family",
+      "fuel",
+      "function",
+      "light",
+      "light_color",
+      "name",
+      "near_shore",
+      "radar_reflector",
+      "radar_transponder",
+      "radar_transponder_group",
+      "radio_station",
+      "restriction",
+      "seabed_depth",
+      "seamark:*:restriction",
+      "seamark:fog_signal:category",
+      "seamark:landmark:conspicuity",
+      "seamark:light:1:category",
+      "seamark:light:1:colour",
+      "seamark:light:category",
+      "seamark:light:colour",
+      "seamark:restriction",
+      "seamark:rock:water_level",
+      "seamark:seabed_area:surface",
+      "seamark:shoreline_construction:water_level",
+      "seamark:water_level",
+      "shape",
+      "surrounding_depth",
+      "topmark_color",
+      "topmark_color_pattern",
+      "topmark_shape",
+      "type",
+      "water_level"
+    ],
+    "light": [
+      "cell_rank",
+      "color",
+      "family",
+      "subtype",
+      "visibility"
+    ],
+    "sea_area": [
+      "area",
+      "name"
+    ],
+    "earth": [
+      "kind",
+      "name",
+      "name2",
+      "name3",
+      "name:en",
+      "pgf:name",
+      "pgf:name2",
+      "pgf:name3",
+      "script",
+      "script2",
+      "script3"
+    ],
+    "water": [
+      "kind",
+      "name",
+      "name2",
+      "name3",
+      "name:en",
+      "pgf:name",
+      "pgf:name2",
+      "pgf:name3",
+      "script",
+      "script2",
+      "script3"
+    ],
+    "places": [
+      "capital",
+      "kind",
+      "min_zoom",
+      "name",
+      "name2",
+      "name3",
+      "name:en",
+      "pgf:name",
+      "pgf:name2",
+      "pgf:name3",
+      "population_rank",
+      "ref",
+      "ref:en",
+      "script",
+      "script2",
+      "script3",
+      "sort_key"
+    ],
+    "boundaries": [
+      "kind_detail"
+    ],
+    "roads": [
+      "is_bridge",
+      "is_link",
+      "is_tunnel",
+      "kind",
+      "kind_detail",
+      "min_zoom",
+      "name",
+      "name2",
+      "name3",
+      "name:en",
+      "pgf:name",
+      "pgf:name2",
+      "pgf:name3",
+      "script",
+      "script2",
+      "script3"
+    ],
+    "depth": [
+      "depth",
+      "kind",
+      "min"
+    ],
+    "cover": []
+  },
+  "style_layer_counts": {
+    "seamark": 49,
+    "light": 4,
+    "sea_area": 1,
+    "earth": 2,
+    "water": 6,
+    "places": 4,
+    "boundaries": 2,
+    "roads": 39,
+    "depth": 3,
+    "cover": 0
+  },
+  "notes": [
+    "dynamic key kept as a pattern: [\"get\",[\"concat\",\"seamark:\",[\"get\",\"type\"],\":restriction\"]]"
+  ]
+}

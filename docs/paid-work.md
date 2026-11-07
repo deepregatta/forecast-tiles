@@ -52,7 +52,7 @@ make reads; the enforced wall-clock deadline includes that wait. The
 reserved allowance conservatively covers the workflow duration: GLO12
 currents 18,000 seconds (its existing 300-minute workflow includes up to
 240 minutes of waiting), regional jobs 9,000 seconds (150 minutes), other
-layers and land 14,400 seconds. A denied admission leaves pointers and
+layers, land and charts 14,400 seconds. A denied admission leaves pointers and
 published objects alone. `--dry-run` uses local storage and bypasses paid
 production admission.
 
@@ -61,6 +61,14 @@ not amplify it through failure retries. Regional attempt reports record
 `outcome=paused`, `failure_category=spending_control`; a green workflow on
 this path does **not** prove new data was published. No automatic recovery
 or monthly counter reset occurs. Consumer reads continue normally.
+
+**Charts** (`ingest-charts publish`, 2026-11-07) acquire the channel
+`charts` with work id the build id. The current `ops/paid-work.json` has no
+such channel; the next review that re-enables enforcement adds one beside
+`land`'s: `{"daily_starts": 1, "min_interval_seconds": 43200,
+"max_run_seconds": 14400}`. Without it an enforced chart publish closes
+(`invalid usage or channel policy`) rather than running unmetered. The chart
+builds themselves run on standard runners of this public repository.
 
 ## Operator pause and recovery
 

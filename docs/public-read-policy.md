@@ -29,6 +29,8 @@ Source defaults do not prove the configuration of every installed binary.
 | `forecast-runs/<run>/manifest.json`, PFT1 `.bin.gz` | `public, max-age=31536000, immutable` | Run identity and compressed-byte manifest digests remain exact |
 | `prepared/runs/<run>/...<revision>.json/png` | Same immutable policy | Each action pins exact artifact revisions; historical saved paths stay verbatim |
 | `land-index/<index>/manifest.json`, TLI1 `.bin.gz` | Same immutable policy | Conservative routing-index identity remains exact |
+| `charts/latest.json` (since 2026-11-07) | `public, max-age=300, must-revalidate` | Tactician's dock reads the chart pointer with ordinary GET |
+| `charts/<build>/manifest.json`, TCP1 `.pmtiles` | Same immutable policy | Range reads of whole 1 MiB chunks, each verified against the manifest's FNV-1a 64 digest |
 
 The existing producer already implements these policies. F02 does not rewrite
 objects or introduce new cache headers. Status/control objects must not receive

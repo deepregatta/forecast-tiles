@@ -7,9 +7,10 @@ Current capabilities, configuration versus dated delivery evidence, verification
 ## Layout
 
 - `src/` — Python pipeline (uv-managed): resolve latest complete provider cycle → byte-range download → decode/orient/quantize into a `ForecastCube` → 10°×10° tiles → gzip → R2. `src/landkit/` + `src/ingest/land/` are the second, non-scheduled pipeline: the **conservative routing index** (`docs/land-index-format.md`), consumed by tactician's `core/land`.
+- `src/ingest/charts/` is the third, non-scheduled pipeline: **TCP1 display chart** archives (`docs/chart-pack-format.md`), one PMTiles per z6 cell plus `world`, published under `charts/` by the dispatch-only `charts` workflow; consumed by tactician's `core/charts`. Vendored from tactician `tools/charts/` (`src/ingest/charts/VENDORED.md`); the chart style stays in tactician. Display only: routing never reads it. Open Waters' archive is read only at a date the owner approves; no schedule.
 - `src/ingest/sources/openmeteo/` — regional models from Open-Meteo's bulk files (registry, catalog, reader, footprints, adapter); AROME, ICON-EU and UKV are in production at two cycles/day (canary acceptance stopped by owner decision, 2026-10-21). They publish to `latest-regional.json`, never root `latest.json`. Runtime allowlists and capacity controls also apply; manual workflow dry runs default on. Full cadence stays disabled until traffic justifies it; dated delivery evidence is in `docs/regional-delivery.md` and `docs/regional-canary-status.json`.
 - `currents` uses CMEMS GLO12 only; `currents-ibi` uses CMEMS IBI. Not-ready cycles wait/skip; outages fail with the provider cause. No RTOFS fallback is implemented.
-- `contracts/` — tile/manifest/latest JSON Schemas. The `forecast-*` ones are vendored from passage's `contracts/`; keep in sync when the spec changes. `contracts/shared-contracts.lock.json` pins canonical paths/revisions/digests; [shared-contract checks](docs/shared-contracts.md) run in the local/CI Python gate. The `land-index-*` ones are **canonical here** — tactician consumes them.
+- `contracts/` — tile/manifest/latest JSON Schemas. The `forecast-*` ones are vendored from passage's `contracts/`; keep in sync when the spec changes. `contracts/shared-contracts.lock.json` pins canonical paths/revisions/digests; [shared-contract checks](docs/shared-contracts.md) run in the local/CI Python gate. The `land-index-*` and `charts-*` ones are **canonical here** — tactician consumes them.
 - `scripts/`, `tests/` — tooling and pytest suite.
 - Root forecast layers have one GitHub Actions workflow each; regionals share `ingest-openmeteo.yml` with per-layer concurrency. `dispatcher/` is a Cloudflare Worker (TypeScript, Cron Triggers only), configured to dispatch with `--wait-minutes`. Root fallback crons run at :37 and regional catch-up at :47 every six hours. Deployment/delivery checkpoints are linked in README → Dispatcher; current operation needs fresh evidence.
 
@@ -23,6 +24,8 @@ uv run ingest weather --dry-run /tmp/tiles   # local run, no R2 writes
 uv sync --extra currents                    # CMEMS GLO12 and IBI dependency
 uv run ingest currents-ibi --dry-run /tmp/ibi
 uv run ingest land --domain nweu             # routing index; one-shot, not a cron
+uv sync --extra charts                       # TCP1 chart builder dependencies
+uv run ingest-charts build 6-31-21 --build-id 20261107T1200Z --protomaps YYYYMMDD --seamap YYYY-MM-DD --out /tmp/charts
 uv sync --extra openmeteo                    # regional dependency; production gates are separate
 uv run ingest weather-arome --dry-run /tmp/arome
 ```
@@ -30,6 +33,6 @@ uv run ingest weather-arome --dry-run /tmp/arome
 ## Conventions
 
 - Commit and push to main after edits — don't wait to be asked.
-- Published runs are immutable: never mutate an existing `forecast-runs/{run_id}/` layout; changes ship as new runs + `latest.json`. The same rule holds for `land-index/{index_id}/`, and `publish_index` enforces it.
+- Published runs are immutable: never mutate an existing `forecast-runs/{run_id}/` layout; changes ship as new runs + `latest.json`. The same rule holds for `land-index/{index_id}/` and `charts/{build_id}/`, and `publish_index` and `publish_build` enforce it.
 - The routing index is **conservative in one direction only**: every compilation step adds blocked area and none removes any. Its buffer, safety contour and cell size are named, versioned manifest parameters, never inline literals. It is routing legality, never a chart.
 - This repo is **public** — no credentials, no private product details in code or docs.

@@ -1,0 +1,22 @@
+{
+  "about": "Generator inputs for cherbourg.pmtiles and cherbourg-depth.pmtiles, the TCP1 golden fixture: one tile per zoom z6-14 over Cherbourg harbour (z14 tile 8118/5580). Rebuild with scripts/make_chart_fixture.py; pinned sources, rules, build id, time and the builder label the golden was frozen with (by tactician tools/charts, 2026-11-07) give the same bytes from the same cached inputs.",
+  "area": "fixture-cherbourg",
+  "bounds": [
+    -1.6255,
+    49.6539,
+    -1.6045,
+    49.6671
+  ],
+  "build_id": "fixture-20261107",
+  "built": "2026-11-07T00:00:00Z",
+  "sources": {
+    "protomaps": "20261106",
+    "seamap": "2026-11-02",
+    "shom_tag": "2026-11-07"
+  },
+  "mask_nm": 2.0,
+  "roads_nm": 1.0,
+  "depth": "separate",
+  "roads": "streets",
+  "builder": "tactician tools/charts (WP10 stage 1)"
+}

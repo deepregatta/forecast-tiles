@@ -9,6 +9,7 @@ needs a sibling checkout.
 | Four `forecast-*.schema.json` schemas: tile, manifest, latest, latest-regional | `passage/contracts/` | forecast-tiles | Passage; Tactician models the fields it uses |
 | PFT1 weather/ensemble codec golden objects and expectations | `forecast-tiles/tests/fixtures/golden-*` | forecast-tiles | Passage; Tactician retains the weather golden |
 | Three `land-index-*.schema.json` schemas and the Raz de Sein golden bundle | `forecast-tiles/contracts/` and `tests/fixtures/land-index-raz/` | forecast-tiles | Tactician `core/land` |
+| Two `charts-*.schema.json` schemas and the Cherbourg TCP1 golden (`cherbourg.pmtiles`, `cherbourg-depth.pmtiles`, `cherbourg.expected.json`) | `forecast-tiles/contracts/` and `tests/fixtures/chart-pack-cherbourg/` | forecast-tiles | Tactician `core/charts` (the three fixture files) |
 
 The lock records each canonical repository/path, `PFT1/schema-1` or
 `TLI1/schema-1` version, canonical Git blob revision (`git-blob:`), and SHA-256.
@@ -33,7 +34,10 @@ producer implementation or private product evidence is copied into the public
 repository.
 
 `contracts/shared-contracts.lock.json` pins four vendored forecast schemas,
-four PFT1 goldens, three canonical land schemas and the three-file land golden.
+four PFT1 goldens, three canonical land schemas, the three-file land golden,
+two canonical chart schemas and the three-file TCP1 golden (`TCP1/schema-1`,
+added 2026-11-07). The chart builder's input `src/ingest/charts/style-fields.json`
+is tactician's, vendored with its own record (`src/ingest/charts/vendored.json`).
 All are exact bytes; no intentional artifact divergence exists.
 
 Run `.venv/bin/python scripts/check_shared_contracts.py` and

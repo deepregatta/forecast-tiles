@@ -1,0 +1,167 @@
+{
+ "about": "What a TCP1 reader should find in cherbourg.pmtiles and cherbourg-depth.pmtiles; written by build.py fixture.",
+ "cherbourg.pmtiles": {
+  "sha256": "60a2a7dc9a7e2acc8ae07e707d328ab8cc15932683e2854e511ad6f9a62ce085",
+  "bytes": 112575,
+  "header": {
+   "tile_type": "mvt",
+   "tile_compression": "gzip",
+   "min_zoom": 6,
+   "max_zoom": 14,
+   "bounds_e7": [
+    -16255000,
+    496539000,
+    -16045000,
+    496671000
+   ]
+  },
+  "metadata": {
+   "spec": "TCP1",
+   "schema_version": 1,
+   "kind": "area",
+   "build_id": "fixture-20261107",
+   "built": "2026-11-07T00:00:00Z",
+   "attribution": "Balisage © Shom 2026 · © OpenStreetMap contributors · © Protomaps · © Open Waters: Seamap · EMODnet Bathymetry Consortium (2024)",
+   "depth": {
+    "source_layer": "depth",
+    "max_detail_zoom": 12,
+    "packaging": "separate archive",
+    "archive": "cherbourg-depth.pmtiles"
+   },
+   "source_ids": [
+    "protomaps",
+    "seamap",
+    "shom",
+    "emodnet"
+   ]
+  },
+  "tiles": {
+   "6/31/21": {
+    "earth": 1,
+    "water": 7,
+    "boundaries": 1,
+    "places": 36,
+    "seamark": 611
+   },
+   "7/63/43": {
+    "earth": 2,
+    "water": 7,
+    "boundaries": 1,
+    "sea_area": 2,
+    "places": 71,
+    "seamark": 410
+   },
+   "8/126/87": {
+    "earth": 3,
+    "water": 3,
+    "sea_area": 1,
+    "places": 9,
+    "seamark": 366,
+    "light": 122
+   },
+   "9/253/174": {
+    "earth": 1,
+    "water": 17,
+    "places": 3,
+    "seamark": 95,
+    "light": 33
+   },
+   "10/507/348": {
+    "earth": 1,
+    "water": 10,
+    "boundaries": 1,
+    "places": 47,
+    "seamark": 83,
+    "light": 23
+   },
+   "11/1014/697": {
+    "earth": 1,
+    "water": 11,
+    "boundaries": 1,
+    "sea_area": 2,
+    "places": 14,
+    "seamark": 89,
+    "light": 17
+   },
+   "12/2029/1395": {
+    "earth": 18,
+    "water": 13,
+    "boundaries": 1,
+    "roads": 121,
+    "sea_area": 3,
+    "places": 59,
+    "seamark": 83,
+    "light": 15
+   },
+   "13/4059/2790": {
+    "earth": 1,
+    "water": 10,
+    "roads": 70,
+    "sea_area": 2,
+    "places": 1,
+    "seamark": 82,
+    "light": 8
+   },
+   "14/8118/5580": {
+    "earth": 1,
+    "water": 3,
+    "roads": 4,
+    "seamark": 9,
+    "light": 5
+   }
+  }
+ },
+ "cherbourg-depth.pmtiles": {
+  "sha256": "09ccc1c30b56615bd6eb3aec466c75af7e2d5d325737fcf1c63f00644f5981ca",
+  "bytes": 66189,
+  "header": {
+   "tile_type": "mvt",
+   "tile_compression": "gzip",
+   "min_zoom": 6,
+   "max_zoom": 12,
+   "bounds_e7": [
+    -16255000,
+    496539000,
+    -16045000,
+    496671000
+   ]
+  },
+  "metadata": {
+   "spec": "TCP1",
+   "schema_version": 1,
+   "kind": "depth",
+   "build_id": "fixture-20261107",
+   "built": "2026-11-07T00:00:00Z",
+   "attribution": "Balisage © Shom 2026 · © OpenStreetMap contributors · © Protomaps · © Open Waters: Seamap · EMODnet Bathymetry Consortium (2024)",
+   "source_ids": [
+    "protomaps",
+    "seamap",
+    "shom",
+    "emodnet"
+   ]
+  },
+  "tiles": {
+   "6/31/21": {
+    "depth": 13
+   },
+   "7/63/43": {
+    "depth": 14
+   },
+   "8/126/87": {
+    "depth": 14
+   },
+   "9/253/174": {
+    "depth": 14
+   },
+   "10/507/348": {
+    "depth": 13
+   },
+   "11/1014/697": {
+    "depth": 11
+   },
+   "12/2029/1395": {
+    "depth": 8
+   }
+  }
+ }
+}

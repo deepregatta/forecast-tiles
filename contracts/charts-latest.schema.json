@@ -1,0 +1,251 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deepregatta.local/contracts/charts-latest.schema.json",
+  "title": "Chart latest.json (TCP1): mutable pointer to the current immutable chart build, with every cell's object, bytes, chunk digests and source revisions, moved by compare-and-swap and never backwards.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "spec",
+    "build_id",
+    "previous_build_id",
+    "updated_at",
+    "manifest",
+    "chunk_bytes",
+    "cell_zoom",
+    "world",
+    "cells"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "spec": {
+      "const": "TCP1"
+    },
+    "build_id": {
+      "type": "string",
+      "pattern": "^[0-9]{8}T[0-9]{4}Z$"
+    },
+    "previous_build_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9]{8}T[0-9]{4}Z$"
+    },
+    "chunk_bytes": {
+      "const": 1048576
+    },
+    "cell_zoom": {
+      "const": 6
+    },
+    "world": {
+      "$ref": "#/$defs/world"
+    },
+    "cells": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^6-[0-9]{1,2}-[0-9]{1,2}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/cell"
+      }
+    },
+    "updated_at": {
+      "type": "string"
+    },
+    "manifest": {
+      "type": "string",
+      "pattern": "^charts/[0-9]{8}T[0-9]{4}Z/manifest\\.json$"
+    }
+  },
+  "$defs": {
+    "object": {
+      "type": "object",
+      "required": [
+        "key",
+        "bytes",
+        "sha256",
+        "chunks"
+      ],
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^charts/[0-9]{8}T[0-9]{4}Z/[a-z0-9-]+\\.pmtiles$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "chunks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{16}$"
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "required": [
+        "protomaps",
+        "seamap"
+      ],
+      "properties": {
+        "protomaps": {
+          "type": "object",
+          "required": [
+            "build"
+          ],
+          "properties": {
+            "build": {
+              "type": "string",
+              "pattern": "^[0-9]{8}$"
+            }
+          }
+        },
+        "seamap": {
+          "type": "object",
+          "required": [
+            "date"
+          ],
+          "properties": {
+            "date": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            }
+          }
+        },
+        "shom": {
+          "type": "object",
+          "required": [
+            "fetched",
+            "content_sha256"
+          ]
+        },
+        "emodnet": {
+          "type": "object",
+          "required": [
+            "product"
+          ]
+        }
+      }
+    },
+    "world": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/object"
+        },
+        {
+          "type": "object",
+          "required": [
+            "build_id",
+            "inputs_sha256",
+            "bounds",
+            "minzoom",
+            "maxzoom",
+            "sources"
+          ],
+          "properties": {
+            "build_id": {
+              "type": "string",
+              "pattern": "^[0-9]{8}T[0-9]{4}Z$"
+            },
+            "inputs_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "bounds": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "number"
+              }
+            },
+            "minzoom": {
+              "const": 0
+            },
+            "maxzoom": {
+              "const": 5
+            },
+            "sources": {
+              "$ref": "#/$defs/sources"
+            }
+          }
+        }
+      ]
+    },
+    "cell": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/object"
+        },
+        {
+          "type": "object",
+          "required": [
+            "z",
+            "x",
+            "y",
+            "build_id",
+            "inputs_sha256",
+            "bounds",
+            "minzoom",
+            "maxzoom",
+            "sources",
+            "depth"
+          ],
+          "properties": {
+            "build_id": {
+              "type": "string",
+              "pattern": "^[0-9]{8}T[0-9]{4}Z$"
+            },
+            "inputs_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "bounds": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "number"
+              }
+            },
+            "minzoom": {
+              "const": 6
+            },
+            "maxzoom": {
+              "const": 14
+            },
+            "sources": {
+              "$ref": "#/$defs/sources"
+            },
+            "z": {
+              "const": 6
+            },
+            "x": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 63
+            },
+            "y": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 63
+            },
+            "depth": {
+              "$ref": "#/$defs/object"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

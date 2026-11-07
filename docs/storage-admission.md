@@ -46,6 +46,19 @@ close admission. The 100 MB example is deliberately synthetic, paused and
 incomplete; it is not a production policy. Initialize with a full physical
 inventory, not its zero baselines.
 
+The **`charts`** owner (managed, prefix `charts/`, added 2026-11-07 for the
+TCP1 display chart) is reserved by `publish_build` exactly as land is: the
+whole upload and manifest plus the 1 MiB pointer/status allowance, under the
+build id. Its ceiling is sized for Europe's and the UK's coasts: the current and
+previous builds (estimated 1.5–5 GB together) plus one build's upload overlap,
+**8 GB** until the European cell list measures it
+([chart format](chart-pack-format.md#7-publication)); the scratch example
+carries a synthetic 8 MB. Once `charts/` holds objects, a ledger without this
+owner would close admission for every writer ("unclassified object growth"),
+so the owner goes in before `CAPACITY_ENFORCE=1`. Chart bytes also count as
+"other" objects in the regional peak calculation below; the chart publisher
+refuses an upload that would leave that peak over the limit.
+
 Each owner declares distinct prefixes and a byte ceiling. Longest prefix wins,
 allowing regional prefixes inside the root `forecast-runs/` namespace. Managed
 owners charge their reconciled baseline plus **every** reservation. Unconverted

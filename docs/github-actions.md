@@ -13,6 +13,8 @@ major version was upgraded:
 | [astral-sh/setup-uv](https://github.com/astral-sh/setup-uv/releases/tag/v6.8.0) | `v6` | `v6.8.0` | `d0cc045d04ccac9d8b7881df0226f9e82c39688e` |
 | [actions/setup-node](https://github.com/actions/setup-node/releases/tag/v4.4.0) | `v4` | `v4.4.0` | `49933ea5288caeca8642d1e84afbd3f7d6820020` |
 | [actions/upload-artifact](https://github.com/actions/upload-artifact/releases/tag/v4.6.2) | `v4` | `v4.6.2` | `ea165f8d65b6e75b540449e92b4886f43607fa02` |
+| [actions/cache](https://github.com/actions/cache/releases/tag/v4.3.0) (added 2026-11-07, `charts`) | `v4` | `v4.3.0` | `0057852bfaa89a56745cba8c7296529d2fc39830` |
+| [actions/download-artifact](https://github.com/actions/download-artifact/releases/tag/v4.3.0) (added 2026-11-07, `charts`) | `v4` | `v4.3.0` | `d3f86a106a0bac45b974a628896c90dbdf5c8093` |
 
 REST refs and `git ls-remote` agreed on the major and exact release tags.
 The `setup-uv` major ref is an unsigned annotated tag: its tag-object SHA is

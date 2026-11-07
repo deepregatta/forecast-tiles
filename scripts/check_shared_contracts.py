@@ -99,6 +99,36 @@ EXPECTED = {
         "TLI1/schema-1",
         "exact",
     ),
+    "contracts/charts-latest.schema.json": (
+        "forecast-tiles",
+        "contracts/charts-latest.schema.json",
+        "TCP1/schema-1",
+        "exact",
+    ),
+    "contracts/charts-manifest.schema.json": (
+        "forecast-tiles",
+        "contracts/charts-manifest.schema.json",
+        "TCP1/schema-1",
+        "exact",
+    ),
+    "tests/fixtures/chart-pack-cherbourg/cherbourg-depth.pmtiles": (
+        "forecast-tiles",
+        "tests/fixtures/chart-pack-cherbourg/cherbourg-depth.pmtiles",
+        "TCP1/schema-1",
+        "exact",
+    ),
+    "tests/fixtures/chart-pack-cherbourg/cherbourg.expected.json": (
+        "forecast-tiles",
+        "tests/fixtures/chart-pack-cherbourg/cherbourg.expected.json",
+        "TCP1/schema-1",
+        "exact",
+    ),
+    "tests/fixtures/chart-pack-cherbourg/cherbourg.pmtiles": (
+        "forecast-tiles",
+        "tests/fixtures/chart-pack-cherbourg/cherbourg.pmtiles",
+        "TCP1/schema-1",
+        "exact",
+    ),
 }
 
 

@@ -1,0 +1,142 @@
+name: charts
+
+# TCP1 chart archives (docs/chart-pack-format.md): the world overview and one
+# z6 cell per matrix job, then one publish job, the only one holding the R2
+# secrets. No schedule, on purpose (WP10 phase 6): Open Waters' dated Seamap
+# archive is read only in runs the owner approves, at the date the run names,
+# until Open Waters has been told about the weekly range reads. The weekly run
+# comes later, through the dispatcher, and is not this workflow's job yet.
+on:
+  workflow_dispatch:
+    inputs:
+      seamap:
+        description: "Open Waters Seamap archive date, YYYY-MM-DD (approved for this run)"
+        required: true
+      protomaps:
+        description: "Protomaps daily build, YYYYMMDD"
+        required: true
+      cells:
+        description: "Cell set (stage1) or cell ids, comma-separated"
+        required: false
+        default: "stage1"
+      dry_run:
+        description: "Build and publish to a scratch layout, not R2"
+        type: boolean
+        required: false
+        default: true
+
+concurrency:
+  group: charts
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CAPACITY_ENFORCE: ${{ vars.CAPACITY_ENFORCE || '0' }}
+  PAID_WORK_ENFORCE: ${{ vars.PAID_WORK_ENFORCE || '0' }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      build_id: ${{ steps.plan.outputs.build_id }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          python-version: '3.13'
+      - run: uv sync --extra charts
+      - id: plan
+        run: uv run ingest-charts plan --cells "${CELLS:-stage1}" | tee -a "$GITHUB_OUTPUT"
+        env:
+          CELLS: ${{ inputs.cells }}
+
+  build:
+    needs: plan
+    runs-on: ubuntu-latest
+    # A cold cell reads a few hundred MB of tile ranges and up to about 40
+    # EMODnet blocks (about 21 s each the first time).
+    timeout-minutes: 150
+    strategy:
+      fail-fast: true
+      # Gentle on Open Waters' and Protomaps' servers: a few cells at a time.
+      max-parallel: 3
+      matrix:
+        target: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      DEEPREGATTA_LAND_CACHE: ${{ github.workspace }}/.land-cache
+      DEEPREGATTA_CHARTS_CACHE: ${{ github.workspace }}/.charts-cache
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          python-version: '3.13'
+      - run: uv sync --extra charts
+      # EMODnet DTM 2024 blocks change only with a new DTM release.
+      - if: matrix.target != 'world'
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: .land-cache
+          key: emodnet-dtm2024-${{ matrix.target }}-v1
+      - name: Build ${{ matrix.target }}
+        run: >-
+          uv run ingest-charts build "$TARGET" --build-id "$BUILD_ID"
+          --protomaps "$PROTOMAPS" --seamap "$SEAMAP" --workers 4
+          --out "$RUNNER_TEMP/charts"
+        env:
+          TARGET: ${{ matrix.target }}
+          BUILD_ID: ${{ needs.plan.outputs.build_id }}
+          PROTOMAPS: ${{ inputs.protomaps }}
+          SEAMAP: ${{ inputs.seamap }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: charts-${{ matrix.target }}
+          path: ${{ runner.temp }}/charts/
+          retention-days: 3
+          compression-level: 0
+          if-no-files-found: error
+
+  publish:
+    needs: [plan, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          python-version: '3.13'
+      - run: uv sync --extra charts
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: charts-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/charts
+      - name: Publish to a scratch layout (dry run)
+        if: inputs.dry_run
+        run: >-
+          uv run ingest-charts publish --build-dir "$RUNNER_TEMP/charts"
+          --build-id "$BUILD_ID" --dry-run "$RUNNER_TEMP/charts-r2"
+        env:
+          BUILD_ID: ${{ needs.plan.outputs.build_id }}
+      - name: Publish to R2
+        if: ${{ !inputs.dry_run }}
+        run: uv run ingest-charts publish --build-dir "$RUNNER_TEMP/charts" --build-id "$BUILD_ID"
+        env:
+          BUILD_ID: ${{ needs.plan.outputs.build_id }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          MAX_BUCKET_BYTES: ${{ vars.MAX_BUCKET_BYTES || '15000000000' }}
+          REGIONAL_EXISTING_PEAK_BYTES: ${{ vars.REGIONAL_EXISTING_PEAK_BYTES }}
+          REGIONAL_HEADROOM_BYTES: ${{ vars.REGIONAL_HEADROOM_BYTES }}
+          REGIONAL_ENABLED_LAYERS: ${{ vars.OPENMETEO_ENABLED_LAYERS }}

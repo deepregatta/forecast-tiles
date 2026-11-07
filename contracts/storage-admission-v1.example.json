@@ -29,6 +29,13 @@
       ],
       "ceiling_bytes": 5000000
     },
+    "charts": {
+      "mode": "managed",
+      "prefixes": [
+        "charts/"
+      ],
+      "ceiling_bytes": 8000000
+    },
     "prepared": {
       "mode": "unmanaged",
       "prefixes": [
@@ -58,6 +65,7 @@
     "forecast-root": 0,
     "forecast-regional": 0,
     "land": 0,
+    "charts": 0,
     "prepared": 0,
     "technical": 0,
     "multipart": 0

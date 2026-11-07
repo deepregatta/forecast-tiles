@@ -35,6 +35,14 @@ rasterize conservatively → union → buffer outward → 10°×10° TLI1 tiles 
         │
         ▼
 Cloudflare R2:  land-index/{index_id}/… (immutable) + land-index/latest.json
+
+Protomaps basemap · Open Waters Seamap · SHOM Balisage · EMODnet DTM
+        │  manually dispatched, at the archive dates the owner approves
+        ▼
+trim → merge SHOM → depth → coastal mask → TCP1 PMTiles, one per z6 cell
+        │
+        ▼
+Cloudflare R2:  charts/{build_id}/… (immutable) + charts/latest.json
 ```
 
 The second pipeline is [the conservative routing index](docs/land-index-format.md),
@@ -42,6 +50,11 @@ consumed by [Tactician](https://github.com/deepregatta/tactician)'s routing core
 so that "no land crossing" means a coastline rather than a test polygon. It is
 **routing legality only** — not a chart, not a navigation product, and not a
 display basemap.
+
+The third is [the display chart](docs/chart-pack-format.md) (TCP1): vector
+chart archives, one per sea-touching z6 cell plus a world overview, which
+Tactician fetches at the dock and draws with its own style. It is a picture for
+the crew; routing never reads it.
 
 ## Operational status and verification
 
@@ -53,6 +66,7 @@ Configuration and delivery evidence answer different questions:
 | AROME, ICON-EU, UKV | Registry production gates enabled; Worker allowlist includes all three; two cycles/day (full cadence off by owner decision); manual workflow dry run defaults on; :47 catch-up cron | [Dated publication receipts](docs/regional-canary-status.json); canary acceptance stopped 2026-10-21, see [regional delivery](docs/regional-delivery.md) |
 | Current layers | `currents`: CMEMS GLO12, six-hourly samples to 240 h; `currents-ibi`: CMEMS IBI, hourly means to 120 h | Dated provider timings in the dispatcher table; no alternate provider is supported |
 | Routing index | One-shot `ingest land`, manual workflow only | [Versioned index and reproducibility evidence](docs/land-index-format.md) |
+| Display chart (TCP1) | `ingest-charts`, manual `charts` workflow only (dry run by default); no schedule until Open Waters is told about the weekly reads | [Format, publication and measured builds](docs/chart-pack-format.md) |
 
 For regionals, **enabled** means the registry gate is open; production also
 needs matching GitHub `OPENMETEO_ENABLED_LAYERS`, runtime
@@ -119,6 +133,8 @@ uv run ingest currents-ibi                   # hourly regional current field
 uv run ingest weather --force                # retry identical immutable content; guards still apply
 uv run ingest weather --cycle 20260930T06 --wait-minutes 90   # wait for the provider, then publish
 uv run ingest land --domain nweu             # rebuild the routing index (one-shot)
+uv sync --extra charts                       # the chart builder's dependencies
+uv run ingest-charts plan --cells stage1     # chart build id and matrix (docs/chart-pack-format.md)
 uv sync --extra openmeteo                    # regional dependency; activation is separate
 uv run ingest weather-arome --cycle 20261002T09 --dry-run /tmp/arome
 uv run ingest weather-icon-eu --dry-run /tmp/icon-eu
@@ -497,7 +513,9 @@ in the Passage repo ([`docs/forecast-tile-format.md`](https://github.com/deepreg
 this repo vendors copies plus a shared golden fixture that both CIs must decode
 identically. The routing index's own spec, schemas and golden fixture are
 canonical **here** and consumed by tactician's `core/land` (`docs/land-index-format.md`,
-`contracts/land-index-*.schema.json`, `tests/fixtures/land-index-raz/`). The
+`contracts/land-index-*.schema.json`, `tests/fixtures/land-index-raz/`), and so
+are the chart format's (`docs/chart-pack-format.md`, `contracts/charts-*.schema.json`,
+`tests/fixtures/chart-pack-cherbourg/`), consumed by tactician's `core/charts`. The
 `forecast-*` schemas here match Passage's, `currents-ibi` included (since
 2026-09-28) and `latest.json`'s optional `cadence_hours` (since 2026-09-29).
 No per-tile provenance/resolution extension has been made; the later
