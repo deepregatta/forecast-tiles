@@ -7,9 +7,10 @@
 
 Grown from spikes/chart-pilots/tools/extract_pmtiles.py and fetch_marks.py
 (2026-11-06). Vendored from tactician `tools/charts/sources.py` (main at
-eaf6d88, 2026-11-07); the cache folder comes from `common.cache_dir()`, and
-Open Waters' archive is read only at a date a run names (`seamap_url`): no
-run probes for the newest one by itself.
+eaf6d88, 2026-11-07); the cache folder comes from `common.cache_dir()`.
+Open Waters' archive is read at the date a run names; the monthly run (WP10
+phase 8, the owner's cadence since 2026-11-07, Open Waters told) names
+`newest`, which `newest_seamap` resolves with one HEAD request a day.
 """
 
 from __future__ import annotations
@@ -56,6 +57,21 @@ def session() -> requests.Session:
     return _local.s
 
 
+def newest_seamap(today: dt.date | None = None, days: int = 42, exists=None) -> str:
+    """The newest dated Open Waters archive, YYYY-MM-DD: one HEAD a day back
+    from today. Their archives are weekly but not every week is kept (2026-10-05,
+    10-12 and 10-19 were missing on 2026-11-07), so every day is tried."""
+    today = today or dt.datetime.now(dt.timezone.utc).date()
+    exists = exists or (
+        lambda url: session().head(url, timeout=60, allow_redirects=True).status_code == 200
+    )
+    for back in range(days):
+        date = (today - dt.timedelta(days=back)).isoformat()
+        if exists(SEAMAP_URL.format(date=date)):
+            return date
+    raise RuntimeError(f"no Open Waters Seamap archive in the {days} days to {today}")
+
+
 def newest_protomaps() -> str:
     builds = session().get(PROTOMAPS_BUILDS, timeout=60).json()
     return max(b["key"] for b in builds if b["key"].endswith(".pmtiles")).removesuffix(".pmtiles")
@@ -79,7 +95,8 @@ class RemoteArchive:
         self._lock = threading.Lock()
         head = self._meta("head")
         if head is None:
-            head = self._get(0, 16384)
+            # an archive smaller than the usual head read comes back whole
+            head = self._get(0, 16384, short_ok=True)
             self._set_meta("head", head)
         self.header = deserialize_header(head[:127])
         self._head = head
@@ -98,7 +115,7 @@ class RemoteArchive:
         self.db.execute("INSERT OR REPLACE INTO meta VALUES (?, ?)", (k, v))
         self.db.commit()
 
-    def _get(self, offset: int, length: int) -> bytes:
+    def _get(self, offset: int, length: int, short_ok: bool = False) -> bytes:
         for attempt in range(5):
             try:
                 r = session().get(
@@ -107,7 +124,7 @@ class RemoteArchive:
                     timeout=120,
                 )
                 r.raise_for_status()
-                if len(r.content) != length:
+                if len(r.content) != length and not (short_ok and r.status_code == 206):
                     raise IOError(f"short read {len(r.content)} of {length}")
                 return r.content
             except Exception:  # noqa: BLE001 - retried, then re-raised

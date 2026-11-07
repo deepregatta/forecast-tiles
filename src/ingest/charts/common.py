@@ -136,7 +136,91 @@ def human(n: float) -> str:
     return f"{n / 1e6:.2f} MB" if n >= 1e5 else f"{n / 1e3:.1f} kB"
 
 
+# Europe's and the UK's coasts (the owner's coverage decision, 2026-11-07;
+# Tactician docs/offline-charts-plan.md, "Stage 2 coverage"): the 71 z6 cells
+# with a European shoreline point, derived from GSHHG by
+# scripts/europe_chart_cells.py. No Atlantic islands, Iceland, the Faroes,
+# Svalbard or Jan Mayen; no North Africa, Levant or Anatolia; the Black Sea's
+# European shore to Sochi; Cyprus in; Kola and the White Sea out. Their
+# measured sizes are in docs/chart-pack-format.md ("Published builds").
+EUROPE_COAST = (
+    "6-30-18",
+    "6-30-19",
+    "6-30-20",
+    "6-30-21",
+    "6-30-23",
+    "6-30-24",
+    "6-30-25",
+    "6-31-18",
+    "6-31-19",
+    "6-31-20",
+    "6-31-21",
+    "6-31-22",
+    "6-31-23",
+    "6-31-24",
+    "6-31-25",
+    "6-32-17",
+    "6-32-18",
+    "6-32-19",
+    "6-32-20",
+    "6-32-21",
+    "6-32-23",
+    "6-32-24",
+    "6-33-16",
+    "6-33-17",
+    "6-33-18",
+    "6-33-19",
+    "6-33-20",
+    "6-33-23",
+    "6-33-24",
+    "6-34-14",
+    "6-34-15",
+    "6-34-16",
+    "6-34-17",
+    "6-34-18",
+    "6-34-19",
+    "6-34-20",
+    "6-34-22",
+    "6-34-23",
+    "6-34-24",
+    "6-34-25",
+    "6-35-13",
+    "6-35-14",
+    "6-35-15",
+    "6-35-16",
+    "6-35-17",
+    "6-35-18",
+    "6-35-19",
+    "6-35-20",
+    "6-35-23",
+    "6-35-24",
+    "6-35-25",
+    "6-36-13",
+    "6-36-14",
+    "6-36-16",
+    "6-36-17",
+    "6-36-18",
+    "6-36-19",
+    "6-36-23",
+    "6-36-24",
+    "6-36-25",
+    "6-37-13",
+    "6-37-14",
+    "6-37-18",
+    "6-37-22",
+    "6-37-23",
+    "6-37-24",
+    "6-37-25",
+    "6-38-22",
+    "6-38-23",
+    "6-38-25",
+    "6-39-23",
+)
+
 # Named cell sets a run builds. `stage1` is phase 6's: the cells under stage
-# 1's Channel area (6.5W-2.5E, 48.3N-51.3N). Phase 8 adds Europe's and the
-# UK's coasts, written as cell ids with their measured sizes.
-CELL_SETS = {"stage1": cells_over(CHANNEL.bbox)}
+# 1's Channel area (6.5W-2.5E, 48.3N-51.3N). `europe` is the coast's cells
+# and stage 1's inland 6-32-22, which the Channel's race areas reach.
+CELL_SETS = {
+    "stage1": cells_over(CHANNEL.bbox),
+    "europe": sorted(set(EUROPE_COAST) | set(cells_over(CHANNEL.bbox))),
+}

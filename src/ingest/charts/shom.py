@@ -5,8 +5,8 @@ written as Seamap writes its own OSM marks, so Seamap's symbols draw it; light
 sectors go to the `light` layer. Ported from the option E half of
 spikes/chart-pilots/tools/build_marks.py (2026-11-06), without option D.
 
-Vendored unchanged from tactician `tools/charts/shom.py` (main at eaf6d88,
-2026-11-07).
+Vendored from tactician `tools/charts/shom.py` (main at eaf6d88, 2026-11-07);
+phase 8 names the sector radii (`REACH_NM`) a cell reads SHOM past its edge by.
 """
 
 from __future__ import annotations
@@ -199,6 +199,14 @@ def colours(code):
     return "-".join(COLOUR.get(c.strip(), "?") for c in str(code or "").split(",") if c.strip())
 
 
+# A light's sector arc is drawn this far from it (major lights, minor lights),
+# and its two legs LEG_FACTOR times further: what a light draws reaches at most
+# REACH_NM from it, so a cell reads SHOM that far past its edge.
+ARC_NM = {True: 1.0, False: 0.5}
+LEG_FACTOR = 1.6
+REACH_NM = max(ARC_NM.values()) * LEG_FACTOR
+
+
 def offset(lon, lat, bearing, nm):
     b = math.radians(bearing)
     return [
@@ -282,7 +290,7 @@ def convert(shom: dict):
         return out
 
     def add_sectors(lon, lat, lights, major, mtype):
-        r_arc = 1.0 if major else 0.5
+        r_arc = ARC_NM[bool(major)]
         base = {"type": mtype, "family": "major_aid", "cell_rank": 0}
         for l in lights:
             a, b = l.get("s1"), l.get("s2")
@@ -299,7 +307,7 @@ def convert(shom: dict):
             for bearing in (start, end):
                 sectors.append(
                     (
-                        [[lon, lat], offset(lon, lat, bearing, r_arc * 1.6)],
+                        [[lon, lat], offset(lon, lat, bearing, r_arc * LEG_FACTOR)],
                         {**base, "subtype": "leg"},
                     )
                 )

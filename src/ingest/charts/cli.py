@@ -1,7 +1,7 @@
 """`ingest-charts` — build and publish TCP1 chart archives (docs/chart-pack-format.md).
 
     uv sync --extra charts
-    uv run ingest-charts plan --cells stage1                 # build id and the matrix
+    uv run ingest-charts plan --cells europe --seamap newest --protomaps newest   # build id, inputs, matrix
     uv run ingest-charts build world --build-id ID --protomaps YYYYMMDD --seamap YYYY-MM-DD --out DIR
     uv run ingest-charts build 6-31-21 --build-id ID --protomaps YYYYMMDD --seamap YYYY-MM-DD --out DIR
     uv run ingest-charts publish --build-dir DIR --build-id ID [--dry-run OUT]
@@ -9,12 +9,19 @@
     uv run ingest-charts build-area channel --world W.pmtiles --out P.pmtiles ...   # a local stage 1 pack
 
 `build` reads Protomaps' daily build and Open Waters' dated Seamap archive by
-HTTP range at the dates it is given, SHOM Balisage over WFS, and the EMODnet
-blocks the land index caches. It writes `{target}.pmtiles` (a cell also
-`{target}-depth.pmtiles`) and a `.report.json` into --out, and publishes
-nothing. `publish` uploads a build directory to R2 (or --dry-run's scratch
-layout): its only writer of `charts/`. There is no schedule (WP10 phase 6):
-Open Waters' archive is read only in runs the owner approves.
+HTTP range at the dates it is given, SHOM Balisage over WFS, and the cell's
+EMODnet product (products.py), from the published build when `--previous`
+names one with the same product key, otherwise cut from the DTM blocks the
+land index caches. It writes `{target}.pmtiles` (a cell also
+`{target}-depth.pmtiles`, and `{target}.emodnet.npz` when it cut a new
+product) and a `.report.json` into --out, and publishes nothing; a target
+whose inputs equal the published archive's writes only
+`{target}.unchanged.json`. `publish` uploads a build directory to R2 (or
+--dry-run's scratch layout): its only writer of `charts/`.
+
+The monthly run (WP10 phase 8) is started by the dispatcher with `newest`
+for both dates, which `plan` resolves; the owner told Open Waters about the
+monthly range reads on 2026-11-07.
 """
 
 from __future__ import annotations
@@ -46,6 +53,26 @@ def _targets(spec: str) -> list[str]:
     return sorted(dict.fromkeys(cells))
 
 
+def resolve(seamap: str, protomaps: str, previous: dict | None = None) -> tuple[str, str]:
+    """The run's inputs: dates as given, or `newest` resolved. Never older
+    than what the published build already read."""
+    from ingest.charts import sources
+
+    seamap = sources.newest_seamap() if seamap == "newest" else seamap
+    protomaps = sources.newest_protomaps() if protomaps == "newest" else protomaps
+    if not DATE_PROTOMAPS.match(protomaps or "") or not DATE_SEAMAP.match(seamap or ""):
+        raise SystemExit(f"cannot build from Seamap {seamap!r} and Protomaps {protomaps!r}")
+    if previous:
+        dates = [
+            ((e.get("sources") or {}).get("seamap") or {}).get("date")
+            for e in [previous["world"], *previous["cells"].values()]
+        ]
+        newest = max((d for d in dates if d), default=None)
+        if newest and seamap < newest:
+            raise SystemExit(f"Seamap {seamap} is older than the published build's {newest}")
+    return seamap, protomaps
+
+
 def cmd_plan(args) -> int:
     from ingest.charts.build import utc_build_id
 
@@ -55,7 +82,63 @@ def cmd_plan(args) -> int:
     print(f"build_id={build_id}")
     print(f"matrix={json.dumps(matrix)}")
     print(f"cells={len(cells)}")
+    if args.seamap or args.protomaps:
+        previous = load_pointer(args.previous) if args.previous else None
+        seamap, protomaps = resolve(args.seamap or "newest", args.protomaps or "newest", previous)
+        print(f"seamap={seamap}")
+        print(f"protomaps={protomaps}")
+        if previous:
+            was = previous["world"].get("sources", {})
+            print(
+                f"published={previous['build_id']} "
+                f"(Seamap {was.get('seamap', {}).get('date')}, Protomaps {was.get('protomaps', {}).get('build')})",
+                file=sys.stderr,
+            )
     return 0
+
+
+def load_pointer(source: str) -> dict:
+    """The published `charts/latest.json`, by URL or as a scratch layout's file."""
+    return json.loads(_read(source))
+
+
+def _read(source: str) -> bytes:
+    if source.startswith(("https://", "http://")):
+        from ingest.charts.sources import session
+
+        r = session().get(source, timeout=120)
+        r.raise_for_status()
+        return r.content
+    return Path(source).read_bytes()
+
+
+def _origin(pointer_source: str) -> str:
+    """Where a pointer's keys are read: the URL or folder above `charts/`."""
+    suffix = "/charts/latest.json"
+    if not pointer_source.endswith(suffix):
+        raise SystemExit(f"--previous must end in {suffix}: {pointer_source}")
+    return pointer_source[: -len(suffix)]
+
+
+def _published_product(args, area, key, entry):
+    """The cell's EMODnet product from the published build, when it is this
+    code's and the DTM release's; None otherwise (it is cut afresh)."""
+    import hashlib
+
+    from ingest.charts import products
+    from ingest.charts.common import cache_dir
+
+    product = (entry or {}).get("emodnet")
+    if not product or product.get("product_key") != key:
+        return None
+    dest = cache_dir() / "products" / key[:16] / f"{area.name}{products.SUFFIX}"
+    if not dest.is_file() or hashlib.sha256(dest.read_bytes()).hexdigest() != product["sha256"]:
+        data = _read(f"{_origin(args.previous)}/{product['key']}")
+        if hashlib.sha256(data).hexdigest() != product["sha256"]:
+            raise SystemExit(f"{product['key']} does not match its sha256 in the pointer")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes(data)
+    return products.Product.load(dest, area, key)
 
 
 def _dates(args):
@@ -77,7 +160,25 @@ def cmd_build(args) -> int:
         area, kind = WORLD, "world"
     else:
         area, kind = cell_area(args.target), "cell"
-    build.run(
+    product = unchanged_if = None
+    if args.previous:
+        from ingest.charts import products
+        from ingest.charts.publish import CHUNK_BYTES
+
+        previous = load_pointer(args.previous)
+        entry = previous["world"] if kind == "world" else previous["cells"].get(area.name)
+        # a pointer of another chunk size lists chunks this build must replace
+        # (and a cell published before its EMODnet product was is built again)
+        if (
+            entry
+            and previous.get("chunk_bytes") == CHUNK_BYTES
+            and (kind == "world" or entry.get("emodnet"))
+        ):
+            unchanged_if = entry.get("inputs_sha256")
+        if kind == "cell":
+            key = products.product_key(build.style_fields()["layers"]["depth"])
+            product = _published_product(args, area, key, entry)
+    report = build.run(
         area,
         kind=kind,
         protomaps=args.protomaps,
@@ -87,7 +188,12 @@ def cmd_build(args) -> int:
         build_id=args.build_id,
         built=built,
         workers=args.workers,
+        product=product,
+        unchanged_if=unchanged_if,
+        save_product=out / f"{area.name}.emodnet.npz" if kind == "cell" else None,
     )
+    if report.get("unchanged"):
+        return 0
     from ingest.charts.check import check, style_fields
 
     paths = [out / f"{area.name}.pmtiles"]
@@ -177,14 +283,24 @@ def _summary(build_dir: Path, result) -> None:
     """Each archive's measured size, for the plan's table (and the job summary)."""
     import os
 
-    rows = ["| Archive | Chart MB | Depth MB | Tiles | Seconds |", "|---|---|---|---|---|"]
+    rows = [
+        "| Archive | Chart MB | Depth MB | EMODnet product MB | Tiles | Seconds |",
+        "|---|---|---|---|---|---|",
+    ]
     for report in sorted(build_dir.glob("*.report.json")):
         r = json.loads(report.read_text())
+        name = report.name.removesuffix(".report.json")
         depth = r.get("depth_archive", {}).get("file_bytes", 0)
+        product = build_dir / f"{name}.emodnet.npz"
+        cut = f"{product.stat().st_size / 1e6:.2f} (new)" if product.is_file() else "kept"
         rows.append(
-            f"| {report.name.removesuffix('.report.json')} | {r['file_bytes'] / 1e6:.2f} | {depth / 1e6:.2f} | {r['tiles']} | "
-            f"{r.get('seconds', '')} |"
+            f"| {name} | {r['file_bytes'] / 1e6:.2f} | {depth / 1e6:.2f} | "
+            f"{cut if r['kind'] == 'cell' else ''} | {r['tiles']} | {r.get('seconds', '')} |"
         )
+    for marker in sorted(build_dir.glob("*.unchanged.json")):
+        r = json.loads(marker.read_text())
+        name = marker.name.removesuffix(".unchanged.json")
+        rows.append(f"| {name} | unchanged | | | | {r.get('seconds', '')} |")
     text = "\n".join(rows)
     print(text)
     path = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -203,12 +319,15 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="ingest-charts", description=__doc__.split("\n\n")[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    p = sub.add_parser("plan", help="print the build id and the build matrix")
+    p = sub.add_parser("plan", help="print the build id, the inputs and the build matrix")
     p.add_argument(
-        "--cells", default="stage1", help="a cell set (stage1) or cell ids, comma-separated"
+        "--cells", default="stage1", help="a cell set (stage1, europe) or cell ids, comma-separated"
     )
     p.add_argument("--build-id")
     p.add_argument("--no-world", action="store_true")
+    p.add_argument("--seamap", help="YYYY-MM-DD or newest: resolve and print the run's Seamap date")
+    p.add_argument("--protomaps", help="YYYYMMDD or newest: resolve and print the Protomaps build")
+    p.add_argument("--previous", help="the published charts/latest.json (URL or file)")
     p.set_defaults(fn=cmd_plan)
 
     def inputs(p):
@@ -222,6 +341,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("target", help="world, or a cell id such as 6-31-21")
     p.add_argument("--build-id", required=True)
     p.add_argument("--out", required=True, help="the build directory")
+    p.add_argument(
+        "--previous",
+        help="the published charts/latest.json (URL or file): reuse its EMODnet product, "
+        "and write nothing but a marker when the inputs are its archive's",
+    )
     inputs(p)
     p.set_defaults(fn=cmd_build)
 

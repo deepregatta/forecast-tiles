@@ -38,6 +38,12 @@ DEPTH_MAX_ZOOM = 12
 BUFFER = 64  # tile units (of 4096) drawn past each tile edge
 
 
+def covered(west: int, south: int) -> bool:
+    """Whether EMODnet's DTM covers a whole-degree block."""
+    w, s, e, n = emodnet.EXTENT
+    return w <= west and west + 1 <= e and s <= south and south + 1 <= n
+
+
 class Grid:
     """Elevation (m, positive above LAT) over whole-degree blocks, north up."""
 
@@ -54,6 +60,13 @@ class Grid:
         for bs in range(self.north - 1, self.south - 1, -1):
             row = []
             for bw in range(self.west, self.east):
+                if not covered(bw, bs):
+                    # past the DTM's extent (a cell reaching 45E, beyond the
+                    # Black Sea's eastern shore): no data, drawn as land
+                    a = np.full((CELLS, CELLS), np.nan, dtype=np.float32)
+                    digest.update(f"{bw},{bs}:outside".encode())
+                    row.append(a)
+                    continue
                 if not emodnet.block_path(cache, bw, bs).is_file():
                     fetched += 1
                     log(f"  EMODnet block {bw},{bs}: fetching (about 21 s)")

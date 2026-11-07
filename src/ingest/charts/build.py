@@ -42,6 +42,7 @@ from pmtiles.tile import Compression, TileType, zxy_to_tileid
 from pmtiles.writer import Writer
 
 from ingest.charts import mvt, sources
+from ingest.charts import products as products_mod
 from ingest.charts import shom as shom_mod
 from ingest.charts.common import (
     CHANNEL,
@@ -57,14 +58,22 @@ from ingest.charts.common import (
     tile_bounds,
 )
 from ingest.charts.depth import ATTRIBUTION as EMODNET_ATTRIBUTION
-from ingest.charts.depth import DEPTH_MAX_ZOOM, PRODUCT as EMODNET_PRODUCT, Grid
+from ingest.charts.depth import DEPTH_MAX_ZOOM, PRODUCT as EMODNET_PRODUCT
 
 HERE = Path(__file__).resolve().parent
 STYLE_FIELDS = HERE / "style-fields.json"
 BUILDER = "forecast-tiles src/ingest/charts (vendored from tactician tools/charts, 2026-11-07)"
 # The files whose content decides what a build writes: a change to any of
 # them changes every input identity, so no cell is reused across it.
-RECIPE_FILES = ("build.py", "common.py", "depth.py", "mvt.py", "shom.py", "style-fields.json")
+RECIPE_FILES = (
+    "build.py",
+    "common.py",
+    "depth.py",
+    "mvt.py",
+    "products.py",
+    "shom.py",
+    "style-fields.json",
+)
 
 BASE_LAYERS = ["earth", "water", "boundaries", "roads", "places"]
 SEAMAP_LAYERS = ["sea_area", "seamark", "light"]
@@ -110,9 +119,20 @@ ROAD_RULES = {
 DEFAULT_MASK_NM = 2.0
 DEFAULT_ROADS_NM = 1.0
 DEFAULT_ROADS = "streets"
-# A cell's SHOM marks are read this far past its box, so an OSM copy of a mark
-# just across a cell edge is still dropped (DUPLICATE_M is about 0.001 deg).
+# A cell's SHOM marks are read past its box by what a light draws (its sector
+# legs, shom.REACH_NM) and this much more, so a light just across a cell edge
+# still draws its sectors into the cell and an OSM copy of a mark just across
+# it is still dropped (DUPLICATE_M is about 0.001 deg).
 SHOM_MARGIN_DEG = 0.01
+
+
+def shom_bbox(bbox) -> tuple[float, float, float, float]:
+    """A cell's box grown by SHOM_MARGIN_DEG and by a light's reach, in
+    longitude at the cell's poleward edge, where a degree is shortest."""
+    w, s, e, n = bbox
+    dlat = shom_mod.REACH_NM / 60 + SHOM_MARGIN_DEG
+    dlon = shom_mod.REACH_NM / (60 * math.cos(math.radians(max(abs(s), abs(n))))) + SHOM_MARGIN_DEG
+    return (round(w - dlon, 6), round(s - dlat, 6), round(e + dlon, 6), round(n + dlat, 6))
 
 
 def latin(text) -> bool:
@@ -223,7 +243,7 @@ def _rerank(feats, extent):
 
 
 def process(task):
-    """One tile -> (zxy, chart tile, depth-only tile)."""
+    """One tile -> (zxy, chart tile)."""
     z, x, y, pm_data, sm_data, dist = task
     keep = G["keep"]
     opts = G["opts"]
@@ -290,19 +310,11 @@ def process(task):
             )
             for gtype, geom, p in lfeats:
                 w.add(gtype, geom, {kk: v for kk, v in p.items() if k(kk)})
-    if G["grid"] is not None and z <= DEPTH_MAX_ZOOM:
-        d = G["grid"].depth_layer(z, x, y, keep=keep["depth"])
-        if len(d):
-            writers["depth"] = d
-
-    def enc(names):
-        names = [n for n in LAYER_ORDER if n in writers and n in names]
-        return gzip.compress(mvt.encode([writers[n] for n in names]), 6, mtime=0) if names else None
-
-    # depth goes to its own archive (the 2026-11-07 packaging decision)
-    chart = enc(set(writers) - {"depth"})
-    depth_tile = enc({"depth"}) if z <= DEPTH_MAX_ZOOM else None
-    return (z, x, y), chart, depth_tile
+    # depth goes to its own archive (the 2026-11-07 packaging decision), cut
+    # from the cell's EMODnet product (products.py)
+    names = [n for n in LAYER_ORDER if n in writers]
+    chart = gzip.compress(mvt.encode([writers[n] for n in names]), 6, mtime=0) if names else None
+    return (z, x, y), chart
 
 
 # ---------------------------------------------------------------- inputs
@@ -375,13 +387,13 @@ def index_shom(marks, sectors, zooms):
 # ---------------------------------------------------------------- packs
 
 
-def plan(area, grid, mask_nm):
+def plan(area, product, mask_nm):
     """The tiles of an area pack with their sea distance, and the tiles the
     coastal mask leaves out (above z10, farther than mask_nm from the sea)."""
     out, masked = [], []
     for z in range(area.min_zoom, area.max_zoom + 1):
         for t in area.tiles(z):
-            d = grid.tile_sea_distance(*t) if grid is not None else 0.0
+            d = product.distance[t] if product is not None else 0.0
             (masked if z >= MASK_FROM_ZOOM and d > mask_nm else out).append((t, d))
     return out, masked
 
@@ -598,11 +610,21 @@ def run(
     roads_nm: float = DEFAULT_ROADS_NM,
     roads: str = DEFAULT_ROADS,
     workers: int = 6,
+    product=None,
+    unchanged_if: str | None = None,
+    save_product: Path | None = None,
 ) -> dict:
     """Build one archive (and a depth companion for an area or a cell) at
     `out`; returns the report also written beside it. `protomaps` (YYYYMMDD)
     and `seamap` (YYYY-MM-DD) name the inputs: Open Waters' archive is read
-    only at a date the run names."""
+    only at a date the run names.
+
+    `product` is the area's EMODnet product (products.py), built here from
+    the DTM when not given; `report["emodnet_product"]["built"]` says which.
+    When `unchanged_if` names the inputs_sha256 the published archive was
+    built from and this build's inputs are the same, nothing is cut or
+    written but `{name}.unchanged.json`: the publisher keeps the published
+    archive. A product built here is written to `save_product` when given."""
     if kind not in ("world", "area", "cell"):
         raise ValueError(f"unknown kind {kind!r}")
     if (kind == "cell") != (area.cell is not None) or (kind == "world") != (area is WORLD):
@@ -622,21 +644,28 @@ def run(
     )
     sm = sources.RemoteArchive(f"seamap-{seamap}", sources.SEAMAP_URL.format(date=seamap))
 
-    grid = None
     shom = None
-    shom_bbox = area.bbox
-    if kind == "cell":
-        w, s, e, n = area.bbox
-        m = SHOM_MARGIN_DEG
-        shom_bbox = (round(w - m, 6), round(s - m, 6), round(e + m, 6), round(n + m, 6))
+    box = shom_bbox(area.bbox) if kind == "cell" else area.bbox
+    product_built = False
     if not is_world:
-        grid = Grid(area.bbox, log=log)
-        grid.sea_distance()
-        log(
-            f"  EMODnet: {grid.blocks} blocks ({grid.fetched} fetched), grid {grid.elev.shape[1]} x {grid.elev.shape[0]}"
-        )
-        shom = sources.fetch_shom(shom_bbox, shom_tag, log=log)
-    planned, masked = plan(area, grid, mask_nm)
+        key = products_mod.product_key(fields["layers"]["depth"])
+        if product is None:
+            product = products_mod.build(area, keep["depth"], key, workers=workers, log=log)
+            product_built = True
+            if save_product is not None:
+                product.save(save_product, area)
+        elif product.key != key or product.area != area.name:
+            raise ValueError(
+                f"EMODnet product {product.area}/{product.key} is not {area.name}/{key}"
+            )
+        else:
+            log(
+                f"  EMODnet product {key[:12]}: kept from its release ({len(product.depth)} depth tiles)"
+            )
+        shom = sources.fetch_shom(box, shom_tag, log=log)
+    else:
+        product = None
+    planned, masked = plan(area, product, mask_nm)
     want = [t for t, _ in planned]
     pm_tiles = pm.fetch(want, log=log)
     # a masked tile over water the basemap draws keeps its content
@@ -663,7 +692,7 @@ def run(
     if shom is not None:
         marks, sectors = shom_mod.convert(shom)
         # SHOM marks inside the box only (a cell's box and its margin); the WFS box can return a little more
-        w, s, e, n = shom_bbox
+        w, s, e, n = box
         marks = [m for m in marks if w <= m[0] <= e and s <= m[1] <= n]
         near = {
             (14, lon_to_x(lon, 14) + dx, lat_to_y(lat, 14) + dy)
@@ -677,11 +706,32 @@ def run(
         )
     mi, si = index_shom(marks or [], sectors, range(area.min_zoom, area.max_zoom + 1))
 
+    report = {"area": area.name, "kind": kind, "build_id": build_id}
+    rules = {"mask_nm": mask_nm, "roads_nm": roads_nm, "roads": roads}
+    shom_meta = shom["_meta"] if shom is not None else None
+    identity = {
+        "kind": kind,
+        "area": area.name,
+        "bbox": list(area.bbox),
+        "rules": rules,
+        "shom": shom_meta["content_sha256"] if shom_meta else None,
+        "emodnet": product.grid_sha256 if product else None,
+    }
+    digest = inputs_digest(identity, pm_tiles, sm_tiles) if kind != "area" else None
+    if digest:
+        report["inputs_sha256"] = digest
+    if product is not None:
+        report["emodnet_product"] = {"key": product.key, "built": product_built}
+    if unchanged_if is not None and digest == unchanged_if:
+        report.update(unchanged=True, seconds=round(time.time() - t0))
+        out.with_name(f"{out.stem}.unchanged.json").write_text(json.dumps(report, indent=1) + "\n")
+        log(f"  {area.name}: inputs unchanged ({digest[:12]}); the published archive stays")
+        return report
+
     G.clear()
     G.update(
         keep=keep,
         hidden=hidden,
-        grid=grid,
         shom_marks=marks,
         shom_sectors=sectors,
         shom_index=mi,
@@ -689,16 +739,22 @@ def run(
         opts={"roads_nm": roads_nm, "roads": roads, "cover": cover},
     )
     tasks = ((t[0], t[1], t[2], pm_tiles.get(t), sm_tiles.get(t), d) for t, d in planned)
-    chart, depth_tiles = {}, {}
+    chart = {}
+    # the depth companion holds the depth tiles of the tiles this pack stores
+    # with content (a masked land tile has none)
+    depth_tiles = {}
+    if product is not None:
+        for t, _ in planned:
+            tid = zxy_to_tileid(*t)
+            if t[0] <= DEPTH_MAX_ZOOM and tid in product.depth:
+                depth_tiles[tid] = product.depth[tid]
     done = 0
     ctx = get_context("fork")
     with ctx.Pool(workers) as pool:
-        for (z, x, y), c, dt_ in pool.imap_unordered(process, tasks, chunksize=16):
+        for (z, x, y), c in pool.imap_unordered(process, tasks, chunksize=16):
             tid = zxy_to_tileid(z, x, y)
             if c:
                 chart[tid] = c
-            if dt_:
-                depth_tiles[tid] = dt_
             done += 1
             if done % 5000 == 0:
                 log(f"  {done}/{len(planned)} tiles ({time.time() - t0:.0f} s)")
@@ -718,7 +774,6 @@ def run(
         {"id": "seamap", "date": seamap, **sm.describe(), "licence": LICENCES["seamap"][0]},
     ]
     attribution = ["© OpenStreetMap contributors", "© Protomaps", "© Open Waters: Seamap"]
-    shom_meta = shom["_meta"] if shom is not None else None
     # a cell with no SHOM mark in it (outside French waters) names no SHOM source
     if shom is not None and (kind != "cell" or marks):
         srcs.append(
@@ -732,7 +787,7 @@ def run(
             }
         )
         attribution.insert(0, f"Balisage © Shom {shom_meta['fetched'][:4]}")
-    if grid is not None:
+    if product is not None:
         srcs.append(
             {
                 "id": "emodnet",
@@ -760,19 +815,6 @@ def run(
         "type": "baselayer",
         "format": "pbf",
     }
-    report = {"area": area.name, "kind": kind, "build_id": build_id}
-    rules = {"mask_nm": mask_nm, "roads_nm": roads_nm, "roads": roads}
-    identity = {
-        "kind": kind,
-        "area": area.name,
-        "bbox": list(area.bbox),
-        "rules": rules,
-        "shom": shom_meta["content_sha256"] if shom_meta else None,
-        "emodnet": grid.digest if grid else None,
-    }
-    digest = inputs_digest(identity, pm_tiles, sm_tiles) if kind != "area" else None
-    if digest:
-        report["inputs_sha256"] = digest
     if not is_world:
         report["coastal_mask"] = {
             "land_tile_by_zoom": by_zoom(dry),

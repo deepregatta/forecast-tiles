@@ -68,10 +68,19 @@ def _meta(kind, build_id, digest, bounds, minzoom, maxzoom, **extra):
 
 
 def make_build(
-    folder: Path, build_id: str, cells: dict[str, str], world: str | None, big=None, inland=()
+    folder: Path,
+    build_id: str,
+    cells: dict[str, str],
+    world: str | None,
+    big=None,
+    inland=(),
+    product="a" * 64,
+    cut=True,
 ):
     """Small archives shaped as a build writes them: {cell: inputs digest}.
-    `big` names a cell whose archive spans more than one 1 MiB chunk."""
+    `big` names a cell whose archive spans more than one chunk. Each cell's
+    report names its EMODnet `product`, which the build cut (`cut`) or read
+    from the published one."""
     folder.mkdir(parents=True, exist_ok=True)
     if world is not None:
         meta = _meta("world", build_id, world, (-180, -85, 180, 85), 0, 5)
@@ -102,6 +111,11 @@ def make_build(
             else {"archive": f"{cell}-depth.pmtiles", "packaging": "separate archive"},
         )
         build.write_pmtiles(folder / f"{cell}.pmtiles", tiles, meta, a.bbox, 6, 14, 9)
+        (folder / f"{cell}.report.json").write_text(
+            json.dumps({"kind": "cell", "emodnet_product": {"key": product, "built": cut}})
+        )
+        if cut:
+            (folder / f"{cell}.emodnet.npz").write_bytes(f"product {product} {cell}".encode())
         if cell in inland:
             continue
         dmeta = _meta("depth", build_id, digest, a.bbox, 6, 12, cell=c)
@@ -157,8 +171,9 @@ def test_first_build_uploads_everything_manifest_last(tmp_path):
     assert latest["previous_build_id"] is None
     entry = manifest["cells"]["6-31-21"]
     data = store.objects[entry["key"]]
-    assert len(entry["chunks"]) == (len(data) + (1 << 20) - 1) >> 20 >= 2
-    assert entry["chunks"] == [fnv64(data[i : i + (1 << 20)]) for i in range(0, len(data), 1 << 20)]
+    assert len(entry["chunks"]) == (len(data) + (1 << 17) - 1) >> 17 >= 2
+    assert entry["chunks"] == [fnv64(data[i : i + (1 << 17)]) for i in range(0, len(data), 1 << 17)]
+    assert latest["chunk_bytes"] == 131072
     assert entry["depth"]["key"] == "charts/20261107T1200Z/6-31-21-depth.pmtiles"
     assert (entry["x"], entry["y"], entry["sources"]["seamap"]["date"]) == (31, 21, "2026-11-02")
 
@@ -309,7 +324,7 @@ def test_charts_never_starve_the_regional_forecasts(tmp_path, monkeypatch):
     monkeypatch.setenv("REGIONAL_ENABLED_LAYERS", "weather-arome,weather-icon-eu,weather-ukv")
     monkeypatch.setenv("REGIONAL_HEADROOM_BYTES", "500")
     monkeypatch.setenv("REGIONAL_EXISTING_PEAK_BYTES", "1000")
-    size = sum(p.stat().st_size for p in folder.glob("*.pmtiles"))
+    size = sum(p.stat().st_size for p in [*folder.glob("*.pmtiles"), *folder.glob("*.npz")])
     limit = 1000 + 3 * caps + 500 + size
     with pytest.raises(StorageGuardError, match="reserved peak"):
         publish(store, folder, "20261107T1200Z", regional_check=True, max_bucket_bytes=limit - 1)
@@ -336,11 +351,12 @@ def test_a_build_is_refused_whole(tmp_path):
     assert not [k for op, k in store.ops if op == "put"]
 
 
-def test_the_chunk_digest_is_fnv1a_per_mebibyte():
-    data = bytes(range(256)) * 8192 + b"tail"  # 2 MiB and 4 bytes
+def test_the_chunk_digest_is_fnv1a_per_128_kib():
+    data = bytes(range(256)) * 1024 + b"tail"  # 256 KiB and 4 bytes
+    assert charts.CHUNK_BYTES == 128 << 10
     assert charts.chunk_digests(data) == [
-        fnv64(data[: 1 << 20]),
-        fnv64(data[1 << 20 : 2 << 20]),
+        fnv64(data[: 1 << 17]),
+        fnv64(data[1 << 17 : 2 << 17]),
         fnv64(b"tail"),
     ]
 

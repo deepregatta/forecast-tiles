@@ -1,0 +1,43 @@
+name: paid-work-channel
+
+# Adds the chart publisher's `charts` channel to ops/paid-work.json (WP10
+# phase 8; docs/paid-work.md): one conditional write with read-back, every
+# other policy field and all usage preserved. A dry run unless `apply`.
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Add the charts channel with CAS and read-back (default is dry run)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: review-paid-work
+  cancel-in-progress: false
+
+jobs:
+  channel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          python-version: '3.13'
+      - run: uv sync
+      - name: Add the charts channel with existing credentials
+        run: |
+          args=()
+          if [[ "$APPLY" == true ]]; then args+=(--apply); fi
+          uv run python scripts/add_paid_work_channel.py "${args[@]}"
+        env:
+          APPLY: ${{ inputs.apply }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}

@@ -249,3 +249,43 @@ describe('a rejected token', () => {
     expect(errors[0]).toContain('GITHUB_TOKEN secret is not set');
   });
 });
+
+describe('the monthly chart build', () => {
+  const CHARTS = `${API}/charts.yml/dispatches`;
+  const charts: Env = { ...live, CHARTS_MONTHLY: 'true' };
+
+  it('dispatches charts.yml with newest inputs at 07:20 on the first Wednesday, beside ECMWF', async () => {
+    const { deps, calls, lines } = github(dispatched(1), dispatched(2));
+    await runScheduled(Date.parse('2026-12-02T07:20:31Z'), charts, deps);
+    expect(calls.map(c => c.url)).toEqual([`${API}/ingest-weather-ecmwf.yml/dispatches`, CHARTS]);
+    expect(calls[1]!.body).toEqual({
+      ref: 'main',
+      inputs: { seamap: 'newest', protomaps: 'newest', cells: 'europe', dry_run: 'false' },
+      return_run_details: true,
+    });
+    expect(lines[1]).toMatch(/^dispatched charts month=2026-12 seamap=newest protomaps=newest cells=europe scheduled=07:20:00Z .* run=https:\/\/github.com\/deepregatta\/forecast-tiles\/actions\/runs\/2$/);
+  });
+
+  it('counts a late fire, and no other day, slot or switch', async () => {
+    const late = github(dispatched(1), dispatched(2));
+    await runScheduled(Date.parse('2027-01-06T07:23:10Z'), charts, late.deps);
+    expect(late.calls.map(c => c.url)).toContain(CHARTS);
+    for (const [iso, env] of [
+      ['2026-12-09T07:20:00Z', charts], // the second Wednesday
+      ['2026-12-03T07:20:00Z', charts], // a Thursday
+      ['2026-12-02T19:20:00Z', charts], // the evening ECMWF slot
+      ['2026-12-02T07:20:00Z', live], // not switched on
+    ] as const) {
+      const { deps, calls } = github(dispatched(1));
+      await runScheduled(Date.parse(iso), env, deps);
+      expect(calls.map(c => c.url)).not.toContain(CHARTS);
+    }
+  });
+
+  it('is only logged in a dry run', async () => {
+    const { deps, calls, lines } = github();
+    await runScheduled(Date.parse('2026-12-02T07:20:00Z'), { CHARTS_MONTHLY: 'true' }, deps);
+    expect(calls).toHaveLength(0);
+    expect(lines).toContainEqual(expect.stringMatching(/^would dispatch charts month=2026-12 /));
+  });
+});

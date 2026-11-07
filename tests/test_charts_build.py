@@ -10,6 +10,7 @@ without the world, and its input identity changes when an input does.
 from __future__ import annotations
 
 import gzip
+import json
 from pathlib import Path
 
 import numpy as np
@@ -20,7 +21,7 @@ pytest.importorskip("pmtiles")
 from pmtiles.reader import MmapSource, Reader, all_tiles  # noqa: E402
 from pmtiles.tile import zxy_to_tileid  # noqa: E402
 
-from ingest.charts import build, check, mvt, sources  # noqa: E402
+from ingest.charts import build, check, mvt, products, sources  # noqa: E402
 from ingest.charts.common import (  # noqa: E402
     CELL_SETS,
     CHANNEL,
@@ -241,7 +242,7 @@ class FakeGrid:
 @pytest.fixture
 def synthetic(monkeypatch, tmp_path):
     monkeypatch.setattr(sources, "RemoteArchive", FakeArchive)
-    monkeypatch.setattr(build, "Grid", FakeGrid)
+    monkeypatch.setattr(products, "Grid", FakeGrid)
     empty = {"type": "FeatureCollection", "features": []}
     shom = {layer: empty for layer in sources.SHOM_LAYERS}
     shom["_meta"] = {"fetched": "2026-11-07T00:00:00Z", "content_sha256": "0" * 64}
@@ -330,3 +331,260 @@ def test_an_inland_cell_has_no_depth_companion(synthetic, tmp_path, monkeypatch)
     with open(path, "rb") as f:
         assert Reader(MmapSource(f)).metadata()["depth"] is None
     assert check.check(path, check.style_fields(), quiet=True) == []
+
+
+# ---- phase 8: Europe, SHOM past the edge, EMODnet kept, unchanged cells -----
+
+
+def test_europe_is_the_coasts_cells_and_stage_ones():
+    from ingest.land.emodnet import EXTENT as DTM
+
+    europe = set(CELL_SETS["europe"])
+    # 71 coastal cells, and stage 1's open Biscay 6-30-22 and inland 6-32-22
+    assert len(europe) == 73 and set(CELL_SETS["stage1"]) <= europe
+    # the Faroes, Jan Mayen, North Africa, Kola and the White Sea, Anatolia's south
+    assert not europe & {"6-30-17", "6-30-13", "6-32-25", "6-33-25", "6-38-16", "6-38-24"}
+    # Shetland, Gibraltar, Malta, Rhodes and Cyprus, Sochi, Svalbard's absence
+    assert {"6-31-18", "6-31-25", "6-34-25", "6-37-25", "6-38-25", "6-39-23"} <= europe
+    for cell in europe:
+        w, s, e, n = cell_area(cell).bbox
+        assert DTM[0] <= w < DTM[2] and DTM[1] <= s and n <= DTM[3], cell
+
+
+def test_blocks_past_the_dtms_extent_are_no_data(monkeypatch):
+    from ingest.charts import depth
+    from ingest.land import emodnet
+
+    asked = []
+
+    class Block:
+        values = np.zeros((depth.CELLS, depth.CELLS), dtype=np.float32)
+
+    def fetch(cache, w, s):
+        asked.append(w)
+        return Block
+
+    monkeypatch.setattr(emodnet, "fetch_block", fetch)
+    monkeypatch.setattr(emodnet, "block_path", lambda cache, w, s: Path("/nonexistent"))
+    grid = depth.Grid((41.5, 43.2, 44.5, 43.8), margin=0.25, log=lambda *a: None)
+    assert max(asked) == 42, "no block east of the DTM's 43E is asked for"
+    assert (
+        np.isnan(grid.elev[:, -depth.CELLS :]).all()
+        and not np.isnan(grid.elev[:, : depth.CELLS]).any()
+    )
+
+
+def test_newest_seamap_tries_every_day_back():
+    import datetime as dt
+
+    have = {"2026-10-26", "2026-11-02"}
+    found = sources.newest_seamap(
+        dt.date(2026, 11, 7), exists=lambda url: url.rsplit("/", 1)[1][:10] in have
+    )
+    assert found == "2026-11-02"
+    with pytest.raises(RuntimeError):
+        sources.newest_seamap(dt.date(2026, 11, 7), days=3, exists=lambda url: False)
+
+
+def _light(lon, lat, s1, s2):
+    return {
+        "type": "Feature",
+        "geometry": {"type": "Point", "coordinates": [lon, lat]},
+        "properties": {
+            "inspireid": f"L{lon}{lat}",
+            "litchr": 2,
+            "colour": "1",
+            "valnmr": 20,
+            "sectr1": s1,
+            "sectr2": s2,
+        },
+    }
+
+
+def test_a_light_across_a_cell_edge_draws_its_sectors_into_the_cell(
+    synthetic, tmp_path, monkeypatch
+):
+    # a major light 1.2 NM north of 6-31-21's northern edge, its legs (1.6 NM)
+    # pointing south into the cell: phase 7 found such sectors missing
+    w, s, e, n = cell_area("6-31-21").bbox
+    lon, lat = -2.8, n + 1.2 / 60
+    light = _light(lon, lat, 330, 30)  # legs at 150 and 210 degrees
+    asked = []
+
+    def shom(bbox, tag, log=print):
+        asked.append(bbox)
+        bw, bs, be, bn = bbox
+        out = {
+            layer: {"type": "FeatureCollection", "features": []} for layer in sources.SHOM_LAYERS
+        }
+        if bw <= lon <= be and bs <= lat <= bn:
+            out["lights"]["features"] = [light]
+        out["_meta"] = {"fetched": "2026-11-07T00:00:00Z", "content_sha256": "1" * 64}
+        return out
+
+    monkeypatch.setattr(sources, "fetch_shom", shom)
+    # the sea everywhere, so the edge tiles keep their content past the mask
+    monkeypatch.setattr(FakeGrid, "tile_sea_distance", lambda self, z, x, y: 0.0)
+    synthetic(tmp_path / "a")
+    assert asked[0][3] >= n + 1.6 / 60, "SHOM is read past the edge by a light's reach"
+    with open(tmp_path / "a" / "6-31-21.pmtiles", "rb") as f:
+        tiles = dict(all_tiles(Reader(MmapSource(f)).get_bytes))
+    from ingest.charts.common import lon_to_x, lat_to_y
+
+    row = lat_to_y(n - 1e-6, 14)
+    x = lon_to_x(lon, 14)
+    lit = [
+        (14, xx, row)
+        for xx in range(x - 3, x + 4)
+        if "light" in {layer.name for layer in mvt.parse(tiles[(14, xx, row)]).layers}
+    ]
+    assert lit, "the light's legs reach the cell's top row of z14 tiles"
+
+
+class NoGrid:
+    def __init__(self, *a, **k):
+        raise AssertionError("the DTM is not read when the EMODnet product is kept")
+
+
+def test_a_kept_emodnet_product_builds_the_same_cell(synthetic, tmp_path, monkeypatch):
+    a = tmp_path / "a"
+    a.mkdir()
+    report = build.run(
+        cell_area("6-31-21"),
+        kind="cell",
+        protomaps="20261106",
+        seamap="2026-11-02",
+        out=a / "6-31-21.pmtiles",
+        build_id="20261107T1200Z",
+        built="2026-11-07T12:00:00Z",
+        workers=2,
+        save_product=a / "6-31-21.emodnet.npz",
+    )
+    assert report["emodnet_product"]["built"] is True
+    key = report["emodnet_product"]["key"]
+    product = products.Product.load(a / "6-31-21.emodnet.npz", cell_area("6-31-21"), key)
+    monkeypatch.setattr(products, "Grid", NoGrid)
+    b = tmp_path / "b"
+    b.mkdir()
+    again = build.run(
+        cell_area("6-31-21"),
+        kind="cell",
+        protomaps="20261106",
+        seamap="2026-11-02",
+        out=b / "6-31-21.pmtiles",
+        build_id="20261107T1200Z",
+        built="2026-11-07T12:00:00Z",
+        workers=2,
+        product=product,
+    )
+    assert again["inputs_sha256"] == report["inputs_sha256"]
+    assert again["emodnet_product"] == {"key": key, "built": False}
+    for name in ("6-31-21.pmtiles", "6-31-21-depth.pmtiles"):
+        assert (a / name).read_bytes() == (b / name).read_bytes(), name
+    with pytest.raises(products.ProductError):
+        products.Product.load(a / "6-31-21.emodnet.npz", cell_area("6-31-21"), "0" * 64)
+
+
+def test_the_monthly_path_skips_unchanged_cells_and_keeps_emodnet(synthetic, tmp_path, monkeypatch):
+    """Build and publish a cell and the world to a scratch layout, then build
+    them again from the published pointer, as the monthly run does: with the
+    same inputs nothing is cut and the DTM is not read; with a Seamap tile
+    changed the cell is rebuilt from the kept product and published with it."""
+    from ingest.charts import cli
+    from ingest.charts import publish as charts
+    from ingest.publish import DirStore
+
+    root = tmp_path / "r2"
+    args = ["--protomaps", "20261106", "--seamap", "2026-11-02", "--workers", "2"]
+    assert (
+        cli.main(
+            ["build", "world", "--build-id", "20261107T1200Z", "--out", str(tmp_path / "b1"), *args]
+        )
+        == 0
+    )
+    assert (
+        cli.main(
+            [
+                "build",
+                "6-31-21",
+                "--build-id",
+                "20261107T1200Z",
+                "--out",
+                str(tmp_path / "b1"),
+                *args,
+            ]
+        )
+        == 0
+    )
+    assert (tmp_path / "b1" / "6-31-21.emodnet.npz").is_file()
+    charts.publish_build(
+        DirStore(root),
+        tmp_path / "b1",
+        "20261107T1200Z",
+        max_bucket_bytes=10**12,
+        log=lambda *a: None,
+    )
+    pointer = str(root / "charts" / "latest.json")
+
+    monkeypatch.setattr(products, "Grid", NoGrid)
+    b2 = tmp_path / "b2"
+    for target in ("world", "6-31-21"):
+        assert (
+            cli.main(
+                [
+                    "build",
+                    target,
+                    "--build-id",
+                    "20261207T0720Z",
+                    "--out",
+                    str(b2),
+                    "--previous",
+                    pointer,
+                    *args,
+                ]
+            )
+            == 0
+        )
+    assert sorted(p.name for p in b2.iterdir()) == [
+        "6-31-21.unchanged.json",
+        "world.unchanged.json",
+    ]
+    result = charts.publish_build(
+        DirStore(root), b2, "20261207T0720Z", max_bucket_bytes=10**12, log=lambda *a: None
+    )
+    assert (
+        result.uploaded == []
+        and json.loads((root / "charts/latest.json").read_text())["build_id"] == "20261107T1200Z"
+    )
+
+    monkeypatch.setattr(FakeArchive, "tweak", 1)
+    b3 = tmp_path / "b3"
+    for target in ("world", "6-31-21"):
+        assert (
+            cli.main(
+                [
+                    "build",
+                    target,
+                    "--build-id",
+                    "20261207T0720Z",
+                    "--out",
+                    str(b3),
+                    "--previous",
+                    pointer,
+                    *args,
+                ]
+            )
+            == 0
+        )
+    assert (b3 / "6-31-21.pmtiles").is_file() and not (b3 / "6-31-21.emodnet.npz").exists()
+    result = charts.publish_build(
+        DirStore(root), b3, "20261207T0720Z", max_bucket_bytes=10**12, log=lambda *a: None
+    )
+    latest = json.loads((root / "charts/latest.json").read_text())
+    first = json.loads((root / "charts/20261107T1200Z/manifest.json").read_text())
+    cell = latest["cells"]["6-31-21"]
+    assert latest["build_id"] == "20261207T0720Z" and cell["build_id"] == "20261207T0720Z"
+    assert cell["emodnet"] == first["cells"]["6-31-21"]["emodnet"], (
+        "the product is kept, not copied"
+    )
+    assert not any(k.endswith(".npz") for k in result.uploaded)

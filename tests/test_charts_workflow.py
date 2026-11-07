@@ -1,4 +1,5 @@
-"""The chart workflow stays manual (WP10 phase 6): Open Waters' archive is read
+"""The chart workflow has no GitHub schedule: the dispatcher starts the monthly run
+(WP10 phase 8) and a person any other; Open Waters' archive is read
 only in runs the owner approves, at the date the run names, and only the
 publish job holds the R2 secrets."""
 
@@ -26,3 +27,12 @@ def test_only_the_publish_job_sees_the_r2_secrets():
     assert "secrets." not in before
     assert "secrets.R2_SECRET_ACCESS_KEY" in publish
     assert publish.count("secrets.") == 4
+
+
+def test_builds_read_the_published_pointer_and_no_cache():
+    text = WORKFLOW.read_text()
+    build = text.split("\n  build:\n", 1)[1].split("\n  publish:\n", 1)[0]
+    assert "uses: actions/cache" not in text, "EMODnet products replace the per-cell block cache"
+    assert '--previous "$PUBLISHED"' in build
+    assert "needs.plan.outputs.seamap" in build and "needs.plan.outputs.protomaps" in build
+    assert "max-parallel: 3" in build, "gentle on Open Waters' and Protomaps' servers"

@@ -63,11 +63,14 @@ this path does **not** prove new data was published. No automatic recovery
 or monthly counter reset occurs. Consumer reads continue normally.
 
 **Charts** (`ingest-charts publish`, 2026-11-07) acquire the channel
-`charts` with work id the build id. The current `ops/paid-work.json` has no
-such channel; the next review that re-enables enforcement adds one beside
-`land`'s: `{"daily_starts": 1, "min_interval_seconds": 43200,
-"max_run_seconds": 14400}`. Without it an enforced chart publish closes
-(`invalid usage or channel policy`) rather than running unmetered. The chart
+`charts` with work id the build id, beside `land`'s:
+`{"daily_starts": 1, "min_interval_seconds": 43200, "max_run_seconds": 14400}`
+(`ingest.paid_work_review.CHARTS_CHANNEL`). The manual
+[`paid-work-channel`](../.github/workflows/paid-work-channel.yml) workflow adds
+it to `ops/paid-work.json` with one conditional write and exact read-back,
+every other field and all usage kept (a dry run unless `apply`). Without it an
+enforced chart publish closes (`invalid usage or channel policy`) rather than
+running unmetered. The chart
 builds themselves run on standard runners of this public repository.
 
 ## Operator pause and recovery

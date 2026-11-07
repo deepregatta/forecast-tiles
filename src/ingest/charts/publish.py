@@ -19,10 +19,19 @@ are their own:
   An older build's other objects are deleted; its manifest goes last, once
   nothing kept still points into it.
 
-Every archive's bytes are listed as one FNV-1a 64 digest per 1 MiB chunk, the
-digest PFT1 and TLI1 use per object, so a client can range-read part of an
-archive and still prove each chunk it keeps. Charts are display only: routing
-never reads them, and no polar data is ever written under `charts/`.
+Every archive's bytes are listed as one FNV-1a 64 digest per 128 KiB chunk,
+the digest PFT1 and TLI1 use per object, so a client can range-read part of
+an archive and still prove each chunk it keeps. 128 KiB since phase 8: 1 MiB
+chunks moved 1.8-2.8 times the bytes a race area keeps, 128 KiB 1.3-1.5 times
+(scripts/measure_chart_chunks.py, 2026-11-07). A pointer of another chunk size
+cannot be reused or carried forward: every cell is built again.
+
+Each cell's EMODnet product (`products.py`) is published beside it and named
+in its entry, so it is reused and retained the same way and is read back by
+the next build instead of EMODnet. Cells whose inputs did not change are not
+built at all (`build.run(unchanged_if=...)`): they leave a marker, and their
+published entries are carried forward. Charts are display only: routing never
+reads them, and no polar data is ever written under `charts/`.
 """
 
 from __future__ import annotations
@@ -57,7 +66,7 @@ LATEST_KEY = f"{PREFIX}/latest.json"
 STATUS_KEY = "status/charts.json"
 SCHEMA_VERSION = 1
 SPEC = "TCP1"
-CHUNK_BYTES = 1 << 20
+CHUNK_BYTES = 128 << 10
 BUILD_ID_RE = re.compile(r"^[0-9]{8}T[0-9]{4}Z$")
 WORLD = "world"
 
@@ -134,6 +143,28 @@ class Built:
     path: Path
     depth_path: Path | None
     metadata: dict
+    product_path: Path | None = None  # an EMODnet product this build cut
+    product_key: str | None = None
+
+
+def _report(path: Path) -> dict:
+    report = path.with_suffix(".report.json")
+    return json.loads(report.read_text()) if report.is_file() else {}
+
+
+def unchanged(build_dir: Path) -> list[str]:
+    """The targets whose inputs were the published archive's: not built."""
+    return sorted(
+        p.name.removesuffix(".unchanged.json") for p in Path(build_dir).glob("*.unchanged.json")
+    )
+
+
+def _objects(entry: dict):
+    """(key, bytes) of an entry's archive, depth companion and EMODnet product."""
+    yield entry["key"], entry["bytes"]
+    for k in ("depth", "emodnet"):
+        if entry.get(k):
+            yield entry[k]["key"], entry[k]["bytes"]
 
 
 def collect(build_dir: Path, build_id: str) -> dict[str, Built]:
@@ -174,16 +205,30 @@ def collect(build_dir: Path, build_id: str) -> dict[str, Built]:
                     or dmd.get("inputs_sha256") != md.get("inputs_sha256")
                 ):
                     errors.append(f"{depth_path.name}: not {path.name}'s depth companion")
-        found[name] = Built(name, path, depth_path, md)
+        built = Built(name, path, depth_path, md)
+        if kind == "cell":
+            from ingest.charts.products import SUFFIX
+
+            built.product_key = (_report(path).get("emodnet_product") or {}).get("key")
+            product = path.with_name(f"{name}{SUFFIX}")
+            if product.is_file():
+                built.product_path = product
+            if not built.product_key:
+                errors.append(f"{path.name}: its report names no EMODnet product")
+        found[name] = built
     if errors:
         raise PublishError("chart build refused:\n  " + "\n  ".join(errors))
-    if not found:
+    if not found and not unchanged(build_dir):
         raise PublishError(f"no chart archives in {build_dir}")
     return found
 
 
-def _entry(built: Built, build_id: str) -> tuple[dict, list[tuple[str, Path]]]:
-    """A manifest entry for a newly uploaded archive, and its uploads."""
+def _entry(
+    built: Built, build_id: str, old: dict | None = None
+) -> tuple[dict, list[tuple[str, Path]]]:
+    """A manifest entry for a newly uploaded archive, and its uploads. A cell's
+    EMODnet product is uploaded when the build cut it, or kept from the
+    previous entry (`old`) whose product it read."""
     md = built.metadata
     key = f"{PREFIX}/{build_id}/{built.path.name}"
     data = built.path.read_bytes()
@@ -204,6 +249,24 @@ def _entry(built: Built, build_id: str) -> tuple[dict, list[tuple[str, Path]]]:
         dkey = f"{PREFIX}/{build_id}/{built.depth_path.name}"
         entry["depth"] = _object(dkey, built.depth_path.read_bytes())
         uploads.append((dkey, built.depth_path))
+    if md["kind"] == "cell":
+        if built.product_path is not None:
+            pkey = f"{PREFIX}/{build_id}/{built.product_path.name}"
+            data = built.product_path.read_bytes()
+            entry["emodnet"] = {
+                "key": pkey,
+                "bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "product_key": built.product_key,
+            }
+            uploads.append((pkey, built.product_path))
+        elif old and (old.get("emodnet") or {}).get("product_key") == built.product_key:
+            entry["emodnet"] = old["emodnet"]
+        else:
+            raise PublishError(
+                f"{built.name}: built from EMODnet product {built.product_key}, which is "
+                "neither in the build nor published"
+            )
     return entry, uploads
 
 
@@ -213,17 +276,31 @@ def plan_build(built: dict[str, Built], build_id: str, previous: dict | None):
     run did not build carried forward. Returns (world, cells, uploads, reused)."""
     prev_cells = (previous or {}).get("cells", {})
     prev_world = (previous or {}).get("world")
+    # entries listing chunks of another size cannot stand in this manifest
+    same_chunks = (previous or {}).get("chunk_bytes", CHUNK_BYTES) == CHUNK_BYTES
+    if not same_chunks:
+        stale = sorted(set(prev_cells) - set(built)) + ([WORLD] if WORLD not in built else [])
+        if stale:
+            raise PublishError(
+                f"the published build lists {previous['chunk_bytes']}-byte chunks and this one "
+                f"{CHUNK_BYTES}: build {', '.join(stale)} again rather than carry them"
+            )
     cells: dict[str, dict] = {}
     uploads: list[tuple[str, Path]] = []
     reused: list[str] = []
     world = None
     for name, b in sorted(built.items()):
         old = prev_world if name == WORLD else prev_cells.get(name)
-        if old is not None and old.get("inputs_sha256") == b.metadata["inputs_sha256"]:
+        if (
+            same_chunks
+            and old is not None
+            and old.get("inputs_sha256") == b.metadata["inputs_sha256"]
+            and (name == WORLD or old.get("emodnet"))
+        ):
             entry = old
             reused.append(name)
         else:
-            entry, up = _entry(b, build_id)
+            entry, up = _entry(b, build_id, old)
             uploads += up
         if name == WORLD:
             world = entry
@@ -247,14 +324,8 @@ def referenced_keys(manifest: dict | None) -> set[str]:
         return set()
     keys = {manifest["world"]["key"]}
     for c in manifest["cells"].values():
-        keys.add(c["key"])
-        if c.get("depth"):
-            keys.add(c["depth"]["key"])
+        keys.update(k for k, _ in _objects(c))
     return keys
-
-
-def _entry_bytes(entry: dict) -> int:
-    return entry["bytes"] + (entry["depth"]["bytes"] if entry.get("depth") else 0)
 
 
 def build_manifest(
@@ -262,9 +333,7 @@ def build_manifest(
 ) -> dict:
     referenced = {}
     for e in [world, *cells.values()]:
-        referenced[e["key"]] = e["bytes"]
-        if e.get("depth"):
-            referenced[e["depth"]["key"]] = e["depth"]["bytes"]
+        referenced.update(_objects(e))
     new = sum(b for k, b in referenced.items() if k.startswith(f"{PREFIX}/{build_id}/"))
     return {
         "schema_version": SCHEMA_VERSION,
@@ -300,7 +369,7 @@ def charts_build_ids(store) -> list[str]:
     found = set()
     for key in store.list_keys(f"{PREFIX}/"):
         rest = key[len(PREFIX) + 1 :]
-        if "/" in rest:
+        if "/" in rest and BUILD_ID_RE.match(rest.split("/", 1)[0]):
             found.add(rest.split("/", 1)[0])
     return sorted(found)
 
@@ -370,9 +439,22 @@ def publish_build(
     rng = rng or random.Random()
     published_at = now or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     built = collect(build_dir, build_id)
+    same = unchanged(build_dir)
 
     current = _get_json(store, LATEST_KEY)
     current_id = (current or {}).get("build_id")
+    if not built:
+        log(f"charts: nothing changed ({len(same)} targets as published); the pointer stays")
+        return ChartsPublishResult(
+            build_id=current_id or build_id,
+            uploaded=[],
+            reused=same,
+            bytes_uploaded=0,
+            bytes_referenced=0,
+            duration_s=round(time.time() - t0, 1),
+            previous_build_id=(current or {}).get("previous_build_id"),
+            deleted_keys=[],
+        )
     if current_id and current_id > build_id:
         raise StalePublishError(f"charts pointer already names a newer build {current_id}")
     # the build this one follows: the pointer's, or on a retry after the
@@ -389,6 +471,10 @@ def publish_build(
         "every cell stores and covers every tile of its z6 cell at z6-14",
         "each cell's depth companion has its build id, cell and inputs",
     ]
+    if same:
+        checks.append(
+            f"{len(same)} targets whose inputs were the published archives' were not built"
+        )
     manifest = build_manifest(
         build_id=build_id,
         previous_build_id=base_id,
@@ -418,9 +504,7 @@ def publish_build(
         if not m:
             continue
         for e in [m["world"], *m["cells"].values()]:
-            sizes[e["key"]] = e["bytes"]
-            if e.get("depth"):
-                sizes[e["depth"]["key"]] = e["depth"]["bytes"]
+            sizes.update(_objects(e))
     retained = sum(sizes.values())
     check_storage_guard(store, retained, max_bucket_bytes)
     if regional_check is None:
@@ -511,8 +595,9 @@ def _post_publish_check(store, manifest: dict, uploaded: list[str], rng: random.
     entries = {}
     for e in [manifest["world"], *manifest["cells"].values()]:
         entries[e["key"]] = e
-        if e.get("depth"):
-            entries[e["depth"]["key"]] = e["depth"]
+        for k in ("depth", "emodnet"):
+            if e.get(k):
+                entries[e[k]["key"]] = e[k]
     listed = {o["key"]: o["bytes"] for o in store.list_objects(f"{PREFIX}/")}
     for k, e in entries.items():
         if listed.get(k) != e["bytes"]:
@@ -522,7 +607,16 @@ def _post_publish_check(store, manifest: dict, uploaded: list[str], rng: random.
     for k in rng.sample(sorted(uploaded), min(2, len(uploaded))):
         data = store.get(k)
         e = entries[k]
-        if data is None or len(data) != e["bytes"] or chunk_digests(data) != e["chunks"]:
+        proof = (
+            (
+                chunk_digests(data) == e["chunks"]
+                if "chunks" in e
+                else hashlib.sha256(data).hexdigest() == e["sha256"]
+            )
+            if data is not None
+            else False
+        )
+        if data is None or len(data) != e["bytes"] or not proof:
             raise PublishError(f"post-publish check: {k} bytes/chunk digests mismatch")
 
 

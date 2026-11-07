@@ -37,7 +37,8 @@
       "pattern": "^[0-9]{8}T[0-9]{4}Z$"
     },
     "chunk_bytes": {
-      "const": 1048576
+      "const": 131072,
+      "description": "Every chunk digest covers this many bytes (128 KiB since WP10 phase 8, 2026-11-07; 1 MiB before), the last chunk of an object shorter"
     },
     "cell_zoom": {
       "const": 6
@@ -299,6 +300,34 @@
                 }
               ],
               "description": "The cell's depth companion; null for a cell with no sea under it (no EMODnet depth)"
+            },
+            "emodnet": {
+              "type": "object",
+              "required": [
+                "key",
+                "bytes",
+                "sha256",
+                "product_key"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "pattern": "^charts/[0-9]{8}T[0-9]{4}Z/6-[0-9]{1,2}-[0-9]{1,2}\\.emodnet\\.npz$"
+                },
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "product_key": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "description": "The producer's own: what EMODnet decides for the cell (sea distances and depth tiles), read back by the next build instead of the DTM. Chart readers never read it"
             }
           }
         }

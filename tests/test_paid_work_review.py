@@ -260,3 +260,20 @@ def test_period_review_expiring_during_control_read_cannot_write():
             apply=True,
         )
     assert not store.puts
+
+
+def test_the_charts_channel_is_added_once_preserving_everything_else():
+    from ingest.paid_work_review import CHARTS_CHANNEL, add_channel
+
+    store = Store()
+    original = deepcopy(store.doc)
+    guard = Guard(store, "bucket", clock=lambda: NOW)
+    assert add_channel(guard, "charts", CHARTS_CHANNEL) == "dry-run" and not store.puts
+    assert add_channel(guard, "charts", CHARTS_CHANNEL, apply=True) == "added"
+    assert store.puts[0]["IfMatch"] == '"original"'
+    original["channels"]["charts"] = CHARTS_CHANNEL
+    assert store.doc == original  # usage, leases and every other policy field kept
+    assert add_channel(guard, "charts", CHARTS_CHANNEL, apply=True) == "present"
+    assert len(store.puts) == 1
+    with pytest.raises(Paused, match="other limits"):
+        add_channel(guard, "charts", {**CHARTS_CHANNEL, "daily_starts": 9}, apply=True)

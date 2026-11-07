@@ -169,4 +169,10 @@ describe('wrangler.toml', () => {
     expect(toml).toMatch(/\[observability\]\nenabled = true/);
     expect(toml).not.toMatch(/GITHUB_TOKEN\s*=/);
   });
+
+  it('switches the monthly chart build on, at a slot a cron fires', () => {
+    expect(toml).toMatch(/^CHARTS_MONTHLY = "true"$/m);
+    expect(crons).toContain('20 7,19 * * *');
+    expect(slotAt(Date.parse('2026-12-02T07:20:00Z'))).toBe(Date.parse('2026-12-02T07:20:00Z'));
+  });
 });

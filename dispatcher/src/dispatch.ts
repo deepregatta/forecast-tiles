@@ -2,10 +2,13 @@
  * Starts the forecast-tiles ingest workflows that are due, through GitHub's
  * workflow_dispatch API. The Worker never contacts a provider, latest.json or
  * the runs list: the ingest itself waits for its cycle and skips one that is
- * already published.
+ * already published. The monthly chart build is dispatched the same way, and
+ * resolves its own inputs.
  */
 
-import { dueAt, MAX_LATE_MINUTES, REGIONAL_LAYERS, slotAt, type Dispatch } from './timetable.js';
+import {
+  chartsDueAt, dueAt, MAX_LATE_MINUTES, REGIONAL_LAYERS, slotAt, type ChartsDispatch, type Dispatch,
+} from './timetable.js';
 
 export const REPO = 'deepregatta/forecast-tiles';
 export const REF = 'main';
@@ -20,6 +23,8 @@ export interface Env {
   REGIONAL_MODELS?: string;
   /** Only "true" enables four cycles; otherwise use the two-cycle production profile. */
   REGIONAL_FULL_CADENCE?: string;
+  /** Only "true" dispatches the monthly chart build (`charts.yml`). */
+  CHARTS_MONTHLY?: string;
 }
 
 export interface Deps {
@@ -74,19 +79,35 @@ export async function runScheduled(
   });
   const dryRun = env.DRY_RUN !== 'false';
   const failed: string[] = [];
-  for (const dispatch of due) {
-    const line = `ingest-${dispatch.layer} cycle=${dispatch.cycle} wait=${dispatch.waitMinutes} ` +
-      `scheduled=${hms(slot)} fired=${hms(fired)}`;
+  const work: Array<{ line: string; layer: string; workflow: string; inputs: Record<string, string> }> =
+    due.map(dispatch => ({
+      line: `ingest-${dispatch.layer} cycle=${dispatch.cycle} wait=${dispatch.waitMinutes} ` +
+        `scheduled=${hms(slot)} fired=${hms(fired)}`,
+      layer: dispatch.layer,
+      workflow: dispatch.workflow,
+      inputs: ingestInputs(dispatch, env),
+    }));
+  const charts: ChartsDispatch | null = env.CHARTS_MONTHLY === 'true' ? chartsDueAt(scheduledTime) : null;
+  if (charts) {
+    work.push({
+      line: `charts month=${charts.month} seamap=newest protomaps=newest cells=${charts.inputs.cells} ` +
+        `scheduled=${hms(slot)} fired=${hms(fired)}`,
+      layer: charts.layer,
+      workflow: charts.workflow,
+      inputs: { ...charts.inputs },
+    });
+  }
+  for (const item of work) {
     if (dryRun) {
-      deps.log(`would dispatch ${line}`);
+      deps.log(`would dispatch ${item.line}`);
       continue;
     }
     try {
-      const run = await dispatchWorkflow(dispatch, env, deps);
-      deps.log(`dispatched ${line} run=${run}`);
+      const run = await dispatchWorkflow(item.workflow, item.inputs, env, deps);
+      deps.log(`dispatched ${item.line} run=${run}`);
     } catch (error) {
-      deps.error(`FAILED to dispatch ${line}: ${error instanceof Error ? error.message : String(error)}`);
-      failed.push(dispatch.layer);
+      deps.error(`FAILED to dispatch ${item.line}: ${error instanceof Error ? error.message : String(error)}`);
+      failed.push(item.layer);
     }
   }
   // A thrown error marks the invocation failed in the Worker's logs too.
@@ -122,26 +143,33 @@ function rejectedToken(res: Response, body: string): DispatchError {
   );
 }
 
+/** An ingest workflow's inputs: its cycle and wait, and a regional model's layer. */
+function ingestInputs(dispatch: Dispatch, env: Env): Record<string, string> {
+  return {
+    cycle: dispatch.cycle, wait_minutes: String(dispatch.waitMinutes),
+    ...(dispatch.workflow === 'ingest-openmeteo.yml' ? {
+      layer: dispatch.layer, dry_run: 'false', canary: env.REGIONAL_FULL_CADENCE === 'true' ? 'false' : 'true',
+    } : {}),
+  };
+}
+
 /**
  * POST the dispatch. If GitHub refuses it because the workflow was disabled
  * after 60 days without repository activity, re-enable it and dispatch once
  * more. Returns the run's URL.
  */
-export async function dispatchWorkflow(dispatch: Dispatch, env: Env, deps: Deps): Promise<string> {
+export async function dispatchWorkflow(
+  workflow: string, inputs: Record<string, string>, env: Env, deps: Deps,
+): Promise<string> {
   const token = env.GITHUB_TOKEN;
   if (!token) throw new DispatchError('the GITHUB_TOKEN secret is not set');
-  const workflowUrl = `${API}/${dispatch.workflow}`;
+  const workflowUrl = `${API}/${workflow}`;
   const post = () => deps.fetch(`${workflowUrl}/dispatches`, {
     method: 'POST',
     headers: { ...headers(token), 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ref: REF,
-      inputs: {
-        cycle: dispatch.cycle, wait_minutes: String(dispatch.waitMinutes),
-        ...(dispatch.workflow === 'ingest-openmeteo.yml' ? {
-          layer: dispatch.layer, dry_run: 'false', canary: env.REGIONAL_FULL_CADENCE === 'true' ? 'false' : 'true',
-        } : {}),
-      },
+      inputs,
       // Without it GitHub answers 204 and no run id (the first live
       // dispatch, 2026-10-01 07:20); with it, 200 and the run.
       return_run_details: true,
@@ -160,9 +188,9 @@ export async function dispatchWorkflow(dispatch: Dispatch, env: Env, deps: Deps)
     }
     const enabled = await deps.fetch(`${workflowUrl}/enable`, { method: 'PUT', headers: headers(token) });
     if (!enabled.ok) {
-      throw new DispatchError(`${dispatch.workflow} is disabled_inactivity and enabling it failed: HTTP ${enabled.status} (${await detail(enabled)})`);
+      throw new DispatchError(`${workflow} is disabled_inactivity and enabling it failed: HTTP ${enabled.status} (${await detail(enabled)})`);
     }
-    deps.log(`re-enabled ${dispatch.workflow}: GitHub had disabled it after 60 days without repository activity`);
+    deps.log(`re-enabled ${workflow}: GitHub had disabled it after 60 days without repository activity`);
     res = await post();
     if (res.status === 401 || res.status === 403) throw rejectedToken(res, await detail(res));
     if (!res.ok) throw new DispatchError(`GitHub refused the dispatch after re-enabling: HTTP ${res.status} (${await detail(res)})`);
@@ -174,5 +202,5 @@ export async function dispatchWorkflow(dispatch: Dispatch, env: Env, deps: Deps)
     if (run.html_url) return run.html_url;
     if (run.workflow_run_id) return `https://github.com/${REPO}/actions/runs/${run.workflow_run_id}`;
   }
-  return `https://github.com/${REPO}/actions/workflows/${dispatch.workflow} (no run id in HTTP ${res.status})`;
+  return `https://github.com/${REPO}/actions/workflows/${workflow} (no run id in HTTP ${res.status})`;
 }

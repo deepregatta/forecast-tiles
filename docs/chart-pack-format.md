@@ -51,6 +51,19 @@ metadata and its manifest entry's `depth` are null. The `stage1` cell set is the
 (6.5°W–2.5°E, 48.3°N–51.3°N): `6-30-21`, `6-30-22`, `6-31-21`, `6-31-22`,
 `6-32-21`, `6-32-22`.
 
+The **`europe`** set (phase 8, the owner's coverage decision of 2026-11-07)
+is the 71 z6 cells with a European or UK shoreline point in GSHHG's
+full-resolution shoreline, as `scripts/europe_chart_cells.py` derives them,
+plus stage 1's open Biscay `6-30-22` and inland `6-32-22`, which the Channel's
+race areas reach: 73 cells, written as literal ids in
+`ingest.charts.common.EUROPE_COAST`. Norway to Gibraltar, the Baltic, the
+Mediterranean's European shore and islands (Cyprus included, on the owner's
+word) and the Black Sea's European shore to Sochi; no Atlantic islands,
+Iceland, the Faroes, Svalbard or Jan Mayen, no North Africa, Levant or
+Anatolia, and no Kola or White Sea. A kept cell is a whole z6 tile, so it also
+carries any non-European shore inside it (Morocco across Gibraltar, Anatolia
+across the Aegean).
+
 ## 3. How a reader opens an archive
 
 1. Read the PMTiles header. Refuse anything that is not tile type MVT with gzip
@@ -149,7 +162,10 @@ their sectors into `light`, so Seamap's symbols draw them. In each tile:
 - an OSM aid (family `major_aid` or `minor_aid`, or type `landmark`) within
   80 m of a SHOM mark is the same mark and is dropped, with its sectors; OSM
   rocks, wrecks, harbours and other features near a SHOM mark stay. A cell
-  reads SHOM 0.01° past its box, so a copy just across a cell edge goes too;
+  reads SHOM past its box by a light's reach (its sector legs, 1.6 NM, in
+  longitude at the cell's poleward edge) and 0.01° more, so a light just
+  across a cell edge draws its sectors into the cell and a copy just across
+  it goes too (phase 8; before, 0.01° only, and such sectors were missing);
 - `cell_rank` (a point's place among its family in a 32 px cell, which the
   style thins by) is recomputed in every cell a SHOM mark joins: SHOM first,
   then the cell's own features in their old order. SHOM landmarks, mostly
@@ -235,6 +251,7 @@ charts/{build_id}/manifest.json             written LAST; its presence marks the
 charts/{build_id}/world.pmtiles             world overview, z0-5
 charts/{build_id}/{cell}.pmtiles            one z6 cell, z6-14
 charts/{build_id}/{cell}-depth.pmtiles      its depth, z6-12
+charts/{build_id}/{cell}.emodnet.npz        what EMODnet decides for the cell (producer only)
 status/charts.json                          last publish, for operations
 ```
 
@@ -245,10 +262,31 @@ and status carry `public, max-age=300, must-revalidate`. `publish_build`
 refuses to overwrite a build id whose manifest differs.
 
 **Integrity.** Each archive's manifest entry lists its `bytes`, `sha256` and
-an **FNV-1a 64 digest per 1 MiB chunk** (`chunks`, `chunk_bytes` 1,048,576),
+an **FNV-1a 64 digest per 128 KiB chunk** (`chunks`, `chunk_bytes` 131,072),
 the digest PFT1 and TLI1 use per object. A client reads whole chunks and
 verifies each, so it can range-read part of a cell and still prove every byte
 it keeps.
+
+The chunk was 1 MiB until phase 8 (2026-11-07). Measured against build
+`20261107T1301Z` by `scripts/measure_chart_chunks.py` (MiB a dock fetch moves,
+and its ratio to the tile bytes it keeps, the 4.45 MiB world included):
+
+| Race area | Kept | 1 MiB | 512 KiB | 256 KiB | **128 KiB** | 64 KiB |
+|---|---|---|---|---|---|---|
+| Solent and the Needles, 20 NM margin | 10.1 | 21.5 (2.13×) | 17.5 (1.73×) | 16.2 (1.61×) | **13.7 (1.36×)** | 12.1 (1.20×) |
+| Cherbourg to Saint-Malo, 30 NM margin | 12.5 | 35.1 (2.80×) | 27.5 (2.19×) | 23.2 (1.85×) | **18.8 (1.50×)** | 16.6 (1.32×) |
+| RORC Channel race area | 22.0 | 47.1 (2.14×) | 39.0 (1.77×) | 34.2 (1.55×) | **29.1 (1.32×)** | 26.6 (1.21×) |
+| The whole stage 1 box | 47.5 | 85.6 (1.80×) | 76.1 (1.60×) | 69.3 (1.46×) | **61.1 (1.29×)** | 56.9 (1.20×) |
+
+A cell's tiles are in Hilbert order, so chunks along an area's edge hold
+tiles from both sides at every size. 128 KiB is the knee: 36–46% less than
+1 MiB for race areas, and a further halving to 64 KiB saves only 8–12% more
+while doubling the pointer's digest lists (19 bytes a chunk: about 150 kB a
+GB of archives at 128 KiB, before HTTP compression). The 1 MiB figures match
+Tactician's live phase 7 measurement exactly. A changed chunk size is a
+contract change: readers refuse a pointer of another size, and the publisher
+neither reuses nor carries forward an entry of another size, so every cell is
+built again.
 
 **Input identity and reuse.** `inputs_sha256` is a SHA-256 over the builder's
 recipe (its own code files and the style-fields list), the rules (mask, road
@@ -260,9 +298,35 @@ and `build_id` name the build that wrote it. Cells a run did not build are
 carried forward the same way. Changing any recipe file therefore rebuilds and
 uploads everything.
 
+**Unchanged cells are not built.** Each build job reads the published pointer
+(`--previous`) and computes its target's identity before cutting a tile; when
+it equals the published entry's, the job writes only `{target}.unchanged.json`
+and the publisher carries the entry forward. A run in which nothing changed
+moves nothing, the pointer included. The identity still needs the inputs
+read: the monthly run reads every cell's Protomaps and Seamap ranges and
+SHOM's records over it.
+
+**EMODnet, kept between its releases.** A cell's EMODnet product
+(`src/ingest/charts/products.py`) holds every tile's sea distance (the
+coastal mask and the road rule) and every depth tile z6–12, with the DTM
+grid's digest. It is cut once from the DTM blocks and published as
+`{cell}.emodnet.npz`, named in the cell's entry as `emodnet` (`key`, `bytes`,
+`sha256`, `product_key`); the next build reads it back when its
+`product_key` (this code, the DTM release and the depth style fields) is the
+same, and builds byte-identical archives without the DTM. A new release or
+depth code is a new key, and every product is cut again. Chart readers never
+read the product. GitHub's cache could not have held the blocks instead:
+about 130 MB a cell is past its 10 GB for Europe, and it evicts what a
+monthly run has not read for a week.
+
+**Coverage past the DTM.** A cell reaching past EMODnet's DTM extent (6-39-23
+reaches 45°E; the DTM stops at 43°E) reads no data there, drawn as land: the
+Caucasus is ashore at those longitudes.
+
 **The pointer and the manifest** carry, for the world and each cell, its key,
 bytes, `sha256`, chunk digests, `build_id`, `inputs_sha256`, bounds, zooms and
-source revisions, a cell also its `z`, `x`, `y` and its `depth` object. The
+source revisions, a cell also its `z`, `x`, `y`, its `depth` object and its
+`emodnet` product (additive since phase 8; readers ignore it). The
 manifest adds totals and the checks passed. `previous_build_id` names the
 build this one followed.
 
@@ -313,10 +377,12 @@ was written.
 | SHOM Balisage | Licence Ouverte 2.0 | Balisage © Shom, with the year fetched |
 | EMODnet Bathymetry | CC BY 4.0, "do not use for navigation" | EMODnet Bathymetry Consortium (2024) |
 
-Open Waters publishes its dated weekly archive for offline use; the scheduled
-run will read one a month (the owner's cadence since 2026-11-07). The owner told
-Open Waters about these monthly range reads on 2026-11-07. Until the scheduled
-run exists, a run reads one dated archive the owner approved.
+Open Waters publishes its dated weekly archive for offline use; the monthly
+run reads the newest one (the owner's cadence since 2026-11-07), found by one
+HEAD request a day back from the run's date, since not every week is kept.
+The owner told Open Waters about these monthly range reads on 2026-11-07. The
+dispatcher starts the run at 07:20 UTC on each month's first Wednesday
+([README → Dispatcher](../README.md#dispatcher)).
 
 ## 9. Versioning
 
@@ -327,7 +393,9 @@ kept list because the style now reads it does not; nor do new sources, new
 metadata keys or measurements. Nor did adding `cover` (2026-11-07), nor the
 `cell` kind and `inputs_sha256` (2026-11-07): a schema 1 reader of packs on
 disk refuses a `cell` as a kind it does not open, and draws everything else as
-before.
+before. The pointer's `chunk_bytes` changing from 1 MiB to 128 KiB (phase 8)
+is a pointer contract change, not an archive one: a reader that refuses
+another chunk size fetches nothing rather than mis-proving bytes.
 
 ## 10. Golden fixture
 

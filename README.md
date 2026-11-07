@@ -66,7 +66,7 @@ Configuration and delivery evidence answer different questions:
 | AROME, ICON-EU, UKV | Registry production gates enabled; Worker allowlist includes all three; two cycles/day (full cadence off by owner decision); manual workflow dry run defaults on; :47 catch-up cron | [Dated publication receipts](docs/regional-canary-status.json); canary acceptance stopped 2026-10-21, see [regional delivery](docs/regional-delivery.md) |
 | Current layers | `currents`: CMEMS GLO12, six-hourly samples to 240 h; `currents-ibi`: CMEMS IBI, hourly means to 120 h | Dated provider timings in the dispatcher table; no alternate provider is supported |
 | Routing index | One-shot `ingest land`, manual workflow only | [Versioned index and reproducibility evidence](docs/land-index-format.md) |
-| Display chart (TCP1) | `ingest-charts`, manual `charts` workflow only (dry run by default); no schedule yet; Open Waters was told about the monthly reads on 2026-11-07, and the monthly run comes through the dispatcher | [Format, publication and measured builds](docs/chart-pack-format.md) |
+| Display chart (TCP1) | `ingest-charts`; the `charts` workflow, dispatched monthly by the dispatcher (07:20 UTC, each month's first Wednesday, Europe's 73 cells, newest Seamap archive and Protomaps build; unchanged cells are not built) or by hand (dry run by default). Open Waters was told about the monthly reads on 2026-11-07 | [Format, publication and measured builds](docs/chart-pack-format.md) |
 
 For regionals, **enabled** means the registry gate is open; production also
 needs matching GitHub `OPENMETEO_ENABLED_LAYERS`, runtime
@@ -134,7 +134,7 @@ uv run ingest weather --force                # retry identical immutable content
 uv run ingest weather --cycle 20260930T06 --wait-minutes 90   # wait for the provider, then publish
 uv run ingest land --domain nweu             # rebuild the routing index (one-shot)
 uv sync --extra charts                       # the chart builder's dependencies
-uv run ingest-charts plan --cells stage1     # chart build id and matrix (docs/chart-pack-format.md)
+uv run ingest-charts plan --cells europe --seamap newest --protomaps newest   # chart build id, inputs, matrix (docs/chart-pack-format.md)
 uv sync --extra openmeteo                    # regional dependency; activation is separate
 uv run ingest weather-arome --cycle 20261002T09 --dry-run /tmp/arome
 uv run ingest weather-icon-eu --dry-run /tmp/icon-eu
@@ -383,6 +383,14 @@ already carries that delay. So a fire counts for the latest slot up to
 4 min 59 s before it (`MAX_LATE_MINUTES`, under the 5 min of a `*/5` tick).
 A fire of one of the five crons that matches no slot logs `MISSED SLOT` and
 fails the invocation.
+
+**The monthly chart build** shares the 07:20 `weather-ecmwf` fire: on the
+month's first Wednesday (`CHARTS_MONTHLY` in `src/timetable.ts`, switched on
+by `CHARTS_MONTHLY = "true"` in `wrangler.toml`), the Worker also posts
+`{"ref":"main","inputs":{"seamap":"newest","protomaps":"newest","cells":"europe","dry_run":"false"},"return_run_details":true}`
+to `charts.yml`, logged as `charts month=YYYY-MM …`. The workflow resolves the
+dates, reads SHOM, and builds only the cells whose inputs changed
+([chart format → Publication](docs/chart-pack-format.md#7-publication)).
 
 **On each fire** the Worker takes the cycle from the *scheduled* time, not
 the clock, and posts

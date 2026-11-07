@@ -2,24 +2,25 @@ name: charts
 
 # TCP1 chart archives (docs/chart-pack-format.md): the world overview and one
 # z6 cell per matrix job, then one publish job, the only one holding the R2
-# secrets. No schedule, on purpose (WP10 phase 6): Open Waters' dated Seamap
-# archive is read only in runs the owner approves, at the date the run names.
-# The owner told Open Waters about the monthly range reads on 2026-11-07. The
-# monthly run (the owner's cadence since 2026-11-07, not weekly) comes later,
-# through the dispatcher, and is not this workflow's job yet.
+# secrets. No GitHub schedule: the monthly run (the owner's cadence since
+# 2026-11-07; Open Waters told of the monthly range reads the same day) is
+# dispatched by the Cloudflare dispatcher with `newest` for both dates, which
+# the plan job resolves. Each build job reads the published pointer: a target
+# whose inputs are the published archive's is not built, and a cell reads its
+# EMODnet product back instead of the DTM (src/ingest/charts/products.py).
 on:
   workflow_dispatch:
     inputs:
       seamap:
-        description: "Open Waters Seamap archive date, YYYY-MM-DD (approved for this run)"
+        description: "Open Waters Seamap archive date, YYYY-MM-DD, or newest"
         required: true
       protomaps:
-        description: "Protomaps daily build, YYYYMMDD"
+        description: "Protomaps daily build, YYYYMMDD, or newest"
         required: true
       cells:
-        description: "Cell set (stage1) or cell ids, comma-separated"
+        description: "Cell set (europe, stage1) or cell ids, comma-separated"
         required: false
-        default: "stage1"
+        default: "europe"
       dry_run:
         description: "Build and publish to a scratch layout, not R2"
         type: boolean
@@ -36,6 +37,8 @@ permissions:
 env:
   CAPACITY_ENFORCE: ${{ vars.CAPACITY_ENFORCE || '0' }}
   PAID_WORK_ENFORCE: ${{ vars.PAID_WORK_ENFORCE || '0' }}
+  # public, read without credentials: what the next build is compared with
+  PUBLISHED: https://forecast.deepregatta.com/charts/latest.json
 
 jobs:
   plan:
@@ -44,6 +47,8 @@ jobs:
     outputs:
       build_id: ${{ steps.plan.outputs.build_id }}
       matrix: ${{ steps.plan.outputs.matrix }}
+      seamap: ${{ steps.plan.outputs.seamap }}
+      protomaps: ${{ steps.plan.outputs.protomaps }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -53,15 +58,19 @@ jobs:
           python-version: '3.13'
       - run: uv sync --extra charts
       - id: plan
-        run: uv run ingest-charts plan --cells "${CELLS:-stage1}" | tee -a "$GITHUB_OUTPUT"
+        run: >-
+          uv run ingest-charts plan --cells "${CELLS:-europe}" --seamap "$SEAMAP"
+          --protomaps "$PROTOMAPS" --previous "$PUBLISHED" | tee -a "$GITHUB_OUTPUT"
         env:
           CELLS: ${{ inputs.cells }}
+          SEAMAP: ${{ inputs.seamap }}
+          PROTOMAPS: ${{ inputs.protomaps }}
 
   build:
     needs: plan
     runs-on: ubuntu-latest
-    # A cold cell reads a few hundred MB of tile ranges and up to about 40
-    # EMODnet blocks (about 21 s each the first time).
+    # A cell reads a few hundred MB of tile ranges; one without a published
+    # EMODnet product also reads up to about 40 DTM blocks (about 21 s each).
     timeout-minutes: 150
     strategy:
       fail-fast: true
@@ -80,22 +89,18 @@ jobs:
         with:
           python-version: '3.13'
       - run: uv sync --extra charts
-      # EMODnet DTM 2024 blocks change only with a new DTM release.
-      - if: matrix.target != 'world'
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: .land-cache
-          key: emodnet-dtm2024-${{ matrix.target }}-v1
+      # No GitHub cache: what EMODnet decides for a cell is published with it
+      # (its EMODnet product) and read back until the DTM's next release.
       - name: Build ${{ matrix.target }}
         run: >-
           uv run ingest-charts build "$TARGET" --build-id "$BUILD_ID"
           --protomaps "$PROTOMAPS" --seamap "$SEAMAP" --workers 4
-          --out "$RUNNER_TEMP/charts"
+          --previous "$PUBLISHED" --out "$RUNNER_TEMP/charts"
         env:
           TARGET: ${{ matrix.target }}
           BUILD_ID: ${{ needs.plan.outputs.build_id }}
-          PROTOMAPS: ${{ inputs.protomaps }}
-          SEAMAP: ${{ inputs.seamap }}
+          PROTOMAPS: ${{ needs.plan.outputs.protomaps }}
+          SEAMAP: ${{ needs.plan.outputs.seamap }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: charts-${{ matrix.target }}

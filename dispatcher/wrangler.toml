@@ -16,7 +16,7 @@ crons = [
   "25 3,4,9,10,15,16,21,22 * * *", # weather (GFS); ICON-EU
   "0 5,11,17,23 * * *",  # waves (GFS-Wave)
   "15 0,1,4,6,10,12,13,16,18,22 * * *",  # GEFS, ECMWF-short; AROME 09/21Z; UKV
-  "20 7,19 * * *",       # weather-ecmwf (00Z and 12Z)
+  "20 7,19 * * *",       # weather-ecmwf (00Z and 12Z); charts, monthly
   "45 5,9,18 * * *",     # currents; AROME 03/15Z (05:45 dispatches both)
 ]
 
@@ -27,6 +27,9 @@ crons = [
 DRY_RUN = "false"
 REGIONAL_MODELS = "weather-arome,weather-icon-eu,weather-ukv" # Production at two cycles/day.
 REGIONAL_FULL_CADENCE = "false" # Owner decision 2026-10-21: two cycles/day while traffic is low.
+# WP10 phase 8: the monthly display-chart build (charts.yml, Europe's cells),
+# at 07:20 UTC on the month's first Wednesday, on the weather-ecmwf cron.
+CHARTS_MONTHLY = "true"
 
 [observability]
 enabled = true

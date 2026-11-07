@@ -125,3 +125,37 @@ export function dueAt(scheduledTime: number): Dispatch[] {
     waitMinutes: entry.waitMinutes,
   }));
 }
+
+/**
+ * The display chart build (WP10, the `charts` workflow): once a month, the
+ * owner's cadence since 2026-11-07, at the 07:20 slot (weather-ecmwf's cron)
+ * of the month's first Wednesday. Open Waters dates its weekly Seamap archive
+ * on a Monday; the run resolves `newest` itself, so a Monday archive not yet
+ * out leaves the one before it. The Worker reads nothing but its clock: the
+ * workflow resolves the dates, checks SHOM and builds only changed cells.
+ */
+export const CHARTS_MONTHLY = { weekday: 3, lastDay: 7, hour: 7, minute: 20 } as const;
+
+export interface ChartsDispatch {
+  layer: 'charts';
+  workflow: 'charts.yml';
+  /** `YYYY-MM`, for the log line */
+  month: string;
+  inputs: { seamap: 'newest'; protomaps: 'newest'; cells: 'europe'; dry_run: 'false' };
+}
+
+/** The monthly chart dispatch due at a scheduled fire time, or null. */
+export function chartsDueAt(scheduledTime: number): ChartsDispatch | null {
+  const slot = slotAt(scheduledTime);
+  if (slot === null) return null;
+  const t = new Date(slot);
+  const m = CHARTS_MONTHLY;
+  if (t.getUTCHours() !== m.hour || t.getUTCMinutes() !== m.minute || t.getUTCDay() !== m.weekday ||
+    t.getUTCDate() > m.lastDay) return null;
+  return {
+    layer: 'charts',
+    workflow: 'charts.yml',
+    month: `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}`,
+    inputs: { seamap: 'newest', protomaps: 'newest', cells: 'europe', dry_run: 'false' },
+  };
+}

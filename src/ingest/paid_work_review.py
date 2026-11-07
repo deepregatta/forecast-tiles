@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 
-from ingest.paid_work import Guard, Paused, timestamp
+from ingest.paid_work import Guard, Paused, positive, timestamp
 
 
 def renew_review(guard: Guard, expected_reviewed_at: str, reviewed_at: str, *, apply=False):
@@ -100,3 +100,34 @@ def rollover_october20(guard: Guard, expected_reviewed_at: str, reviewed_at: str
         raise Paused("period read-back differs; inspect before any further write")
     guard.validate(readback)
     return True
+
+
+# The chart publisher's channel (WP10, docs/paid-work.md), beside land's.
+CHARTS_CHANNEL = {"daily_starts": 1, "min_interval_seconds": 43200, "max_run_seconds": 14400}
+
+
+def add_channel(guard: Guard, name: str, limits: dict, *, apply=False):
+    """Add one channel's limits to the control document, preserving every other
+    policy field and all usage. One CAS with read-back; a channel already
+    present with the same limits is left alone, with other limits refused.
+    Returns "present", "dry-run" or "added"."""
+    doc, etag = guard.read()
+    channels = doc.get("channels") if isinstance(doc, dict) else None
+    if not isinstance(channels, dict):
+        raise Paused("control document has no channels; inspect before applying")
+    if name in channels:
+        if channels[name] != limits:
+            raise Paused(f"channel {name} exists with other limits; inspect before applying")
+        return "present"
+    for key in ("daily_starts", "min_interval_seconds", "max_run_seconds"):
+        positive(limits[key])
+    candidate = deepcopy(doc)
+    candidate["channels"][name] = dict(limits)
+    if not apply:
+        return "dry-run"
+    if not guard.write(candidate, etag):
+        raise Paused("channel CAS conflict; no write repeated")
+    readback, _ = guard.read()
+    if readback != candidate:
+        raise Paused("channel read-back differs; inspect before any further write")
+    return "added"
