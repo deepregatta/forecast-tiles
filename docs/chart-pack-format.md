@@ -313,7 +313,8 @@ was written.
 | SHOM Balisage | Licence Ouverte 2.0 | Balisage © Shom, with the year fetched |
 | EMODnet Bathymetry | CC BY 4.0, "do not use for navigation" | EMODnet Bathymetry Consortium (2024) |
 
-Open Waters publishes its dated weekly archive for offline use. Until the owner
+Open Waters publishes its dated weekly archive for offline use; the scheduled
+run will read one a month (the owner's cadence since 2026-11-07). Until the owner
 has told Open Waters about the range reads, a run reads one dated archive the
 owner approved, and there is no schedule.
 

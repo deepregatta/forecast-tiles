@@ -66,7 +66,7 @@ Configuration and delivery evidence answer different questions:
 | AROME, ICON-EU, UKV | Registry production gates enabled; Worker allowlist includes all three; two cycles/day (full cadence off by owner decision); manual workflow dry run defaults on; :47 catch-up cron | [Dated publication receipts](docs/regional-canary-status.json); canary acceptance stopped 2026-10-21, see [regional delivery](docs/regional-delivery.md) |
 | Current layers | `currents`: CMEMS GLO12, six-hourly samples to 240 h; `currents-ibi`: CMEMS IBI, hourly means to 120 h | Dated provider timings in the dispatcher table; no alternate provider is supported |
 | Routing index | One-shot `ingest land`, manual workflow only | [Versioned index and reproducibility evidence](docs/land-index-format.md) |
-| Display chart (TCP1) | `ingest-charts`, manual `charts` workflow only (dry run by default); no schedule until Open Waters is told about the weekly reads | [Format, publication and measured builds](docs/chart-pack-format.md) |
+| Display chart (TCP1) | `ingest-charts`, manual `charts` workflow only (dry run by default); no schedule until Open Waters is told about the monthly reads | [Format, publication and measured builds](docs/chart-pack-format.md) |
 
 For regionals, **enabled** means the registry gate is open; production also
 needs matching GitHub `OPENMETEO_ENABLED_LAYERS`, runtime
