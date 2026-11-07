@@ -160,7 +160,7 @@ def collect(build_dir: Path, build_id: str) -> dict[str, Built]:
         if not md.get("inputs_sha256"):
             errors.append(f"{path.name}: no inputs_sha256")
         depth_path = None
-        if kind == "cell":
+        if kind == "cell" and md.get("depth") is not None:
             depth_path = path.with_name(md["depth"]["archive"])
             if not depth_path.is_file():
                 errors.append(f"{path.name}: its depth companion {depth_path.name} is missing")
@@ -197,9 +197,10 @@ def _entry(built: Built, build_id: str) -> tuple[dict, list[tuple[str, Path]]]:
         **_object(key, data),
     }
     uploads = [(key, built.path)]
-    if built.depth_path is not None:
+    if md["kind"] == "cell":
         c = md["cell"]
-        entry = {"z": c["z"], "x": c["x"], "y": c["y"], **entry}
+        entry = {"z": c["z"], "x": c["x"], "y": c["y"], **entry, "depth": None}
+    if built.depth_path is not None:
         dkey = f"{PREFIX}/{build_id}/{built.depth_path.name}"
         entry["depth"] = _object(dkey, built.depth_path.read_bytes())
         uploads.append((dkey, built.depth_path))

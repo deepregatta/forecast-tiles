@@ -290,7 +290,15 @@
               "maximum": 63
             },
             "depth": {
-              "$ref": "#/$defs/object"
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The cell's depth companion; null for a cell with no sea under it (no EMODnet depth)"
             }
           }
         }

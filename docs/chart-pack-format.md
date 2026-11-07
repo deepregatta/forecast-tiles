@@ -44,8 +44,10 @@ their last zoom by overzooming; nothing is stored above z14.
 
 **Cells.** The world is cut into z6 tiles (5.625° of longitude, about
 400 × 400 km at 50°N). A cell id is `6-{x}-{y}` (XYZ, y down). Cells never
-overlap: a z14 tile belongs to exactly one cell. Only sea-touching cells are
-built. The `stage1` cell set is the six cells under tactician's stage 1 area
+overlap: a z14 tile belongs to exactly one cell. A cell set names the cells
+built; Europe's lists the sea-touching ones. A cell with no EMODnet sea under
+it (`6-32-22`, inland France, in `stage1`) has no depth companion: its `depth`
+metadata and its manifest entry's `depth` are null. The `stage1` cell set is the six cells under tactician's stage 1 area
 (6.5°W–2.5°E, 48.3°N–51.3°N): `6-30-21`, `6-30-22`, `6-31-21`, `6-31-22`,
 `6-32-21`, `6-32-22`.
 

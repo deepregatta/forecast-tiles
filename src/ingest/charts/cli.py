@@ -91,7 +91,7 @@ def cmd_build(args) -> int:
     from ingest.charts.check import check, style_fields
 
     paths = [out / f"{area.name}.pmtiles"]
-    if kind == "cell":
+    if kind == "cell" and (out / f"{area.name}-depth.pmtiles").is_file():
         paths.append(out / f"{area.name}-depth.pmtiles")
     errors = [e for p in paths for e in check(p, style_fields())]
     for e in errors:

@@ -807,12 +807,17 @@ def run(
             else vector_layers(present)
         )
         depth_name = out.stem + "-depth.pmtiles"
-        depth_meta = {
-            "source_layer": "depth",
-            "max_detail_zoom": DEPTH_MAX_ZOOM,
-            "packaging": "separate archive",
-            "archive": depth_name,
-        }
+        # an inland cell (no EMODnet sea under it) has no depth and no companion
+        depth_meta = (
+            {
+                "source_layer": "depth",
+                "max_detail_zoom": DEPTH_MAX_ZOOM,
+                "packaging": "separate archive",
+                "archive": depth_name,
+            }
+            if depth_tiles
+            else None
+        )
         label = f"cell {area.name}" if kind == "cell" else area.name
         meta = {
             **base_meta,

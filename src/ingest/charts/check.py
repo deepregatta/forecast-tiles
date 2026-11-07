@@ -123,7 +123,9 @@ def check(path: Path, fields: dict, quiet: bool = False) -> list[str]:
         if kind == "cell" and md.get("world_overview") is not None:
             errors.append(f"{path.name}: a cell never folds the world in")
         keep = {name: mvt.keeper(props) for name, props in fields["layers"].items()}
-        separate = md.get("depth", {}).get("packaging") == "separate archive"
+        separate = (md.get("depth") or {}).get("packaging") == "separate archive" or (
+            kind in ("cell", "area") and md.get("depth", "absent") is None
+        )
         allowed = (
             {"depth"} if kind == "depth" else CHART_LAYERS - ({"depth"} if separate else set())
         )

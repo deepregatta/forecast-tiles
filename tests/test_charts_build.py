@@ -316,3 +316,17 @@ def test_style_fields_is_tacticians_list_as_vendored():
     assert hashlib.sha256((here / "style-fields.json").read_bytes()).hexdigest() == record["sha256"]
     fields = json.loads((here / "style-fields.json").read_text())
     assert set(fields["layers"]) >= {"seamark", "light", "sea_area", "earth", "water", "depth"}
+
+
+def test_an_inland_cell_has_no_depth_companion(synthetic, tmp_path, monkeypatch):
+    # 6-32-22 of stage 1 is wholly inland France: no EMODnet sea under it
+    monkeypatch.setattr(FakeGrid, "tile_sea_distance", lambda self, z, x, y: 50.0)
+    monkeypatch.setattr(
+        FakeGrid, "depth_layer", lambda self, z, x, y, keep=lambda k: True: mvt.LayerWriter("depth")
+    )
+    synthetic(tmp_path / "a")
+    path = tmp_path / "a" / "6-31-21.pmtiles"
+    assert not (tmp_path / "a" / "6-31-21-depth.pmtiles").exists()
+    with open(path, "rb") as f:
+        assert Reader(MmapSource(f)).metadata()["depth"] is None
+    assert check.check(path, check.style_fields(), quiet=True) == []

@@ -211,13 +211,13 @@
       "path": "contracts/charts-latest.schema.json",
       "canonical_repository": "forecast-tiles",
       "canonical_path": "contracts/charts-latest.schema.json",
-      "canonical_revision": "git-blob:57978ef1f8a31f9e3c1d26315df3a7bbd34a0564",
+      "canonical_revision": "git-blob:7ff5c67ddaa2c05f3812013032842d68864edb71",
       "contract": "TCP1/schema-1",
       "producer": "forecast-tiles",
       "consumers": [
         "tactician"
       ],
-      "sha256": "3657cb91e63b623c2682669e408fe04c3e6e6c7291fde46f9b5491ca1cdab758",
+      "sha256": "15e905d41649f19578c1676bca0e76607ced9824477c9fb466c0d8bc9ffc6967",
       "representation": "exact",
       "intentional_divergence": null
     },
@@ -225,13 +225,13 @@
       "path": "contracts/charts-manifest.schema.json",
       "canonical_repository": "forecast-tiles",
       "canonical_path": "contracts/charts-manifest.schema.json",
-      "canonical_revision": "git-blob:eb1f60e6e47e6b75643c17933745c830b6bb27df",
+      "canonical_revision": "git-blob:c9377d76102f062d00bbd21ed5b8de0762f9ae33",
       "contract": "TCP1/schema-1",
       "producer": "forecast-tiles",
       "consumers": [
         "tactician"
       ],
-      "sha256": "dbaa124ed7fdc63d09b96551e472f36197803e67ac422bf54df03ddd007c162c",
+      "sha256": "62b58625e6826484298e6a669de8b0586e84ad41b597a554e842c5a5fae005f2",
       "representation": "exact",
       "intentional_divergence": null
     },

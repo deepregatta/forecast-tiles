@@ -67,7 +67,9 @@ def _meta(kind, build_id, digest, bounds, minzoom, maxzoom, **extra):
     }
 
 
-def make_build(folder: Path, build_id: str, cells: dict[str, str], world: str | None, big=None):
+def make_build(
+    folder: Path, build_id: str, cells: dict[str, str], world: str | None, big=None, inland=()
+):
     """Small archives shaped as a build writes them: {cell: inputs digest}.
     `big` names a cell whose archive spans more than one 1 MiB chunk."""
     folder.mkdir(parents=True, exist_ok=True)
@@ -95,9 +97,13 @@ def make_build(folder: Path, build_id: str, cells: dict[str, str], world: str | 
             6,
             14,
             cell=c,
-            depth={"archive": f"{cell}-depth.pmtiles", "packaging": "separate archive"},
+            depth=None
+            if cell in inland
+            else {"archive": f"{cell}-depth.pmtiles", "packaging": "separate archive"},
         )
         build.write_pmtiles(folder / f"{cell}.pmtiles", tiles, meta, a.bbox, 6, 14, 9)
+        if cell in inland:
+            continue
         dmeta = _meta("depth", build_id, digest, a.bbox, 6, 12, cell=c)
         build.write_pmtiles(
             folder / f"{cell}-depth.pmtiles",
@@ -373,3 +379,23 @@ def test_a_chart_build_reserves_under_the_charts_owner_before_uploading(tmp_path
             capacity_admission=Admission(store, conflicts=(PreconditionFailed,)),
         )
     assert not [k for k in store.objects if k.startswith("charts/")]
+
+
+def test_an_inland_cell_publishes_without_depth(tmp_path):
+    store = FakeStore()
+    folder = make_build(
+        tmp_path / "b1",
+        "20261107T1200Z",
+        {"6-31-21": "a" * 64, "6-32-22": "b" * 64},
+        "e" * 64,
+        inland=("6-32-22",),
+    )
+    publish(store, folder, "20261107T1200Z")
+    m = json.loads(store.objects["charts/20261107T1200Z/manifest.json"])
+    validator("charts-manifest.schema.json").validate(m)
+    validator("charts-latest.schema.json").validate(json.loads(store.objects[charts.LATEST_KEY]))
+    assert m["cells"]["6-32-22"]["depth"] is None and (
+        m["cells"]["6-32-22"]["x"],
+        m["cells"]["6-32-22"]["y"],
+    ) == (32, 22)
+    assert m["cells"]["6-31-21"]["depth"]["key"].endswith("6-31-21-depth.pmtiles")
