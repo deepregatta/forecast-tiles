@@ -350,6 +350,7 @@ forecasts' reservation; the `charts` ceiling is 5.5 GB.
 | Build | Run | Cells | Objects | Bytes |
 |---|---|---|---|---|
 | `20261107T1301Z` | [42375064306](https://github.com/deepregatta/forecast-tiles/actions/runs/42375064306) (Protomaps 20261106, Seamap 2026-11-02, SHOM fetched that day) | `stage1` | 12 | 162.75 MB |
+| `20261107T1528Z` | [42386537765](https://github.com/deepregatta/forecast-tiles/actions/runs/42386537765), dispatched with the monthly run's inputs (`newest` → Seamap 2026-11-02, Protomaps 20261107; SHOM fetched per cell that day) | `europe` (73) | 219 | 1,681.68 MB |
 
 Measured sizes of that build (chart archive and depth companion):
 
@@ -366,6 +367,100 @@ Measured sizes of that build (chart archive and depth companion):
 The first dispatch of that day ([42374427834](https://github.com/deepregatta/forecast-tiles/actions/runs/42374427834))
 failed before publishing on the inland cell's missing depth companion; nothing
 was written.
+
+**Europe, `20261107T1528Z` (WP10 phase 8, 2026-11-07).** 73 cells, every one
+built (the recipe, the chunk size and the SHOM reach changed, so nothing was
+reused), about 1.5–3 minutes a cell on `ubuntu-latest`, three at a time: 48
+minutes of builds; the publish job uploaded 219 objects in 493 s. A build is
+**1,354.6 MB** at rest (charts 1,033.2 MB, depth companions 316.8 MB, the world
+4.67 MB), and the EMODnet products, kept between builds, add 327.0 MB. The
+median cell is 13.6 MB with its depths; the largest are `6-33-20` (the Danish
+straits and the western Baltic, 79.9 MB), `6-32-21` (77.9 MB) and `6-35-18`
+(Stockholm's archipelago, 65.4 MB). The pointer is 345 kB (128 KiB chunks).
+The first products cut every cell's EMODnet blocks on the runner (35 blocks
+for `6-30-21` in about 75 s); later builds read them back.
+
+Storage, from these figures: a full rebuild beside two kept builds holds three
+builds and their products at once, 3 × 1.68 GB = **5.05 GB**, inside the
+`charts` ceiling of 5.5 GB; with the regional forecasts' reservation and the
+other objects (14.13 GB, below) that is 19.18 GB, inside `MAX_BUCKET_BYTES` of
+20 GB. Both stay as they are ([storage admission](storage-admission.md)).
+
+| Cell | Chart MB | Depth MB | EMODnet product MB | SHOM marks |
+|---|---|---|---|---|
+| `6-30-18` | 1.04 | 0.27 | 0.29 | 0 |
+| `6-30-19` | 15.86 | 6.77 | 6.78 | 0 |
+| `6-30-20` | 14.56 | 4.17 | 4.30 | 0 |
+| `6-30-21` | 8.38 | 2.40 | 2.41 | 0 |
+| `6-30-22` | 1.81 | 0.00 | 0.02 | 1 |
+| `6-30-23` | 14.05 | 1.27 | 1.38 | 0 |
+| `6-30-24` | 13.34 | 1.48 | 1.65 | 0 |
+| `6-30-25` | 5.95 | 0.76 | 0.84 | 0 |
+| `6-31-18` | 7.07 | 2.76 | 2.74 | 0 |
+| `6-31-19` | 16.74 | 3.91 | 3.97 | 0 |
+| `6-31-20` | 17.98 | 4.05 | 4.25 | 0 |
+| `6-31-21` | 23.75 | 4.92 | 5.11 | 858 |
+| `6-31-22` | 29.53 | 6.19 | 6.42 | 6,062 |
+| `6-31-23` | 9.35 | 0.95 | 1.17 | 659 |
+| `6-31-24` | 10.89 | 0.85 | 1.10 | 0 |
+| `6-31-25` | 6.85 | 0.75 | 0.96 | 0 |
+| `6-32-17` | 4.13 | 1.93 | 1.95 | 0 |
+| `6-32-18` | 22.69 | 9.04 | 9.05 | 0 |
+| `6-32-19` | 3.38 | 0.52 | 0.50 | 0 |
+| `6-32-20` | 21.25 | 7.84 | 7.83 | 0 |
+| `6-32-21` | 63.30 | 14.58 | 14.85 | 1,404 |
+| `6-32-22` | 3.22 | 0.00 | 0.29 | 0 |
+| `6-32-23` | 15.73 | 1.81 | 2.03 | 1,096 |
+| `6-32-24` | 12.34 | 1.67 | 1.69 | 0 |
+| `6-33-16` | 5.43 | 4.49 | 4.51 | 0 |
+| `6-33-17` | 32.97 | 13.24 | 13.40 | 0 |
+| `6-33-18` | 31.11 | 6.21 | 6.44 | 0 |
+| `6-33-19` | 23.81 | 5.93 | 5.97 | 0 |
+| `6-33-20` | 58.92 | 20.95 | 21.13 | 0 |
+| `6-33-23` | 21.61 | 2.73 | 2.85 | 1,335 |
+| `6-33-24` | 11.98 | 2.12 | 2.16 | 0 |
+| `6-34-14` | 6.67 | 2.92 | 2.94 | 0 |
+| `6-34-15` | 28.29 | 13.41 | 13.50 | 0 |
+| `6-34-16` | 22.12 | 13.10 | 13.33 | 0 |
+| `6-34-17` | 3.12 | 0.16 | 0.45 | 0 |
+| `6-34-18` | 3.36 | 0.05 | 0.33 | 0 |
+| `6-34-19` | 26.44 | 8.11 | 8.33 | 0 |
+| `6-34-20` | 27.55 | 6.00 | 6.16 | 0 |
+| `6-34-22` | 12.94 | 2.99 | 3.28 | 0 |
+| `6-34-23` | 22.67 | 8.44 | 8.58 | 0 |
+| `6-34-24` | 17.69 | 1.88 | 1.94 | 0 |
+| `6-34-25` | 5.79 | 2.69 | 2.70 | 0 |
+| `6-35-13` | 0.68 | 0.23 | 0.25 | 0 |
+| `6-35-14` | 20.99 | 8.08 | 8.20 | 0 |
+| `6-35-15` | 3.83 | 0.40 | 0.68 | 0 |
+| `6-35-16` | 5.57 | 2.60 | 2.85 | 0 |
+| `6-35-17` | 15.02 | 8.53 | 8.62 | 0 |
+| `6-35-18` | 37.45 | 27.99 | 28.04 | 0 |
+| `6-35-19` | 9.85 | 6.78 | 6.78 | 0 |
+| `6-35-20` | 12.52 | 4.30 | 4.49 | 0 |
+| `6-35-23` | 7.03 | 1.97 | 2.23 | 0 |
+| `6-35-24` | 15.12 | 3.46 | 3.61 | 0 |
+| `6-35-25` | 1.84 | 0.34 | 0.38 | 0 |
+| `6-36-13` | 9.61 | 3.23 | 3.26 | 0 |
+| `6-36-14` | 10.79 | 2.09 | 2.34 | 0 |
+| `6-36-16` | 8.08 | 4.49 | 4.67 | 0 |
+| `6-36-17` | 5.40 | 0.63 | 0.92 | 0 |
+| `6-36-18` | 21.34 | 8.18 | 8.33 | 0 |
+| `6-36-19` | 7.38 | 1.40 | 1.62 | 0 |
+| `6-36-23` | 4.64 | 0.44 | 0.78 | 0 |
+| `6-36-24` | 35.10 | 10.08 | 10.18 | 0 |
+| `6-36-25` | 8.15 | 2.34 | 2.36 | 0 |
+| `6-37-13` | 2.15 | 0.59 | 0.61 | 0 |
+| `6-37-14` | 11.59 | 2.03 | 2.21 | 0 |
+| `6-37-18` | 5.93 | 0.63 | 0.89 | 0 |
+| `6-37-22` | 10.19 | 5.59 | 6.08 | 0 |
+| `6-37-23` | 9.25 | 2.41 | 2.45 | 0 |
+| `6-37-24` | 6.90 | 0.86 | 1.15 | 0 |
+| `6-37-25` | 5.81 | 0.86 | 0.89 | 0 |
+| `6-38-22` | 11.47 | 8.60 | 8.85 | 0 |
+| `6-38-23` | 7.33 | 1.26 | 1.31 | 0 |
+| `6-38-25` | 10.12 | 1.29 | 1.47 | 0 |
+| `6-39-23` | 6.45 | 0.75 | 0.99 | 0 |
 
 ## 8. Sources and licences
 

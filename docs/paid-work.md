@@ -68,7 +68,9 @@ or monthly counter reset occurs. Consumer reads continue normally.
 (`ingest.paid_work_review.CHARTS_CHANNEL`). The manual
 [`paid-work-channel`](../.github/workflows/paid-work-channel.yml) workflow adds
 it to `ops/paid-work.json` with one conditional write and exact read-back,
-every other field and all usage kept (a dry run unless `apply`). Without it an
+every other field and all usage kept (a dry run unless `apply`). Added on
+2026-11-07 by run [42391477966](https://github.com/deepregatta/forecast-tiles/actions/runs/42391477966)
+with the owner's approval. Without it an
 enforced chart publish closes (`invalid usage or channel policy`) rather than
 running unmetered. The chart
 builds themselves run on standard runners of this public repository.

@@ -59,10 +59,14 @@ referenced forecast runs, 1.08 GB other (0.72 GB of it incomplete regional
 runs). The regional calculation reserves 11.015 GB of root peak, 1.53 GB of
 three capped regional runs per model and 0.5 GB headroom, plus that other
 1.08 GB: 14.13 GB, leaving **5.87 GB** for charts under 20 GB. The `charts`
-ceiling is **5.5 GB**: every chart object kept plus the upload in flight. A
-5 GB European set at rest then admits a 0.5 GB upload of changed cells; a
-full rebuild at that size needs the incomplete runs reconciled first or the
-limit reviewed again. The scratch example carries a synthetic 5.5 MB. Once `charts/` holds objects, a ledger without this
+ceiling is **5.5 GB**: every chart object kept plus the upload in flight.
+**Set from the measured European build (WP10 phase 8, 2026-11-07):**
+`20261107T1528Z` is 1.35 GB of archives and 0.33 GB of EMODnet products, so a
+full rebuild beside two kept builds peaks at 3 × 1.68 GB = 5.05 GB, inside the
+ceiling, and 14.13 GB + 5.05 GB = 19.18 GB stays inside `MAX_BUCKET_BYTES` of
+20 GB: neither changes. About 0.45 GB of the ceiling and 0.8 GB of the bucket
+limit are left for OSM's growth; a build that outgrows them is refused before
+uploading, and the limit is reviewed then. The scratch example carries a synthetic 5.5 MB. Once `charts/` holds objects, a ledger without this
 owner would close admission for every writer ("unclassified object growth"),
 so the owner goes in before `CAPACITY_ENFORCE=1`. Chart bytes also count as
 "other" objects in the regional peak calculation below; the chart publisher
