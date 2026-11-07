@@ -281,6 +281,28 @@ owner `charts` ([storage admission](storage-admission.md)). `MAX_BUCKET_BYTES`
 is 20 GB since 2026-11-07 (Davi), leaving about 5.9 GB for charts beside the
 forecasts' reservation; the `charts` ceiling is 5.5 GB.
 
+### Published builds
+
+| Build | Run | Cells | Objects | Bytes |
+|---|---|---|---|---|
+| `20261107T1301Z` | [42375064306](https://github.com/deepregatta/forecast-tiles/actions/runs/42375064306) (Protomaps 20261106, Seamap 2026-11-02, SHOM fetched that day) | `stage1` | 12 | 162.75 MB |
+
+Measured sizes of that build (chart archive and depth companion):
+
+| Cell | Covers | Chart MB | Depth MB | SHOM marks |
+|---|---|---|---|---|
+| `6-30-21` | Celtic Sea, south Ireland, Scillies | 8.38 | 2.40 | 0 |
+| `6-30-22` | Bay of Biscay, open water | 1.81 | 0.00 | 1 |
+| `6-31-21` | Cornwall, Devon, north Brittany, Channel Islands | 23.74 | 4.92 | 790 |
+| `6-31-22` | south Brittany, Vendée, Gironde | 29.53 | 6.19 | 6,052 |
+| `6-32-21` | Normandy, Picardy, Dover Strait, southern North Sea, Thames, Benelux | 63.30 | 14.58 | 1,396 |
+| `6-32-22` | inland France, no sea (no depth companion) | 3.22 | — | 0 |
+| `world` | z0–5 | 4.67 | — | — |
+
+The first dispatch of that day ([42374427834](https://github.com/deepregatta/forecast-tiles/actions/runs/42374427834))
+failed before publishing on the inland cell's missing depth companion; nothing
+was written.
+
 ## 8. Sources and licences
 
 | Source | Terms | Shown on the chart |

@@ -182,7 +182,7 @@ def _summary(build_dir: Path, result) -> None:
         r = json.loads(report.read_text())
         depth = r.get("depth_archive", {}).get("file_bytes", 0)
         rows.append(
-            f"| {r['area']} | {r['file_bytes'] / 1e6:.2f} | {depth / 1e6:.2f} | {r['tiles']} | "
+            f"| {report.name.removesuffix('.report.json')} | {r['file_bytes'] / 1e6:.2f} | {depth / 1e6:.2f} | {r['tiles']} | "
             f"{r.get('seconds', '')} |"
         )
     text = "\n".join(rows)
