@@ -37,6 +37,14 @@ SOURCE_URL = "https://www.soest.hawaii.edu/pwessel/gshhg/gshhg-bin-2.3.7.zip"
 ARCHIVE_SHA256 = "28600e8f7a08645aab43079326df6504212ec5ccb2b4bcf3b5f4f12ed60e82bc"
 MEMBER = "gshhs_f.b"
 MEMBER_SHA256 = "af9215d58ebc525b2d09654a89959829f09e6edc457f3666759cded37be4ecf6"
+#: The mirror's chain ends at emSign Root TLS CA - G1, which the Mozilla store
+#: (certifi) does not carry, so a fresh runner refused it (2026-11-08).
+#: emSign Root CA - G1, which the store does carry, cross-signs that root, and
+#: the mirror's own AIA hands out the cross certificate
+#: (http://repository.emsign.com/certs/EMIncommonOVG2C.p7c). The download is
+#: verified against the standard bundle plus this one public certificate, so
+#: TLS stays on and still ends at a root the store already trusts.
+EXTRA_CA = Path(__file__).with_name("emsign-root-tls-ca-g1-cross.pem")
 LICENCE = "LGPL-3.0-or-later, with permission to use, copy, modify and distribute given attribution"
 ATTRIBUTION = (
     "Wessel, P., and W. H. F. Smith (1996), A global, self-consistent, hierarchical, "
@@ -73,7 +81,7 @@ def ensure_source(cache_dir: Path, *, session=None) -> Path:
         import requests
 
         get = (session or requests).get
-        response = get(SOURCE_URL, timeout=600, stream=True)
+        response = get(SOURCE_URL, timeout=600, stream=True, verify=_ca_bundle(cache_dir))
         response.raise_for_status()
         with archive.open("wb") as handle:
             for chunk in response.iter_content(1 << 20):
@@ -89,6 +97,15 @@ def ensure_source(cache_dir: Path, *, session=None) -> Path:
     if found != MEMBER_SHA256:
         raise GshhgError(f"{MEMBER} sha256 {found} != recorded {MEMBER_SHA256}")
     return member
+
+
+def _ca_bundle(cache_dir: Path) -> str:
+    """The standard bundle with the mirror's cross certificate after it."""
+    import certifi
+
+    bundle = Path(cache_dir) / "gshhg-ca-bundle.pem"
+    bundle.write_text(Path(certifi.where()).read_text() + "\n" + EXTRA_CA.read_text())
+    return str(bundle)
 
 
 def land_polygons(
