@@ -46,6 +46,23 @@ DOMAINS: dict[str, Domain] = {
         # have put a coverage edge inside a race the index exists to serve.
         tiles=((40, -10), (40, 0), (50, -10), (50, 0)),
     ),
+    # The Mediterranean (the owner's Balearic course, 2026-11-08, sat at
+    # 38.5-39.9 N, wholly south of `nweu`, and every route round it was
+    # refused). A consumer routes a race against one domain, so the domain
+    # carries the 40 N row as well as the 30 N one: a Balearic, Ligurian or
+    # Adriatic course whose area crosses 40 N resolves to a single domain with
+    # no coverage edge inside it. 10 W to 40 E reaches Gibraltar and the Alboran
+    # Sea, Cyprus and the Levant, the Aegean and the Black Sea to 40 E.
+    "med": Domain(
+        name="med",
+        label=(
+            "The Mediterranean, 10 W to 40 E and 30 N to 50 N: Gibraltar and the Alboran Sea, "
+            "the Balearics, the Gulf of Lion and the Ligurian Sea, Corsica and Sardinia, the "
+            "Tyrrhenian, Sicily and Malta, the Adriatic, the Ionian, the Aegean, Cyprus and the "
+            "Levant, and the Black Sea to 40 E"
+        ),
+        tiles=tuple((lat0, lon0) for lat0 in (30, 40) for lon0 in range(-10, 40, 10)),
+    ),
     # The committed contract fixture: one degree over the Raz de Sein, which
     # carries an islet, a rock chaussee and a legal passage between them. It is
     # a real index of a small domain, not a synthetic one, so the consumer's
@@ -69,6 +86,15 @@ PROBES: tuple[tuple[str, float, float, bool], ...] = (
     ("central Brittany, inland of Carhaix", -3.60, 48.30, True),
     ("central Hampshire, inland of Winchester", -1.32, 51.06, True),
     ("central Ireland, inland of Athlone", -8.00, 53.40, True),
+    ("Balearic Sea, between Barcelona and Mallorca", 2.60, 40.40, False),
+    ("Algerian basin, south of the Balearics", 4.00, 38.00, False),
+    ("Tyrrhenian abyssal plain", 12.50, 39.50, False),
+    ("Ionian abyssal plain", 18.00, 36.00, False),
+    ("Levantine basin, south of Cyprus", 32.00, 33.50, False),
+    ("central Spain, inland of Madrid", -3.70, 40.40, True),
+    ("central Sardinia", 9.00, 40.10, True),
+    ("central Sicily, at Enna", 14.30, 37.57, True),
+    ("central Anatolia, at Ankara", 32.85, 39.93, True),
 )
 
 

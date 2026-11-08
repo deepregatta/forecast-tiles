@@ -491,6 +491,7 @@ instructions: **[docs/land-index-format.md](docs/land-index-format.md)**.
 |---|---|
 | Sources | GSHHG 2.3.7 full-resolution shoreline (LGPL-3.0-or-later, attribution) · EMODnet Digital Bathymetry DTM 2024 (CC-BY-4.0) |
 | Domain `nweu` | 10°W–10°E, 40°N–60°N (four 10° tiles) — Biscay, Brittany, the Channel and its western approaches, the southern North Sea |
+| Domain `med` | 10°W–40°E, 30°N–50°N (ten 10° tiles) — the Mediterranean from Gibraltar to the Levant, the Adriatic, the Aegean and the Black Sea to 40°E; it repeats `nweu`'s 40°N row so a race crossing 40°N resolves to one domain |
 | Cell | 1/480° (~232 m of latitude), one bit per cell, packed south-to-north |
 | Conservatism | outward buffer **200 m**; safety contour **0 m below LAT**; no-data blocked; every step adds blocked area and none removes any |
 | Cadence | one-shot. `workflow_dispatch` only (`.github/workflows/land-index.yml`) |

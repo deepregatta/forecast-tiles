@@ -102,6 +102,15 @@ the L-shape the races alone would need, because a race area resolves to tiles by
 its bounding box and the RORC Channel fleet's own box reaches a degree east of
 the course into the fourth tile. A domain cut to the courses would have put a
 coverage edge inside a race this index exists to serve.
+
+`med` is the ten covering 10°W–40°E, 30°N–50°N: Gibraltar and the Alboran Sea
+to the Levant and the Black Sea to 40°E. It carries the 40°N row that `nweu`
+also has, because a consumer routes a race against **one** domain: a Balearic
+course (the owner's, 2026-11-08, at 38.5–39.9°N with every route refused) or a
+Ligurian one whose area crosses 40°N must resolve wholly inside one domain, and
+two domains meeting at 40°N would have put that edge inside the race. Where
+both domains carry a tile they are compiled from the same sources and
+parameters.
 The manifest's bounding box is that set's envelope and may contain tiles that
 were never compiled, so **the tile list is the coverage**. A query outside a
 published tile is *unknown*, never *clear*. This is why the domain is
@@ -187,6 +196,7 @@ deliberately changed — and each rebuild ships as a new immutable version.
 uv sync
 uv run ingest land --domain nweu --dry-run /tmp/land        # local, no R2 writes
 uv run ingest land --domain nweu                            # publish to R2
+uv run ingest land --domain med                             # the Mediterranean
 ```
 
 The first run downloads the GSHHG archive (119 MB, checked against its recorded
