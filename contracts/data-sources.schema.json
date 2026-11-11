@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deepregatta.local/contracts/data-sources.schema.json",
+  "title": "Data-source register (data-sources/schema-1): one record per upstream data source with its licence, attribution, redistribution status and the date its terms were read. A field holds a value only where a file in the recording repository already states it; everything else is null, with redistribute \"unconfirmed\".",
+  "type": "object",
+  "required": ["schema_version", "sources"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": 1 },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "provider",
+        "licence",
+        "licence_url",
+        "attribution",
+        "share_alike",
+        "redistribute",
+        "verified_on",
+        "verified_from",
+        "used_by",
+        "recorded_in",
+        "notes"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "provider": { "type": "string", "minLength": 1 },
+        "licence": { "type": ["string", "null"], "minLength": 1 },
+        "licence_url": { "type": ["string", "null"], "pattern": "^https://" },
+        "attribution": { "type": ["string", "null"], "minLength": 1 },
+        "share_alike": { "type": ["boolean", "null"] },
+        "redistribute": { "enum": ["yes", "no", "unconfirmed"] },
+        "verified_on": {
+          "type": ["string", "null"],
+          "format": "date",
+          "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+        },
+        "verified_from": { "type": ["string", "null"], "pattern": "^https://" },
+        "used_by": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[a-z0-9]+([-_][a-z0-9]+)*$" }
+        },
+        "recorded_in": {
+          "description": "Repo-relative paths of the files in this repository that state the non-null values above. Empty only when every value is null and redistribute is unconfirmed.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "notes": { "type": ["string", "null"], "minLength": 1 }
+      },
+      "allOf": [
+        {
+          "description": "A yes or no redistribution answer needs a licence to answer under.",
+          "if": {
+            "properties": { "redistribute": { "enum": ["yes", "no"] } },
+            "required": ["redistribute"]
+          },
+          "then": { "properties": { "licence": { "type": "string", "minLength": 1 } } }
+        },
+        {
+          "description": "A verified date needs the place the terms were read.",
+          "if": { "properties": { "verified_on": { "type": "string" } }, "required": ["verified_on"] },
+          "then": { "properties": { "verified_from": { "type": "string", "minLength": 1 } } }
+        },
+        {
+          "description": "A recorded value must cite the file that states it.",
+          "if": {
+            "anyOf": [
+              { "properties": { "licence": { "type": "string" } }, "required": ["licence"] },
+              { "properties": { "licence_url": { "type": "string" } }, "required": ["licence_url"] },
+              { "properties": { "attribution": { "type": "string" } }, "required": ["attribution"] },
+              { "properties": { "share_alike": { "type": "boolean" } }, "required": ["share_alike"] },
+              { "properties": { "verified_on": { "type": "string" } }, "required": ["verified_on"] },
+              { "properties": { "redistribute": { "enum": ["yes", "no"] } }, "required": ["redistribute"] }
+            ]
+          },
+          "then": { "properties": { "recorded_in": { "minItems": 1 } } }
+        }
+      ]
+    }
+  }
+}

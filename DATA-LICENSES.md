@@ -3,6 +3,14 @@
 The repository's MIT licence covers its code. It does not relicense upstream
 weather data or optional ingestion libraries.
 
+The machine-readable record per source (licence, attribution, whether the data
+may be redistributed, and the date its terms were read) is
+[`contracts/data-sources.json`](contracts/data-sources.json), validated against
+[`contracts/data-sources.schema.json`](contracts/data-sources.schema.json). A
+value appears there only where a file in this repository already states it;
+every other source reads `unconfirmed`. The notices below stay the prose
+authority, UKV's ShareAlike duties above all.
+
 ## Met Office UKV
 
 UKV source data, the cropped UKV weather fixtures in

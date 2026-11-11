@@ -1,0 +1,296 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "noaa-gfs",
+      "name": "NOAA GFS 0.25°",
+      "provider": "NOAA/NCEP",
+      "licence": null,
+      "licence_url": null,
+      "attribution": null,
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "weather"
+      ],
+      "recorded_in": [],
+      "notes": "No licence, attribution or redistribution statement for this source is recorded in this repository (src/ingest/sources/gfs.py names the bucket only). Terms not yet confirmed."
+    },
+    {
+      "id": "noaa-gfs-wave",
+      "name": "NOAA GFS-Wave 0.25°",
+      "provider": "NOAA/NCEP",
+      "licence": null,
+      "licence_url": null,
+      "attribution": null,
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "waves"
+      ],
+      "recorded_in": [],
+      "notes": "No licence, attribution or redistribution statement for this source is recorded in this repository (src/ingest/sources/gfswave.py names the bucket only). Terms not yet confirmed."
+    },
+    {
+      "id": "noaa-gefs",
+      "name": "NOAA GEFS 0.5°",
+      "provider": "NOAA/NCEP",
+      "licence": null,
+      "licence_url": null,
+      "attribution": null,
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "ensemble"
+      ],
+      "recorded_in": [],
+      "notes": "No licence, attribution or redistribution statement for this source is recorded in this repository (src/ingest/sources/gefs.py names the bucket only). Terms not yet confirmed."
+    },
+    {
+      "id": "ecmwf-open-ifs",
+      "name": "ECMWF open data IFS 0.25°",
+      "provider": "ECMWF",
+      "licence": "CC BY 4.0",
+      "licence_url": null,
+      "attribution": null,
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "weather-ecmwf",
+        "weather-ecmwf-short"
+      ],
+      "recorded_in": [
+        "src/ingest/sources/ecmwf_open.py"
+      ],
+      "notes": "Licence copied from the provenance label \"ECMWF open data IFS 0.25deg (CC BY 4.0)\" in src/ingest/sources/ecmwf_open.py. No attribution string or redistribution statement is recorded in this repository. Terms not yet confirmed."
+    },
+    {
+      "id": "cmems-glo12",
+      "name": "Copernicus Marine GLO12",
+      "provider": "Copernicus Marine Service",
+      "licence": null,
+      "licence_url": null,
+      "attribution": "E.U. Copernicus Marine Service Information; doi:10.48670/moi-00016",
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "currents"
+      ],
+      "recorded_in": [
+        "src/ingest/sources/cmems.py"
+      ],
+      "notes": "Product GLOBAL_ANALYSISFORECAST_PHY_001_024. Attribution copied from the manifest provenance in src/ingest/sources/cmems.py. No licence or redistribution statement is recorded in this repository. Terms not yet confirmed."
+    },
+    {
+      "id": "cmems-ibi",
+      "name": "Copernicus Marine IBI",
+      "provider": "Copernicus Marine Service",
+      "licence": null,
+      "licence_url": null,
+      "attribution": "E.U. Copernicus Marine Service Information; doi:10.48670/moi-00027",
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "currents-ibi"
+      ],
+      "recorded_in": [
+        "src/ingest/sources/ibi.py"
+      ],
+      "notes": "Product IBI_ANALYSISFORECAST_PHY_005_001. Attribution copied from the manifest provenance in src/ingest/sources/ibi.py. No licence or redistribution statement is recorded in this repository. Terms not yet confirmed."
+    },
+    {
+      "id": "meteofrance-arome",
+      "name": "Météo-France AROME 0.025°",
+      "provider": "Météo-France",
+      "licence": "CC BY 4.0 (Open-Meteo bulk catalogue); Météo-France open data",
+      "licence_url": null,
+      "attribution": "Météo-France AROME via Open-Meteo (open-data, CC BY 4.0)",
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "weather-arome"
+      ],
+      "recorded_in": [
+        "src/ingest/sources/openmeteo/registry.py",
+        "DATA-LICENSES.md"
+      ],
+      "notes": "Distributed through the Open-Meteo bulk catalogue. Licence and attribution copied from the AROME product definition in src/ingest/sources/openmeteo/registry.py. DATA-LICENSES.md says to consult the provider and catalogue links when redistributing; it does not confirm redistribution. Terms not yet confirmed."
+    },
+    {
+      "id": "dwd-icon-eu",
+      "name": "DWD ICON-EU",
+      "provider": "Deutscher Wetterdienst",
+      "licence": "CC BY 4.0 (Open-Meteo bulk catalogue); DWD open data",
+      "licence_url": null,
+      "attribution": "Deutscher Wetterdienst ICON-EU via Open-Meteo (CC BY 4.0)",
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "weather-icon-eu"
+      ],
+      "recorded_in": [
+        "src/ingest/sources/openmeteo/registry.py",
+        "DATA-LICENSES.md"
+      ],
+      "notes": "Distributed through the Open-Meteo bulk catalogue. Licence and attribution copied from the ICON-EU product definition in src/ingest/sources/openmeteo/registry.py. DATA-LICENSES.md says to consult the provider and catalogue links when redistributing; it does not confirm redistribution. Terms not yet confirmed."
+    },
+    {
+      "id": "metoffice-ukv",
+      "name": "Met Office UKV 2 km",
+      "provider": "Met Office",
+      "licence": "CC BY-SA 4.0",
+      "licence_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "attribution": "British Crown copyright, Met Office UKV via Open-Meteo; CC BY-SA 4.0. Modified: native CRS correction, geographic remapping and quantization. https://creativecommons.org/licenses/by-sa/4.0/",
+      "share_alike": true,
+      "redistribute": "unconfirmed",
+      "verified_on": "2026-10-02",
+      "verified_from": "https://registry.opendata.aws/met-office-uk-deterministic/",
+      "used_by": [
+        "weather-ukv"
+      ],
+      "recorded_in": [
+        "DATA-LICENSES.md",
+        "src/ingest/sources/openmeteo/registry.py"
+      ],
+      "notes": "Distributed through the Open-Meteo bulk catalogue. DATA-LICENSES.md states that UKV source data and transformed UKV forecast tiles are provided under CC BY-SA 4.0 and that attribution, the licence link and modification notices are preserved when sharing, including GRIB exports; adapted data keep the same licence. Access date 2026-10-02 as recorded there; verified_from is the Met Office-managed source listing it cites. Attribution copied from src/ingest/sources/openmeteo/registry.py. A later redistribution answer would rest on the DATA-LICENSES.md sentence \"Preserve attribution, the licence link and modification notices when sharing these data, including GRIB exports.\" Redistribution is not confirmed yet. The prose duties stay in DATA-LICENSES.md."
+    },
+    {
+      "id": "gshhg",
+      "name": "GSHHG 2.3.7",
+      "provider": "GSHHG (P. Wessel and W. H. F. Smith)",
+      "licence": "LGPL-3.0-or-later, with permission to use, copy, modify and distribute given attribution",
+      "licence_url": null,
+      "attribution": "Wessel, P., and W. H. F. Smith (1996), A global, self-consistent, hierarchical, high-resolution shoreline database, J. Geophys. Res., 101(B4), 8741-8743",
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "land"
+      ],
+      "recorded_in": [
+        "src/ingest/land/gshhg.py",
+        "docs/land-index-format.md"
+      ],
+      "notes": "Archive member gshhs_f.b. Licence and attribution copied from LICENCE and ATTRIBUTION in src/ingest/land/gshhg.py (also docs/land-index-format.md section 5). A later redistribution answer would rest on the wording of that LICENCE constant: \"permission to use, copy, modify and distribute given attribution\". Redistribution is not confirmed yet."
+    },
+    {
+      "id": "emodnet-bathymetry",
+      "name": "EMODnet Digital Bathymetry (DTM) 2024",
+      "provider": "EMODnet Bathymetry Consortium",
+      "licence": "CC-BY-4.0",
+      "licence_url": null,
+      "attribution": "EMODnet Bathymetry Consortium (2024): EMODnet Digital Bathymetry (DTM 2024)",
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "land",
+        "charts"
+      ],
+      "recorded_in": [
+        "src/ingest/land/emodnet.py",
+        "docs/land-index-format.md",
+        "DATA-LICENSES.md"
+      ],
+      "notes": "Licence and attribution copied from LICENCE and ATTRIBUTION in src/ingest/land/emodnet.py and DATA-LICENSES.md. The source carries the use constraint \"DO NOT USE FOR NAVIGATION\". No redistribution statement for this source alone is recorded. Terms not yet confirmed."
+    },
+    {
+      "id": "openstreetmap",
+      "name": "OpenStreetMap",
+      "provider": "OpenStreetMap contributors",
+      "licence": "ODbL 1.0",
+      "licence_url": null,
+      "attribution": "© OpenStreetMap contributors",
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "charts"
+      ],
+      "recorded_in": [
+        "DATA-LICENSES.md",
+        "docs/chart-pack-format.md"
+      ],
+      "notes": "Terms and credit line copied from DATA-LICENSES.md and docs/chart-pack-format.md section 8, which say a chart archive is a derivative database that stays openly available under ODbL. Whether the ODbL share-alike duty is recorded as share_alike is left for the verification task. Redistribution of this source alone is not confirmed. Terms not yet confirmed."
+    },
+    {
+      "id": "protomaps-basemap",
+      "name": "Protomaps",
+      "provider": "Protomaps",
+      "licence": "ODbL (OSM data)",
+      "licence_url": null,
+      "attribution": "© Protomaps, © OpenStreetMap",
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "charts"
+      ],
+      "recorded_in": [
+        "DATA-LICENSES.md",
+        "docs/chart-pack-format.md"
+      ],
+      "notes": "Terms and credit line copied from docs/chart-pack-format.md section 8 (OSM data, ODbL) and DATA-LICENSES.md. Redistribution of this source alone is not confirmed. Terms not yet confirmed."
+    },
+    {
+      "id": "open-waters-seamap",
+      "name": "Open Waters Seamap",
+      "provider": "Open Waters",
+      "licence": "CC BY 4.0, being corrected to ODbL",
+      "licence_url": null,
+      "attribution": "© Open Waters: Seamap",
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "charts"
+      ],
+      "recorded_in": [
+        "DATA-LICENSES.md",
+        "docs/chart-pack-format.md"
+      ],
+      "notes": "Terms and credit line copied from DATA-LICENSES.md and docs/chart-pack-format.md section 8, which say the tiles are CC BY 4.0 and being corrected to ODbL. Redistribution of this source alone is not confirmed. Terms not yet confirmed."
+    },
+    {
+      "id": "shom-balisage",
+      "name": "SHOM Balisage",
+      "provider": "Shom",
+      "licence": "Licence Ouverte 2.0",
+      "licence_url": null,
+      "attribution": "Balisage © Shom",
+      "share_alike": null,
+      "redistribute": "unconfirmed",
+      "verified_on": null,
+      "verified_from": null,
+      "used_by": [
+        "charts"
+      ],
+      "recorded_in": [
+        "DATA-LICENSES.md",
+        "docs/chart-pack-format.md"
+      ],
+      "notes": "Terms and credit line copied from DATA-LICENSES.md and docs/chart-pack-format.md section 8 (the chart shows the year fetched). Redistribution of this source alone is not confirmed. Terms not yet confirmed."
+    }
+  ]
+}
