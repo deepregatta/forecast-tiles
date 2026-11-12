@@ -43,6 +43,43 @@ cropped fixture metadata: Météo-France AROME and Deutscher Wetterdienst ICON-E
 distributed through Open-Meteo's CC BY 4.0 bulk catalogue. Consult the provider
 and catalogue links in the implementation plan when redistributing those data.
 
+## Credit lines for derived tiles
+
+Recorded on 12 November 2026. The tiles and Passage's GRIB exports are derived
+from five sources whose terms ask for a credit and, for CC BY 4.0, an indication
+of changes. One wording per product is used everywhere this repository states it:
+the register's `attribution` and the line Passage's GRIB files page shows are the
+same text, in the form credit; licence (link); modification clause. The credit
+sentences and DOIs are the providers' own (see the section above); the clause is
+ours.
+
+| Product | Credit line |
+|---|---|
+| ECMWF IFS (`ecmwf-open-ifs`) | This service is based on data and products of the European Centre for Medium-Range Weather Forecasts (ECMWF); ECMWF open data; CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); modified: converted and quantized data |
+| Copernicus Marine GLO12 (`cmems-glo12`) | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00016; modified: converted and quantized data |
+| Copernicus Marine IBI (`cmems-ibi`) | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00027; modified: converted and quantized data |
+| DWD ICON-EU (`dwd-icon-eu`) | Deutscher Wetterdienst ICON-EU via Open-Meteo; CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); modified: converted and quantized data |
+| Météo-France AROME (`meteofrance-arome`) | Météo-France AROME via Open-Meteo; CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); modified: converted and quantized data |
+
+ECMWF's disclaimer is not part of these lines: its wording is not recorded.
+
+What "converted and quantized" rests on, by source file: the ingest multiplies
+speeds and currents in m/s by 1.943844 to knots (`MS_TO_KT`) and stores each value
+as a scaled 16-bit integer (`quantize`), in `src/ingest/sources/ecmwf_open.py`
+(wind and gust), `src/ingest/sources/cmems.py` and `src/ingest/sources/ibi.py`
+(surface currents; the surface layer is selected with `isel(depth=0)`) and
+`src/ingest/sources/openmeteo/adapter.py` (AROME and ICON-EU; wind given as speed
+and direction is converted to u/v components, and values outside the registered
+footprint are masked). Only UKV is remapped to another grid (bilinear, same
+adapter), which is why its own line says so and the others do not.
+
+The tile manifests already published, and the next ones until a producer change
+is made and a run published, still carry the earlier strings: `provenance.attribution`
+from `src/ingest/sources/openmeteo/registry.py` (AROME, ICON-EU, UKV), `cmems.py`
+and `ibi.py` (GLO12 and IBI, without "Generated using" or the modification clause)
+and `ecmwf_open.py` (the ECMWF provenance, "ECMWF open data IFS 0.25deg (CC BY 4.0)").
+This section changes the register and the notice, not those producers.
+
 ## Display chart (TCP1)
 
 The chart archives under `charts/` and the golden fixture in

@@ -162,14 +162,58 @@ def test_the_open_points_are_named_in_the_notes_of_the_three_added_entries():
     assert "bathymetry source's terms were not read" in entry("open-waters-seamap")["notes"]
 
 
+CC_BY = "https://creativecommons.org/licenses/by/4.0/"
+MODIFIED = "modified: converted and quantized data"
+# One wording per product: the register's attribution is the line Passage's GRIB page shows
+# (credit; licence (url); modification clause), and DATA-LICENSES.md records it.
+CREDIT_LINES = {
+    "ecmwf-open-ifs": (
+        "This service is based on data and products of the European Centre for "
+        "Medium-Range Weather Forecasts (ECMWF); "
+        f"ECMWF open data; CC BY 4.0 ({CC_BY}); {MODIFIED}"
+    ),
+    "cmems-glo12": (
+        f"Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00016; {MODIFIED}"
+    ),
+    "cmems-ibi": (
+        f"Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00027; {MODIFIED}"
+    ),
+    "dwd-icon-eu": f"Deutscher Wetterdienst ICON-EU via Open-Meteo; CC BY 4.0 ({CC_BY}); {MODIFIED}",
+    "meteofrance-arome": f"Météo-France AROME via Open-Meteo; CC BY 4.0 ({CC_BY}); {MODIFIED}",
+}
+
+
 def test_ecmwf_and_copernicus_marine_credits_are_the_providers_own_wording():
     assert entry("ecmwf-open-ifs")["attribution"].startswith(
-        "This service is based on data and products of the European Centre"
+        "This service is based on data and products of the European Centre for Medium-Range Weather Forecasts (ECMWF); "
     )
     for source_id in ("cmems-glo12", "cmems-ibi"):
         assert entry(source_id)["attribution"].startswith(
-            "E.U. Copernicus Marine Service Information; doi:"
+            "Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-000"
         )
+
+
+def test_each_derived_tile_credit_has_one_wording_recorded_in_the_licence_notes():
+    notes = (ROOT / "DATA-LICENSES.md").read_text()
+    for source_id, line in CREDIT_LINES.items():
+        source = entry(source_id)
+        assert source["attribution"] == line, source_id
+        # a value is stated in a repository file cited in recorded_in: the prose authority
+        assert line in notes, source_id
+        assert "DATA-LICENSES.md" in source["recorded_in"], source_id
+    assert "Credit lines for derived tiles" in notes
+    assert "12 November 2026" in notes
+
+
+def test_openmeteo_regional_credits_say_the_data_were_modified():
+    # CC BY 4.0 asks for changes to be indicated; UKV's own line already does.
+    for source_id in ("dwd-icon-eu", "meteofrance-arome", "metoffice-ukv"):
+        assert "odified" in entry(source_id)["attribution"], source_id
+
+
+def test_noaa_credits_stay_empty_until_wording_is_recorded():
+    for source_id in ("noaa-gfs", "noaa-gfs-wave", "noaa-gefs"):
+        assert entry(source_id)["attribution"] is None, source_id
 
 
 def test_schema_accepts_a_yes_answer_with_a_licence_and_a_cited_file():
