@@ -56,3 +56,38 @@ databases they stay openly available under the ODbL. Each archive's own
 `sources`, `attribution` and `not_for_navigation` metadata names its inputs;
 [docs/chart-pack-format.md](docs/chart-pack-format.md#8-sources-and-licences)
 has the table. They are a picture for a crew, not a navigation chart.
+
+## Terms read on 12 November 2026
+
+The owner confirmed the fifteen sources below as redistributable on 12 November
+2026. For fourteen of them a page of the provider or of the source's registry was
+read that day; for Météo-France AROME no current provider page naming the
+licence was found, so the owner's decision is the only basis and `verified_on`
+stays empty. For GSHHG and Open Waters Seamap the owner decided with open points
+that the register's `notes` name. All are recorded in
+[`contracts/data-sources.json`](contracts/data-sources.json). The conditions
+(credits, disclaimers, modification notices) are obligations on what is
+published, not only register fields. The full reading, with its caveats, is
+Passage's
+[licence verification proposals](https://github.com/deepregatta/passage/blob/main/docs/maintenance/2026-11-12-licence-verification-proposals.md).
+
+| Source (register id) | Licence | Page read |
+|---|---|---|
+| NOAA GFS (`noaa-gfs`) | US Government work, public domain | https://registry.opendata.aws/noaa-gfs-bdp-pds |
+| NOAA GFS-Wave (`noaa-gfs-wave`), by inference: no page names the wave files | US Government work, public domain | https://registry.opendata.aws/noaa-gfs-bdp-pds |
+| NOAA GEFS (`noaa-gefs`) | US Government work, public domain | https://registry.opendata.aws/noaa-gefs/ |
+| ECMWF open data IFS (`ecmwf-open-ifs`) | CC BY 4.0 plus ECMWF Terms of Use for open data | https://www.ecmwf.int/en/forecasts/datasets/open-data |
+| Copernicus Marine GLO12 (`cmems-glo12`) | Copernicus Marine Service licence | https://marine.copernicus.eu/user-corner/service-commitments-and-licence |
+| Copernicus Marine IBI (`cmems-ibi`) | Copernicus Marine Service licence | https://marine.copernicus.eu/user-corner/service-commitments-and-licence |
+| DWD ICON-EU (`dwd-icon-eu`), reaching us through Open-Meteo's bulk files, whose terms are not yet confirmed | CC BY 4.0 | https://www.dwd.de/EN/service/legal_notice/legal_notice.html |
+| EMODnet Digital Bathymetry (`emodnet-bathymetry`) | CC BY 4.0 | https://emodnet.ec.europa.eu/en/terms-use-emodnet-online-services-data-and-data-products |
+| SHOM Balisage (`shom-balisage`) | Licence Ouverte 2.0 | https://www.data.gouv.fr/datasets/balisage-maritime-aides-a-la-navigation/informations |
+| Met Office UKV (`metoffice-ukv`), via Open-Meteo's bulk files; the owner confirmed CC BY-SA 4.0 as the licence that applies, so derived tiles and GRIB exports carry the credit, the licence link, a modification notice and the BY-SA label (see the UKV section above) | CC BY-SA 4.0 | https://registry.opendata.aws/met-office-uk-deterministic/ |
+| OpenStreetMap (`openstreetmap`) | ODbL 1.0 | https://www.openstreetmap.org/copyright |
+| Protomaps (`protomaps-basemap`) | Tiles ODbL, code BSD-3-Clause, styles CC0 | https://github.com/protomaps/basemaps |
+| Météo-France AROME (`meteofrance-arome`), via Open-Meteo's bulk files; owner's decision, no provider page read | CC BY 4.0 (Open-Meteo bulk catalogue); Météo-France open data | none |
+| GSHHG (`gshhg`); LGPL since 2.2.2, the NOAA archive copy is labelled CC0 1.0, and what LGPL reaches for a derived land index is not settled | LGPL-3.0-or-later, with permission to use, copy, modify and distribute given attribution | https://www.ncei.noaa.gov/products/shoreline-coastline-resources |
+| Open Waters Seamap (`open-waters-seamap`), identified with medium confidence; its bathymetry source's terms were not read | CC BY 4.0, being corrected to ODbL | https://openwaters.io/charts/seamap/ |
+
+The Copernicus Marine licence asks licensees to keep records that trace product
+use, and that duty passes into every downstream licence.

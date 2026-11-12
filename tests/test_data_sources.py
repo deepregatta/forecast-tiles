@@ -105,8 +105,75 @@ def test_schema_rejects_unknown_top_level_properties_and_an_empty_list():
     assert errors_for({"schema_version": 2, "sources": REGISTER["sources"]})
 
 
+OWNER_CONFIRMED_2026_11_12 = {
+    "noaa-gfs",
+    "noaa-gefs",
+    "noaa-gfs-wave",
+    "ecmwf-open-ifs",
+    "cmems-glo12",
+    "cmems-ibi",
+    "dwd-icon-eu",
+    "emodnet-bathymetry",
+    "shom-balisage",
+    "openstreetmap",
+    "protomaps-basemap",
+    "metoffice-ukv",
+    "meteofrance-arome",
+    "gshhg",
+    "open-waters-seamap",
+}
+
+
+# Recorded on the owner's decision with no provider licence statement read.
+NO_PROVIDER_PAGE_READ = {"meteofrance-arome"}
+
+
+def test_exactly_the_sources_the_owner_confirmed_say_yes():
+    said_yes = {s["id"] for s in REGISTER["sources"] if s["redistribute"] == "yes"}
+    assert said_yes == OWNER_CONFIRMED_2026_11_12
+    assert {s["id"] for s in REGISTER["sources"]} == OWNER_CONFIRMED_2026_11_12
+    for source_id in OWNER_CONFIRMED_2026_11_12:
+        source = entry(source_id)
+        assert source["licence"], source_id
+        assert "DATA-LICENSES.md" in source["recorded_in"], source_id
+        assert source["notes"].endswith("Confirmed by the owner on 2026-11-12."), source_id
+        if source_id in NO_PROVIDER_PAGE_READ:
+            # verified_on is a date a provider's terms were read: none was, so none is recorded.
+            assert source["verified_on"] is None and source["verified_from"] is None, source_id
+        elif source_id == "metoffice-ukv":
+            assert source["verified_on"] == "2026-11-12", source_id
+        else:
+            assert source["verified_on"] == "2026-11-12", source_id
+            assert source["verified_from"].startswith("https://"), source_id
+
+
+def test_share_alike_is_true_only_where_a_file_states_the_duty():
+    flagged = {i for i in OWNER_CONFIRMED_2026_11_12 if entry(i)["share_alike"] is True}
+    assert flagged == {"openstreetmap", "protomaps-basemap", "metoffice-ukv"}
+    unstated = {"meteofrance-arome", "gshhg", "open-waters-seamap"}
+    assert all(entry(i)["share_alike"] is None for i in unstated)
+    rest = OWNER_CONFIRMED_2026_11_12 - flagged - unstated
+    assert all(entry(i)["share_alike"] is False for i in rest)
+
+
+def test_the_open_points_are_named_in_the_notes_of_the_three_added_entries():
+    assert "No current Météo-France page" in entry("meteofrance-arome")["notes"]
+    assert "CC0 1.0" in entry("gshhg")["notes"]
+    assert "bathymetry source's terms were not read" in entry("open-waters-seamap")["notes"]
+
+
+def test_ecmwf_and_copernicus_marine_credits_are_the_providers_own_wording():
+    assert entry("ecmwf-open-ifs")["attribution"].startswith(
+        "This service is based on data and products of the European Centre"
+    )
+    for source_id in ("cmems-glo12", "cmems-ibi"):
+        assert entry(source_id)["attribution"].startswith(
+            "E.U. Copernicus Marine Service Information; doi:"
+        )
+
+
 def test_schema_accepts_a_yes_answer_with_a_licence_and_a_cited_file():
-    # A fixture, not real data: the register itself holds no "yes" until the owner confirms one.
+    # A fixture, not a recorded answer: the register's own UKV entry is a recorded yes.
     doc = copy.deepcopy(REGISTER)
     source = next(s for s in doc["sources"] if s["id"] == "metoffice-ukv")
     source.update(redistribute="yes")
@@ -118,7 +185,8 @@ def test_schema_accepts_a_yes_answer_with_a_licence_and_a_cited_file():
 def test_ukv_entry_keeps_its_recorded_duties():
     ukv = entry("metoffice-ukv")
     assert ukv["share_alike"] is True
-    assert ukv["verified_on"] == "2026-10-02"
+    assert ukv["verified_on"] == "2026-11-12"
     assert ukv["verified_from"] == "https://registry.opendata.aws/met-office-uk-deterministic/"
-    assert ukv["redistribute"] == "unconfirmed"
+    assert ukv["redistribute"] == "yes"
+    assert ukv["licence"] == "CC BY-SA 4.0"
     assert "DATA-LICENSES.md" in ukv["recorded_in"]
