@@ -120,6 +120,46 @@
       "notes": "Product IBI_ANALYSISFORECAST_PHY_005_001. Derived works may be distributed for any purpose with the credit \"Generated using E.U. Copernicus Marine Service Information\" and each product's DOI, placed on the home page or the page where users get the data. The licence asks licensees to keep records that trace product use, and that duty passes into every downstream licence; it carries an indemnity, is under French law, has no version number and can be revised at any time. Downloads need a personal login; no page says any product can be downloaded without one. Confirmed by the owner on 2026-11-12."
     },
     {
+      "id": "cmems-nws",
+      "name": "Copernicus Marine North West Shelf",
+      "provider": "Copernicus Marine Service",
+      "licence": "Copernicus Marine Service licence",
+      "licence_url": "https://marine.copernicus.eu/user-corner/service-commitments-and-licence",
+      "attribution": "Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00054; modified: converted and quantized data",
+      "share_alike": false,
+      "redistribute": "yes",
+      "verified_on": "2026-11-14",
+      "verified_from": "https://marine.copernicus.eu/user-corner/service-commitments-and-licence",
+      "used_by": [
+        "currents-nws"
+      ],
+      "recorded_in": [
+        "src/ingest/sources/shelf.py",
+        "DATA-LICENSES.md"
+      ],
+      "notes": "Product NWSHELF_ANALYSISFORECAST_PHY_004_013 (Met Office), dataset cmems_mod_nws_phy-cur_anfc_1.5km-2D_PT1H-i; product page https://data.marine.copernicus.eu/product/NWSHELF_ANALYSISFORECAST_PHY_004_013/description read 2026-11-14. Derived works may be distributed for any purpose (licence annex section 2.2(b)) with the credit \"Generated using E.U. Copernicus Marine Service Information\" and the product's DOI (section 2.4(a)), placed on the home page or the page where users get the data. The licence asks licensees to keep records that trace product use, and that duty passes into every downstream licence (section 2.6). Same licence as cmems-glo12 and cmems-ibi, whose redistribution the owner confirmed on 2026-11-12; the licence page was read again on 2026-11-14 for this product, and the owner approved staging it that day. Staged in this repository, not published: no run of this layer is in the bucket."
+    },
+    {
+      "id": "cmems-med",
+      "name": "Copernicus Marine Mediterranean",
+      "provider": "Copernicus Marine Service",
+      "licence": "Copernicus Marine Service licence",
+      "licence_url": "https://marine.copernicus.eu/user-corner/service-commitments-and-licence",
+      "attribution": "Generated using E.U. Copernicus Marine Service Information; doi:10.48670/mds-00359; modified: converted and quantized data",
+      "share_alike": false,
+      "redistribute": "yes",
+      "verified_on": "2026-11-14",
+      "verified_from": "https://marine.copernicus.eu/user-corner/service-commitments-and-licence",
+      "used_by": [
+        "currents-med"
+      ],
+      "recorded_in": [
+        "src/ingest/sources/shelf.py",
+        "DATA-LICENSES.md"
+      ],
+      "notes": "Product MEDSEA_ANALYSISFORECAST_PHY_006_013 (CMCC), dataset cmems_mod_med_phy-cur_anfc_4.2km-2D_PT1H-m version 202511, which the catalogue marks retired on 2027-01-12: its successor must be verified and set before then. Product page https://data.marine.copernicus.eu/product/MEDSEA_ANALYSISFORECAST_PHY_006_013/description read 2026-11-14. Derived works may be distributed for any purpose (licence annex section 2.2(b)) with the credit \"Generated using E.U. Copernicus Marine Service Information\" and the product's DOI (section 2.4(a)), placed on the home page or the page where users get the data. The licence asks licensees to keep records that trace product use, and that duty passes into every downstream licence (section 2.6). Same licence as cmems-glo12 and cmems-ibi, whose redistribution the owner confirmed on 2026-11-12; the licence page was read again on 2026-11-14 for this product, and the owner approved staging it that day. Staged in this repository, not published: no run of this layer is in the bucket."
+    },
+    {
       "id": "meteofrance-arome",
       "name": "Météo-France AROME 0.025°",
       "provider": "Météo-France",

@@ -101,6 +101,7 @@ Maintained documentation: [shared contract ownership and drift checks](docs/shar
 [canary history](docs/regional-canary-status.json),
 [regional implementation plan](docs/open-meteo-bulk-implementation-plan.md),
 [IBI geometry and horizon](docs/ibi-currents.md),
+[NW Shelf and Mediterranean currents, staged](docs/shelf-currents.md),
 [spending controls](docs/paid-work.md),
 [public endpoint, cache policy and read exposure](docs/public-read-policy.md),
 [shared storage admission and staged rollout](docs/storage-admission.md),
@@ -130,6 +131,8 @@ uv run ingest weather-ecmwf-short             # ECMWF's 06Z/18Z runs, to 144 h
 uv sync --extra currents                    # required for either CMEMS current layer
 uv run ingest currents                      # six-hourly global current field
 uv run ingest currents-ibi                   # hourly regional current field
+uv run ingest currents-nws --dry-run /tmp/nws # staged: NW Shelf, dry run only
+uv run ingest currents-med --dry-run /tmp/med # staged: Mediterranean, dry run only
 uv run ingest weather --force                # retry identical immutable content; guards still apply
 uv run ingest weather --cycle 20260930T06 --wait-minutes 90   # wait for the provider, then publish
 uv run ingest land --domain nweu             # rebuild the routing index (one-shot)
@@ -254,6 +257,8 @@ change the PFT1 encoding, checksums, or JSON schemas.
 | `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | every cycle |
 | `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; sole provider) | 1/12° | 1×/day, soon after Copernicus |
 | `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 120 h; 72 h before 2026-09-29; IBI domain only) | ≈1/36° (0.02777863°) | 1×/day, soon after Copernicus |
+| `currents-nws` | **Staged, not published** (2026-11-14): Copernicus Marine NW Shelf analysis-forecast (surface u/v, hourly instants through 120 h; 46–62.74° N, 16° W–13° E; 5° tiles) | 0.0135° × 0.0303° | none until the owner approves ([docs/shelf-currents.md](docs/shelf-currents.md)) |
+| `currents-med` | **Staged, not published** (2026-11-14): Copernicus Marine Mediterranean analysis-forecast (surface u/v, hourly means through 120 h) | 1/24° | none until the owner approves ([docs/shelf-currents.md](docs/shelf-currents.md)) |
 
 Every layer was ingested once a day until the [dispatcher](#dispatcher)
 switched on (Passage `docs/grib-export-plan.md`, Phase 5B). Each layer's
@@ -526,7 +531,8 @@ canonical **here** and consumed by tactician's `core/land` (`docs/land-index-for
 are the chart format's (`docs/chart-pack-format.md`, `contracts/charts-*.schema.json`,
 `tests/fixtures/chart-pack-cherbourg/`), consumed by tactician's `core/charts`. The
 `forecast-*` schemas here match Passage's, `currents-ibi` included (since
-2026-09-28) and `latest.json`'s optional `cadence_hours` (since 2026-09-29).
+2026-09-28), `latest.json`'s optional `cadence_hours` (since 2026-09-29) and
+the staged `currents-nws` and `currents-med` names (since 2026-11-14).
 No per-tile provenance/resolution extension has been made; the later
 blended-current contract remains separate.
 The vendored manifest schema's provenance description still mentions a

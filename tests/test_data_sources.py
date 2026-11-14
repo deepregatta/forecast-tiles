@@ -128,10 +128,16 @@ OWNER_CONFIRMED_2026_11_12 = {
 NO_PROVIDER_PAGE_READ = {"meteofrance-arome"}
 
 
+# Staged on 14 November 2026 (Tactician P8, owner-approved): the same Copernicus
+# Marine licence as cmems-glo12 and cmems-ibi, read again that day for each
+# product. Not published to the bucket.
+STAGED_2026_11_14 = {"cmems-nws", "cmems-med"}
+
+
 def test_exactly_the_sources_the_owner_confirmed_say_yes():
     said_yes = {s["id"] for s in REGISTER["sources"] if s["redistribute"] == "yes"}
-    assert said_yes == OWNER_CONFIRMED_2026_11_12
-    assert {s["id"] for s in REGISTER["sources"]} == OWNER_CONFIRMED_2026_11_12
+    assert said_yes == OWNER_CONFIRMED_2026_11_12 | STAGED_2026_11_14
+    assert {s["id"] for s in REGISTER["sources"]} == OWNER_CONFIRMED_2026_11_12 | STAGED_2026_11_14
     for source_id in OWNER_CONFIRMED_2026_11_12:
         source = entry(source_id)
         assert source["licence"], source_id
@@ -145,6 +151,24 @@ def test_exactly_the_sources_the_owner_confirmed_say_yes():
         else:
             assert source["verified_on"] == "2026-11-12", source_id
             assert source["verified_from"].startswith("https://"), source_id
+
+
+def test_the_staged_copernicus_products_cite_the_licence_read_and_their_staging():
+    ibi = entry("cmems-ibi")
+    for source_id in STAGED_2026_11_14:
+        source = entry(source_id)
+        assert source["licence"] == ibi["licence"], source_id
+        assert source["licence_url"] == ibi["licence_url"], source_id
+        assert source["share_alike"] is False, source_id
+        assert source["verified_on"] == "2026-11-14", source_id
+        assert source["verified_from"] == ibi["licence_url"], source_id
+        assert "DATA-LICENSES.md" in source["recorded_in"], source_id
+        assert source["attribution"].startswith("Generated using E.U. Copernicus Marine Service"), (
+            source_id
+        )
+        assert source["attribution"].endswith("; modified: converted and quantized data"), source_id
+        assert source["notes"].endswith("no run of this layer is in the bucket."), source_id
+    assert "retired on 2027-01-12" in entry("cmems-med")["notes"]
 
 
 def test_share_alike_is_true_only_where_a_file_states_the_duty():

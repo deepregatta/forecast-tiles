@@ -142,7 +142,14 @@ def _catalogue_instant(value: str | None) -> datetime | None:
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(timezone.utc)
 
 
-def arco_update_state(copernicusmarine, dataset_id: str) -> tuple[datetime | None, datetime | None]:
+def arco_update_state(
+    copernicusmarine,
+    dataset_id: str,
+    *,
+    name: str = "IBI",
+    layer: str = LAYER,
+    override_env: str = DATASET_ID_ENV,
+) -> tuple[datetime | None, datetime | None]:
     """Return (last completed ARCO update, first data instant being rewritten).
 
     Copernicus rewrites the rolling ARCO store in place after each bulletin.
@@ -155,14 +162,14 @@ def arco_update_state(copernicusmarine, dataset_id: str) -> tuple[datetime | Non
     try:
         catalogue = copernicusmarine.describe(dataset_id=dataset_id, disable_progress_bar=True)
     except Exception as exc:
-        if os.environ.get(DATASET_ID_ENV):
+        if os.environ.get(override_env):
             print(
-                f"ingest currents-ibi: catalogue unavailable ({type(exc).__name__}); "
-                f"ARCO update state not checked under {DATASET_ID_ENV}"
+                f"ingest {layer}: catalogue unavailable ({type(exc).__name__}); "
+                f"ARCO update state not checked under {override_env}"
             )
             return None, None
         raise RuntimeError(
-            "IBI catalogue unavailable: cannot tell whether the ARCO store is mid-update"
+            f"{name} catalogue unavailable: cannot tell whether the ARCO store is mid-update"
         ) from exc
     for product in getattr(catalogue, "products", []):
         for dataset in getattr(product, "datasets", []):
@@ -174,10 +181,12 @@ def arco_update_state(copernicusmarine, dataset_id: str) -> tuple[datetime | Non
                         _catalogue_instant(getattr(part, "arco_updated_date", None)),
                         _catalogue_instant(getattr(part, "arco_updating_start_date", None)),
                     )
-    raise RuntimeError(f"IBI dataset {dataset_id} has no part in the catalogue")
+    raise RuntimeError(f"{name} dataset {dataset_id} has no part in the catalogue")
 
 
-def _require_settled(state: tuple[datetime | None, datetime | None], cycle: datetime) -> None:
+def _require_settled(
+    state: tuple[datetime | None, datetime | None], cycle: datetime, name: str = "IBI"
+) -> None:
     """Refuse to read while the provider rewrites the store, whatever range it
     names, or before it has finished any update on or after the cycle's day.
 
@@ -189,12 +198,12 @@ def _require_settled(state: tuple[datetime | None, datetime | None], cycle: date
     updated, updating_from = state
     if updating_from is not None:
         raise CycleNotAvailableError(
-            f"IBI ARCO store is being updated (data from {updating_from:%Y-%m-%dT%H:%MZ}); "
+            f"{name} ARCO store is being updated (data from {updating_from:%Y-%m-%dT%H:%MZ}); "
             "a later run picks it up"
         )
     if updated is not None and updated < cycle:
         raise CycleNotAvailableError(
-            f"IBI ARCO store last finished an update at {updated:%Y-%m-%dT%H:%MZ}, before "
+            f"{name} ARCO store last finished an update at {updated:%Y-%m-%dT%H:%MZ}, before "
             f"cycle {cycle:%Y%m%dT%H}Z began; a later run picks it up"
         )
 

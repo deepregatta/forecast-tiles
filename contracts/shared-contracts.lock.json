@@ -22,14 +22,14 @@
       "path": "contracts/forecast-latest.schema.json",
       "canonical_repository": "passage",
       "canonical_path": "contracts/forecast-latest.schema.json",
-      "canonical_revision": "git-blob:9aee3401e79312dc234d257fc50e78aad7c6041e",
+      "canonical_revision": "git-blob:835af9d9642a6558f376056e7b8bb633a21e68a7",
       "contract": "PFT1/schema-1",
       "producer": "forecast-tiles",
       "consumers": [
         "passage",
         "tactician"
       ],
-      "sha256": "b64fe16cfebbc361ed7760c8ba9e13c408c6e76dc83ee4c0e5171712e8f8f0b8",
+      "sha256": "7343c340297c924e97107f7813cdfb2e432deecc5865923fa76847441ce63431",
       "representation": "exact",
       "intentional_divergence": null
     },
@@ -37,14 +37,14 @@
       "path": "contracts/forecast-manifest.schema.json",
       "canonical_repository": "passage",
       "canonical_path": "contracts/forecast-manifest.schema.json",
-      "canonical_revision": "git-blob:d4f3a0c32b9394257efc453f1a6aeebb8eda73fc",
+      "canonical_revision": "git-blob:63ce63c4d01815bfe6a258be407c44b11f2aa04e",
       "contract": "PFT1/schema-1",
       "producer": "forecast-tiles",
       "consumers": [
         "passage",
         "tactician"
       ],
-      "sha256": "b17d5496a03e48ffb0e47fb033afab5c3b065d34cd0cd229eab42ff4d500a83d",
+      "sha256": "bcebef1f67c0185716a008b0ec6e8fed57ed1373e45ec65491abe0ddd4746300",
       "representation": "exact",
       "intentional_divergence": null
     },
@@ -52,14 +52,14 @@
       "path": "contracts/forecast-tile.schema.json",
       "canonical_repository": "passage",
       "canonical_path": "contracts/forecast-tile.schema.json",
-      "canonical_revision": "git-blob:0c0c5746f4eb05d43680fbc74b09fbfecc1b0fa2",
+      "canonical_revision": "git-blob:6c15b5fe626600b057d78a84c9706609d51ab144",
       "contract": "PFT1/schema-1",
       "producer": "forecast-tiles",
       "consumers": [
         "passage",
         "tactician"
       ],
-      "sha256": "7595781322bd7fcad1534ea634bdc03b7b3e0e8be6c303af849e19a1e0626f82",
+      "sha256": "7071685e714077484752f5fff0c63ffc598582a8e20f6a8b54835557630eabd0",
       "representation": "exact",
       "intentional_divergence": null
     },
@@ -295,13 +295,13 @@
       "path": "contracts/data-sources.json",
       "canonical_repository": "forecast-tiles",
       "canonical_path": "contracts/data-sources.json",
-      "canonical_revision": "git-blob:ef15ff016a331c96702eaeebd866c0eaae6978d3",
+      "canonical_revision": "git-blob:d72cab718ec78e943d1eb9163da35a646e55329f",
       "contract": "data-sources/schema-1",
       "producer": "forecast-tiles",
       "consumers": [
         "passage"
       ],
-      "sha256": "b6676ca5a8e1df26cdf2929924faa343455fe1a70fc5614d377f6e67a36a309b",
+      "sha256": "f24a31aba653ccd6374cb11089f5f9d22f69e4c2444a55799e901d1e4ad8888a",
       "representation": "exact",
       "intentional_divergence": null
     }

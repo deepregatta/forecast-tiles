@@ -46,6 +46,11 @@ added 2026-11-07), and the data-source register schema and register
 (`data-sources/schema-1`, added 2026-11-11). The chart builder's input `src/ingest/charts/style-fields.json`
 is tactician's, vendored with its own record (`src/ingest/charts/vendored.json`).
 All are exact bytes; no intentional artifact divergence exists.
+Re-pinned on 2026-11-14: the tile, manifest and latest schemas gained the two
+staged current layer names, `currents-nws` and `currents-med`, an additive
+change made in Passage (`171e529`) and copied here; the register gained the
+`cmems-nws` and `cmems-med` rows. Passage's vendored register stays at its own
+earlier pin until it refreshes it.
 
 Run `.venv/bin/python scripts/check_shared_contracts.py` and
 `.venv/bin/python -m unittest discover -s scripts -p test_shared_contracts.py`.

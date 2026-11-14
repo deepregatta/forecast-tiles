@@ -52,6 +52,7 @@ from ingest.publish import (
 )
 from ingest.paid_work import Guard, Paused, RuntimeExpired, deadline, enforced
 from ingest.regional_attempt import RegionalAttempt
+from ingest.sources import shelf
 from ingest.sources.base import CycleNotAvailableError, allow_missing_files, parse_cycle_arg
 from ingest.sources.openmeteo import registry
 from ingest.sources.openmeteo.reader import SourceError
@@ -66,6 +67,7 @@ LAYERS = (
     "waves",
     "currents",
     "currents-ibi",
+    *shelf.LAYERS,
     *registry.LAYERS,
     "land",
 )
@@ -85,13 +87,25 @@ MAX_MISSING = {
     # the coastal mask normal while catching a materially truncated provider
     # subset (unlike the global-ocean 0.80 allowance).
     "currents-ibi": 0.45,
+    # Measured on the 2026-11-13T00Z bulletins (docs/shelf-currents.md): the NW
+    # Shelf rectangle is 0.311 missing and the Mediterranean one 0.518 (it
+    # holds North Africa, southern Europe and the Black Sea's land). The
+    # allowances sit a few points above, as IBI's does (0.402 that day).
+    "currents-nws": 0.36,
+    "currents-med": 0.56,
 }
 
 
 # Layers whose provider publishes late or rewrites in place: "not available
 # yet" is a normal outcome for a scheduled run, so it exits 0 and a later
 # trigger picks the cycle up. A provider outage remains a failure.
-SKIP_WHEN_NOT_AVAILABLE = {"weather-ecmwf", "weather-ecmwf-short", "currents", "currents-ibi"}
+SKIP_WHEN_NOT_AVAILABLE = {
+    "weather-ecmwf",
+    "weather-ecmwf-short",
+    "currents",
+    "currents-ibi",
+    *shelf.LAYERS,
+}
 
 # Seconds between readiness checks while --wait-minutes runs. ECMWF answers
 # frequent requests with 429s; Copernicus's metadata updates once a minute at
@@ -104,6 +118,8 @@ POLL_SECONDS = {
     "weather-ecmwf-short": 120,
     "currents": 120,
     "currents-ibi": 120,
+    "currents-nws": 120,
+    "currents-med": 120,
 }
 
 
@@ -168,6 +184,8 @@ def _resolve(layer: str, requested: datetime | None) -> datetime:
         from ingest.sources import ibi
 
         return ibi.resolve(requested)
+    if shelf.is_shelf(layer):
+        return shelf.resolve(shelf.product(layer), requested)
     if registry.is_regional(layer):
         from ingest.sources.openmeteo import catalog
 
@@ -214,6 +232,8 @@ def _build(args: argparse.Namespace, cycle: datetime) -> ForecastCube:
         from ingest.sources import ibi
 
         return ibi.build_cube(cycle)
+    if shelf.is_shelf(layer):
+        return shelf.build_cube(shelf.product(layer), cycle)
     if registry.is_regional(layer):
         from ingest.sources.openmeteo import adapter
 
@@ -439,6 +459,12 @@ def _run_forecast(args, parser, *, clock, sleep) -> int:
             "(docs/open-meteo-bulk-implementation-plan.md, Phase 3)"
         )
         return 1
+    if shelf.is_shelf(args.layer) and not args.dry_run and not shelf.PUBLICATION_ENABLED:
+        print(
+            f"ingest {args.layer}: staged, not enabled for publication; use --dry-run DIR "
+            "(docs/shelf-currents.md)"
+        )
+        return 1
     if args.wait_minutes and not args.cycle:
         parser.error("--wait-minutes needs --cycle: a run waits for one named cycle")
 
@@ -524,6 +550,8 @@ def _run_forecast(args, parser, *, clock, sleep) -> int:
             from ingest.sources import ibi
 
             expected_axes = {ibi.AXIS_NAME: ibi.STEP_AXIS}
+        elif shelf.is_shelf(args.layer):
+            expected_axes = {shelf.AXIS_NAME: shelf.product(args.layer).step_axis}
         report = validate_cube(
             cube,
             max_missing=max_missing(args.layer),

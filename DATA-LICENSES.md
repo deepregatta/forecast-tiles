@@ -58,6 +58,8 @@ ours.
 | ECMWF IFS (`ecmwf-open-ifs`) | This service is based on data and products of the European Centre for Medium-Range Weather Forecasts (ECMWF); ECMWF open data; CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); modified: converted and quantized data |
 | Copernicus Marine GLO12 (`cmems-glo12`) | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00016; modified: converted and quantized data |
 | Copernicus Marine IBI (`cmems-ibi`) | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00027; modified: converted and quantized data |
+| Copernicus Marine North West Shelf (`cmems-nws`), staged | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00054; modified: converted and quantized data |
+| Copernicus Marine Mediterranean (`cmems-med`), staged | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/mds-00359; modified: converted and quantized data |
 | DWD ICON-EU (`dwd-icon-eu`) | Deutscher Wetterdienst ICON-EU via Open-Meteo; CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); modified: converted and quantized data |
 | Météo-France AROME (`meteofrance-arome`) | Météo-France AROME via Open-Meteo; CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); modified: converted and quantized data |
 
@@ -79,6 +81,25 @@ from `src/ingest/sources/openmeteo/registry.py` (AROME, ICON-EU, UKV), `cmems.py
 and `ibi.py` (GLO12 and IBI, without "Generated using" or the modification clause)
 and `ecmwf_open.py` (the ECMWF provenance, "ECMWF open data IFS 0.25deg (CC BY 4.0)").
 This section changes the register and the notice, not those producers.
+
+## NW Shelf and Mediterranean currents (staged 14 November 2026)
+
+`cmems-nws` and `cmems-med` are staged for Tactician and not published: no run
+is in the bucket ([docs/shelf-currents.md](docs/shelf-currents.md)). Their
+terms were read on 14 November 2026 at
+https://marine.copernicus.eu/user-corner/service-commitments-and-licence, the
+same Copernicus Marine Service licence as GLO12 and IBI: its annex, section
+2.2(b), permits modifying the products and distributing derived work "for any
+purpose"; section 2.4(a) asks for the credit "Generated using E.U. Copernicus
+Marine Service Information" with the product's DOI on the home page or the
+page where users get the data; section 2.6 asks for records that trace use,
+passed into every downstream licence. The tiles are derived work (converted to
+knots and quantized; the surface layer only). Each product's page was read the
+same day: https://data.marine.copernicus.eu/product/NWSHELF_ANALYSISFORECAST_PHY_004_013/description
+and https://data.marine.copernicus.eu/product/MEDSEA_ANALYSISFORECAST_PHY_006_013/description.
+The Mediterranean dataset version 202511 retires on 2027-01-12. Their
+manifests carry the credit line in `provenance.attribution` without the
+modification clause, as IBI's do.
 
 ## Display chart (TCP1)
 

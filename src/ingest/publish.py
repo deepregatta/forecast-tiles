@@ -90,6 +90,8 @@ CADENCE_HOURS = {
     "waves": 6,
     "currents": 24,
     "currents-ibi": 24,
+    "currents-nws": 24,
+    "currents-med": 24,
 }
 _RUN_ID_RE_TAIL = r"\d{8}T\d{2}Z"
 

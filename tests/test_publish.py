@@ -542,4 +542,6 @@ def test_every_published_layer_has_a_cadence_the_schema_accepts():
         "weather-ecmwf-short": 12,
         "currents": 24,
         "currents-ibi": 24,
+        "currents-nws": 24,
+        "currents-med": 24,
     }
