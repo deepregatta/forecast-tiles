@@ -66,11 +66,15 @@ with the toolbox's configured credentials, 14 November 2026:
 
 | Layer | Tiles | Run bytes | Largest tile | Missing fraction | Wall time | Peak memory |
 |---|---:|---:|---|---:|---:|---:|
-| `currents-nws` | 24 (5°) | 140,645,942 | `N55W015` 11.8 MB | 0.311 | 57.5 s | 3.9 GB |
-| `currents-med` | 11 (10°) | 52,455,689 | `N30E010` 9.3 MB | 0.518 | 29.0 s | 1.9 GB |
-| `currents-ibi` (same day, for comparison) | 11 (10°) | 103,283,777 | `N30W020` 21.2 MB | 0.402 | 64.6 s | 3.3 GB |
+| `currents-nws` | 24 (5°) | 140,645,942 | `N55W015` 11.8 MB | 0.390 | 57.5 s | 3.9 GB |
+| `currents-med` | 11 (10°) | 52,455,689 | `N30E010` 9.3 MB | 0.539 | 29.0 s | 1.9 GB |
+| `currents-ibi` (same day, for comparison) | 11 (10°) | 103,283,777 | `N30W020` 21.2 MB | 0.418 | 64.6 s | 3.3 GB |
 
-The allowances in `MAX_MISSING` are set a few points above: 0.36 and 0.56. A
+Missing is over the whole provider grid, as validation counts it (re-measured
+on 14 Nov; a first figure summed over the tiles read 0.311, 0.518 and 0.402 and
+was wrong, and the first NW Shelf dry run on GitHub failed against the 0.36
+allowance set from it). The allowances in `MAX_MISSING` are 0.42 and 0.57,
+about three points above, as IBI's 0.45 is above its 0.418. A
 Channel race (48.9–51.0° N, 4.7° W–1.2° E) reads four NW Shelf tiles, 19.5 MB,
 where it read four IBI tiles, 30.7 MB. The largest decoded NW Shelf tile is
 59 MB of float32, under IBI's 125 MB.

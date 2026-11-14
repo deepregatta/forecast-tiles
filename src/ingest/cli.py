@@ -87,12 +87,14 @@ MAX_MISSING = {
     # the coastal mask normal while catching a materially truncated provider
     # subset (unlike the global-ocean 0.80 allowance).
     "currents-ibi": 0.45,
-    # Measured on the 2026-11-13T00Z bulletins (docs/shelf-currents.md): the NW
-    # Shelf rectangle is 0.311 missing and the Mediterranean one 0.518 (it
-    # holds North Africa, southern Europe and the Black Sea's land). The
-    # allowances sit a few points above, as IBI's does (0.402 that day).
-    "currents-nws": 0.36,
-    "currents-med": 0.56,
+    # Measured over the whole provider grid, as validation counts, on the 13 and
+    # 14 Nov 2026 bulletins (docs/shelf-currents.md): the NW Shelf rectangle is
+    # 0.3901 missing and the Mediterranean one 0.5393 (North Africa, southern
+    # Europe and the Atlantic margin's land). About three points above each, as
+    # IBI's 0.45 sits above its 0.418. (0.36 and 0.56, set first from a sum over
+    # the tiles, under-counted: the first NW Shelf dry run failed at 0.3901.)
+    "currents-nws": 0.42,
+    "currents-med": 0.57,
 }
 
 
