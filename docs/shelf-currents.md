@@ -103,9 +103,9 @@ GB-month for R2 Standard storage (developers.cloudflare.com/r2/pricing, read
    no channel while `PAID_WORK_ENFORCE` is `0`, as it is; give each layer one
    (the `paid-work-channel` workflow) before turning it on.
 4. Workflows, fallback cron and dispatcher timetable: done in code. The
-   dispatcher Worker runs only once redeployed (`cd dispatcher && npx wrangler
-   deploy`, after `npx wrangler login`): an owner step. Until then the
-   fallback cron starts each layer up to about six hours after Copernicus.
+   owner redeployed the dispatcher Worker on 2026-11-14 (deployment 11:10:07
+   UTC, version `e15e4017`), so it starts the NW Shelf at 10:15 and the
+   Mediterranean at 13:15 UTC; the fallback cron stays behind it.
 5. Passage reads neither layer; its schemas accept the names.
 
 ## First publication, 2026-11-14
@@ -130,6 +130,6 @@ its manifest's bytes and FNV-1a and decodes as PFT1 (121 × 370 × 165 and
 0.39 to 4.75 kt over its first twelve hours. `ROOT_LAYERS` gained both layers
 in the next commit.
 
-Unexercised: the scheduled ingest (the fallback cron and, after a redeploy,
-the dispatcher), the runner's peak memory for the NW Shelf build, and a
+Unexercised: the scheduled ingest (the dispatcher's first 10:15 and 13:15
+starts and the fallback cron), the runner's peak memory for the NW Shelf build, and a
 retained previous run of either layer (the first runs have none).
