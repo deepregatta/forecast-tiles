@@ -1,0 +1,73 @@
+# Copernicus Marine NW Shelf surface currents (docs/shelf-currents.md), published
+# from 2026-11-14 on the owner's approval; built as currents-ibi is.
+name: ingest-currents-nws
+run-name: ingest-currents-nws ${{ inputs.cycle || 'scheduled' }}
+
+on:
+  schedule:
+    # Fallback only: the dispatcher Worker (README.md -> Dispatcher) starts
+    # each provider cycle with workflow_dispatch. This catches a missed
+    # dispatch, hours late as GitHub's crons are; a cycle already published
+    # exits in about a minute. Away from the dispatch minutes, so it rarely
+    # queues behind a waiting run.
+    - cron: "37 2,8,14,20 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build into the runner's scratch directory only, nothing written to the bucket"
+        type: boolean
+        default: false
+      cycle:
+        description: "Cycle YYYYMMDDTHH (default: latest complete daily bulletin)"
+        required: false
+      wait_minutes:
+        description: "With a cycle: wait up to N minutes for the provider to publish it, then fail (the dispatcher sets this)"
+        required: false
+        default: "0"
+      force:
+        description: "Publish even if latest.json already has this cycle (repairs only: run ids are cached forever)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ingest-currents-nws
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+# Enable only after the reviewed R2 control document has been provisioned.
+env:
+  CAPACITY_ENFORCE: ${{ vars.CAPACITY_ENFORCE || '0' }}
+  PAID_WORK_ENFORCE: ${{ vars.PAID_WORK_ENFORCE || '0' }}
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240 # a dispatcher wait (90-180 min) plus the job, under the 6 h job limit
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          python-version: '3.13'
+      - run: uv sync --extra currents
+      - run: uv run ingest currents-nws ${CYCLE:+--cycle "$CYCLE"} ${CYCLE:+--wait-minutes "${WAIT:-0}"} ${FORCE:+--force} ${DRY_RUN:+--dry-run "$RUNNER_TEMP/tiles"}
+        env:
+          DRY_RUN: ${{ inputs.dry_run == true && '1' || '' }}
+          CYCLE: ${{ inputs.cycle }}
+          WAIT: ${{ inputs.wait_minutes }}
+          PYTHONUNBUFFERED: "1" # log lines carry the time they happened
+          FORCE: ${{ inputs.force == true && '1' || '' }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          MAX_BUCKET_BYTES: ${{ vars.MAX_BUCKET_BYTES || '21000000000' }}
+          COPERNICUSMARINE_SERVICE_USERNAME: ${{ secrets.COPERNICUSMARINE_SERVICE_USERNAME }}
+          COPERNICUSMARINE_SERVICE_PASSWORD: ${{ secrets.COPERNICUSMARINE_SERVICE_PASSWORD }}
+          # Bound the toolbox's nested HTTP retries so the pipeline-level
+          # 5/15-minute authentication-outage backoff fits inside this job.
+          COPERNICUSMARINE_HTTPS_TIMEOUT: "20"
+          COPERNICUSMARINE_HTTPS_RETRIES: "2"

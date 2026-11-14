@@ -14,9 +14,10 @@ tidal cycle. Neither is a tidal-stream prediction. Domains, grids, horizons
 and dataset ids were read from the live Copernicus catalogue and each
 product's page on 2026-11-14 (docs/shelf-currents.md).
 
-**Staged, not published.** `PUBLICATION_ENABLED` is False: the CLI refuses
-any run without --dry-run, no workflow has a schedule, and the dispatcher
-does not know these layers. Publication is the owner's decision.
+**Published from 2026-11-14** on the owner's approval. Staged first
+(`PUBLICATION_ENABLED` False: the CLI refused any run without --dry-run);
+each layer now has its own workflow, as IBI has, with the root layers'
+fallback cron and a dispatcher slot after its measured ready time.
 
 Credentials come from COPERNICUSMARINE_SERVICE_USERNAME / _PASSWORD or the
 Copernicus Marine Toolbox credential store, as for IBI.
@@ -40,8 +41,9 @@ from tilekit.codec import quantize
 
 AXIS_NAME = "steps"
 
-# Neither layer may reach the bucket until the owner approves publication.
-PUBLICATION_ENABLED = False
+# The owner approved publication on 2026-11-14. Set False to stage again: the
+# CLI then refuses every run without --dry-run.
+PUBLICATION_ENABLED = True
 
 VARS = [
     VariableSpec("cur_u_kt", AXIS_NAME, "i16", 0.01),

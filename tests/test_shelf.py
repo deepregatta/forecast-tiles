@@ -76,15 +76,17 @@ def test_the_products_are_the_catalogue_read_on_2026_11_14():
         assert spec.published_horizon_h <= spec.native_horizon_h
 
 
-def test_staged_layers_are_not_enabled_for_publication():
-    assert shelf.PUBLICATION_ENABLED is False
+def test_both_layers_are_enabled_for_publication_since_2026_11_14():
+    assert shelf.PUBLICATION_ENABLED is True
 
 
 @pytest.mark.parametrize("layer", shelf.LAYERS)
-def test_the_cli_refuses_to_publish_a_staged_layer(layer, monkeypatch, capsys):
+def test_a_staged_layer_is_refused_without_a_dry_run(layer, monkeypatch, capsys):
+    # the gate stays: set PUBLICATION_ENABLED False and the CLI refuses again
     def never(*args, **kwargs):
         raise AssertionError("a staged layer must not reach a store or a provider")
 
+    monkeypatch.setattr(shelf, "PUBLICATION_ENABLED", False)
     monkeypatch.setattr(cli, "make_r2_store_from_env", never)
     monkeypatch.setattr(shelf, "resolve", never)
     assert cli.main([layer]) == 1
@@ -247,19 +249,36 @@ def test_a_dry_run_writes_contract_valid_root_layer_artifacts(spec, tmp_path, mo
         jsonschema.validate(tile.header, schema("forecast-tile.schema.json"))
 
 
-def test_no_workflow_schedules_or_publishes_the_staged_layers():
+@pytest.mark.parametrize("layer", shelf.LAYERS)
+def test_each_layer_has_its_own_workflow_like_ibi(layer):
     workflows = ROOT / ".github" / "workflows"
-    staged = (workflows / "ingest-currents-shelf.yml").read_text()
-    assert "schedule:" not in staged
-    assert "workflow_dispatch:" in staged
-    assert "R2_" not in staged, "the staged workflow carries no bucket credentials"
-    assert "default: true" in staged.split("dry_run:")[1].split("\n\n")[0]
-    for other in workflows.glob("*.yml"):
-        if other.name == "ingest-currents-shelf.yml":
-            continue
-        text = other.read_text()
-        for layer in shelf.LAYERS:
-            assert layer not in text, f"{other.name} names {layer}"
-    for source in (ROOT / "dispatcher" / "src").glob("*.ts"):
-        for layer in shelf.LAYERS:
-            assert layer not in source.read_text(), f"dispatcher {source.name} names {layer}"
+    text = (workflows / f"ingest-{layer}.yml").read_text()
+    ibi = (workflows / "ingest-currents-ibi.yml").read_text()
+    # the root layers' fallback cron, the bucket secrets by name, the limit
+    assert '- cron: "37 2,8,14,20 * * *"' in text and '- cron: "37 2,8,14,20 * * *"' in ibi
+    for name in ("R2_ENDPOINT", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_BUCKET"):
+        assert f"${{{{ secrets.{name} }}}}" in text
+    assert "vars.MAX_BUCKET_BYTES || '21000000000'" in text
+    assert f"uv run ingest {layer} " in text
+    # a dry run is a choice, off by default, writing only to the runner
+    assert '--dry-run "$RUNNER_TEMP/tiles"' in text
+    assert "default: false" in text.split("dry_run:")[1].split("cycle:")[0]
+    assert not (workflows / "ingest-currents-shelf.yml").exists()
+
+
+def test_the_dispatcher_starts_each_layer_after_its_measured_ready_time():
+    timetable = (ROOT / "dispatcher" / "src" / "timetable.ts").read_text()
+    assert "{ layer: 'currents-nws', hours: [10], minute: 15" in timetable
+    assert "{ layer: 'currents-med', hours: [13], minute: 15" in timetable
+
+
+def test_the_bucket_limit_is_21_gb_since_2026_11_14():
+    # the owner's choice to make room for these two layers: 20 GB from
+    # 2026-11-07, 21 GB from 2026-11-14; every workflow falls back to it
+    from ingest.publish import DEFAULT_MAX_BUCKET_BYTES
+
+    assert DEFAULT_MAX_BUCKET_BYTES == 21_000_000_000
+    for workflow in (ROOT / ".github" / "workflows").glob("*.yml"):
+        text = workflow.read_text()
+        if "MAX_BUCKET_BYTES" in text:
+            assert "vars.MAX_BUCKET_BYTES || '21000000000'" in text, workflow.name

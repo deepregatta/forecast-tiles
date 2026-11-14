@@ -128,9 +128,9 @@ OWNER_CONFIRMED_2026_11_12 = {
 NO_PROVIDER_PAGE_READ = {"meteofrance-arome"}
 
 
-# Staged on 14 November 2026 (Tactician P8, owner-approved): the same Copernicus
-# Marine licence as cmems-glo12 and cmems-ibi, read again that day for each
-# product. Not published to the bucket.
+# Staged on 14 November 2026 (Tactician P8, owner-approved) and published the
+# same day on the owner's approval: the same Copernicus Marine licence as
+# cmems-glo12 and cmems-ibi, read again that day for each product.
 STAGED_2026_11_14 = {"cmems-nws", "cmems-med"}
 
 
@@ -167,7 +167,7 @@ def test_the_staged_copernicus_products_cite_the_licence_read_and_their_staging(
             source_id
         )
         assert source["attribution"].endswith("; modified: converted and quantized data"), source_id
-        assert source["notes"].endswith("no run of this layer is in the bucket."), source_id
+        assert source["notes"].endswith("Published to the bucket from 2026-11-14."), source_id
     assert "retired on 2027-01-12" in entry("cmems-med")["notes"]
 
 

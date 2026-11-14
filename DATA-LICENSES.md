@@ -58,8 +58,8 @@ ours.
 | ECMWF IFS (`ecmwf-open-ifs`) | This service is based on data and products of the European Centre for Medium-Range Weather Forecasts (ECMWF); ECMWF open data; CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); modified: converted and quantized data |
 | Copernicus Marine GLO12 (`cmems-glo12`) | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00016; modified: converted and quantized data |
 | Copernicus Marine IBI (`cmems-ibi`) | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00027; modified: converted and quantized data |
-| Copernicus Marine North West Shelf (`cmems-nws`), staged | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00054; modified: converted and quantized data |
-| Copernicus Marine Mediterranean (`cmems-med`), staged | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/mds-00359; modified: converted and quantized data |
+| Copernicus Marine North West Shelf (`cmems-nws`) | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/moi-00054; modified: converted and quantized data |
+| Copernicus Marine Mediterranean (`cmems-med`) | Generated using E.U. Copernicus Marine Service Information; doi:10.48670/mds-00359; modified: converted and quantized data |
 | DWD ICON-EU (`dwd-icon-eu`) | Deutscher Wetterdienst ICON-EU via Open-Meteo; CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); modified: converted and quantized data |
 | Météo-France AROME (`meteofrance-arome`) | Météo-France AROME via Open-Meteo; CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/); modified: converted and quantized data |
 
@@ -82,10 +82,10 @@ and `ibi.py` (GLO12 and IBI, without "Generated using" or the modification claus
 and `ecmwf_open.py` (the ECMWF provenance, "ECMWF open data IFS 0.25deg (CC BY 4.0)").
 This section changes the register and the notice, not those producers.
 
-## NW Shelf and Mediterranean currents (staged 14 November 2026)
+## NW Shelf and Mediterranean currents (published 14 November 2026)
 
-`cmems-nws` and `cmems-med` are staged for Tactician and not published: no run
-is in the bucket ([docs/shelf-currents.md](docs/shelf-currents.md)). Their
+`cmems-nws` and `cmems-med` are published to the bucket from 14 November 2026
+on the owner's approval ([docs/shelf-currents.md](docs/shelf-currents.md)). Their
 terms were read on 14 November 2026 at
 https://marine.copernicus.eu/user-corner/service-commitments-and-licence, the
 same Copernicus Marine Service licence as GLO12 and IBI: its annex, section

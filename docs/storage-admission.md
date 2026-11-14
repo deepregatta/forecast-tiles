@@ -23,7 +23,8 @@ native-only and legacy-writer gates. Preparation does not authorize activation.
 `MAX_BUCKET_BYTES` remains the retained forecast tile guard. Its fallback
 matches the owner-approved setting (14,000,000,000 bytes from 2026-10-04,
 15,000,000,000 bytes from 2026-10-21, 20,000,000,000 bytes from 2026-11-07
-for the display chart: Davi's decision); it is neither the universal
+for the display chart, 21,000,000,000 bytes from 2026-11-14 for the NW Shelf and
+Mediterranean currents: Davi's decisions); it is neither the universal
 physical bucket cap nor a monetary cap. The regional calculation keeps
 `MAX_BUCKET_BYTES` as its limit, so the regional reservation is unchanged and
 the 5 GB added is room beside it. Missing/inconsistent retained forecast
@@ -66,7 +67,24 @@ full rebuild beside two kept builds peaks at 3 × 1.68 GB = 5.05 GB, inside the
 ceiling, and 14.13 GB + 5.05 GB = 19.18 GB stays inside `MAX_BUCKET_BYTES` of
 20 GB: neither changes. About 0.45 GB of the ceiling and 0.8 GB of the bucket
 limit are left for OSM's growth; a build that outgrows them is refused before
-uploading, and the limit is reviewed then. The scratch example carries a synthetic 5.5 MB. Once `charts/` holds objects, a ledger without this
+uploading, and the limit is reviewed then. The scratch example carries a synthetic 5.5 MB.
+
+**Raised to 21 GB on 2026-11-14** (Davi: *Raise limit to 21 GB*) for the two
+current layers `currents-nws` and `currents-med` ([shelf-currents.md](shelf-currents.md)).
+Their runs measured 140.6 MB and 52.5 MB; the same arithmetic adds three of
+each, plus 10 %, to the root peak: 3 × 193.1 MB × 1.1 = 0.64 GB, so the
+regional calculation reserves 11.65 GB of root peak and 14.77 GB in all, a
+chart rebuild beside two kept builds adds 5.05 GB, and the whole is
+**19.82 GB under 21 GB**, 1.18 GB to spare (0.82 GB under 20 GB before). The
+`r2-audit` capacity profile of 2026-11-14 10:31 UTC, before the first runs,
+read 10.46 GB physical, 7.37 GB referenced and a reserved peak of 15.84 GB;
+with the new layers' 0.64 GB that is 16.48 GB. Cloudflare bills R2 Standard
+storage at $0.015 per GB-month (developers.cloudflare.com/r2/pricing, read
+2026-11-14), so the extra gigabyte, if filled, costs 1.5 cents a month. The
+repository variables `MAX_BUCKET_BYTES` (20,000,000,000) and
+`REGIONAL_EXISTING_PEAK_BYTES` (11,015,000,000) override the workflow
+defaults; raising them to 21,000,000,000 and 11,652,000,000 is a repository
+settings change for the owner. Once `charts/` holds objects, a ledger without this
 owner would close admission for every writer ("unclassified object growth"),
 so the owner goes in before `CAPACITY_ENFORCE=1`. Chart bytes also count as
 "other" objects in the regional peak calculation below; the chart publisher

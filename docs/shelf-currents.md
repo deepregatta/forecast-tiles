@@ -7,12 +7,15 @@ Two layers, built exactly as `currents-ibi` is: the Copernicus Marine Toolbox,
 the product's own crop, surface `uo`/`vo` times 1.943844 to knots, 16-bit
 quantization at 0.01 kt, PFT1 tiles. Code: `src/ingest/sources/shelf.py`.
 
-**Staged, not published.** `shelf.PUBLICATION_ENABLED` is `False`, so
-`ingest currents-nws` or `ingest currents-med` without `--dry-run` exits 1
-before reaching a provider or a store. The only workflow,
-`.github/workflows/ingest-currents-shelf.yml`, is manual-dispatch only, dry run
-by default, has no schedule and carries no bucket credentials. The dispatcher
-does not know either layer. Nothing has been written to the bucket.
+**Published from 2026-11-14** on the owner's approval (staged the same morning).
+Each layer has its own workflow, as IBI has (`ingest-currents-nws.yml`,
+`ingest-currents-med.yml`), with the root layers' fallback cron
+`37 2,8,14,20 * * *`, the bucket secrets by their existing names, a `dry_run`
+input that builds into the runner's scratch directory, and a dispatcher slot
+after each product's measured ready time (10:15 and 13:15 UTC). Setting
+`shelf.PUBLICATION_ENABLED = False` stages them again: the CLI then refuses any
+run without `--dry-run`. The first runs are recorded under
+[First publication](#first-publication-2026-11-14).
 
 ## The products (read 2026-11-14)
 
@@ -75,28 +78,32 @@ where it read four IBI tiles, 30.7 MB. The largest decoded NW Shelf tile is
 ## Storage
 
 Retention keeps the current and previous run per layer. Two runs of each are
-about 281 MB (NW Shelf) and 105 MB (Mediterranean), 386 MB together, beside
-IBI's two runs of about 207 MB. Under the 20 GB `MAX_BUCKET_BYTES` the
-regional calculation reserves 14.13 GB and charts 5.5 GB
-([storage-admission.md](storage-admission.md)), which leaves about 0.37 GB:
-the new layers do not fit beside a full chart rebuild without raising the
-guard or the charts ceiling. That is part of the owner's decision to publish.
+about 281 MB (NW Shelf) and 105 MB (Mediterranean), 386 MB together. The owner
+raised `MAX_BUCKET_BYTES` from 20 GB to **21 GB** for them on 2026-11-14; the
+recomputed table is in [storage-admission.md](storage-admission.md) (19.82 GB
+of reserved peak with a chart rebuild, 1.18 GB to spare). At $0.015 per
+GB-month for R2 Standard storage (developers.cloudflare.com/r2/pricing, read
+2026-11-14) the extra gigabyte costs 1.5 cents a month.
 
-## To publish (the owner's steps, not done)
+## Publication steps, and who did them
 
-1. Approve publication of both layers to the public bucket (redistribution:
-   the register's rows and DATA-LICENSES.md carry the credit lines).
-2. Decide the storage room above (raise `MAX_BUCKET_BYTES` or the charts
-   ceiling), and add the two layers to `ROOT_LAYERS` in
-   `src/ingest/capacity.py` once they have a run in the bucket (the regional
-   peak calculation requires every root layer to be measured).
-3. If `PAID_WORK_ENFORCE` is on, give each layer a channel in the paid-work
-   ledger.
-4. Set `PUBLICATION_ENABLED = True`, add the R2 secrets and a fallback cron to
-   the workflow (or a workflow per layer, as IBI's), and the dispatcher
-   timetable entries (NW Shelf finished 10:07 UTC, Mediterranean 13:06 UTC on
-   13 Nov). Run one dispatch by hand and record it here.
-5. Passage reads neither layer; its schemas already accept the names.
+1. Owner's approval to publish both layers and to raise the limit to 21 GB
+   (2026-11-14). Done.
+2. The limit: code defaults and every workflow's fallback are 21 GB. The
+   repository variable `MAX_BUCKET_BYTES`, which overrides them, still reads
+   20 GB, and `REGIONAL_EXISTING_PEAK_BYTES` still 11.015 GB: raising them to
+   21,000,000,000 and 11,652,000,000 is a settings change for the owner.
+   Publication does not wait on it: the bucket's referenced runs were 7.37 GB.
+3. `ROOT_LAYERS` in `src/ingest/capacity.py` gains both layers in the commit
+   after their first runs are in the bucket (the capacity profile measures
+   every root layer and fails on one with no run). The spending ledger needs
+   no channel while `PAID_WORK_ENFORCE` is `0`, as it is; give each layer one
+   (the `paid-work-channel` workflow) before turning it on.
+4. Workflows, fallback cron and dispatcher timetable: done in code. The
+   dispatcher Worker runs only once redeployed (`cd dispatcher && npx wrangler
+   deploy`, after `npx wrangler login`): an owner step. Until then the
+   fallback cron starts each layer up to about six hours after Copernicus.
+5. Passage reads neither layer; its schemas accept the names.
 
 Unexercised: publication, the scheduled ingest, the GitHub runner's memory for
 the NW Shelf build (3.9 GB here), and any read of these layers from the bucket.

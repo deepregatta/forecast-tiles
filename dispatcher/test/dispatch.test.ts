@@ -57,22 +57,26 @@ describe('regional activation', () => {
     expect(enabled.calls[0]!.body).toMatchObject({inputs: {
       layer: 'weather-ukv', cycle: '20261002T00', wait_minutes: '120', canary: 'true',
     }});
-    const short = github();
+    // 10:15 also dispatches the NW Shelf currents; no UKV there
+    const short = github(dispatched());
     await runScheduled(Date.parse('2026-10-02T10:15:00Z'), {
       ...live, REGIONAL_MODELS: 'weather-ukv',
     }, short.deps);
-    expect(short.calls).toHaveLength(0);
+    expect(short.calls.filter((call) => call.url.includes('ingest-openmeteo.yml'))).toHaveLength(0);
+    expect(short.calls.map((call) => call.url)).toEqual([expect.stringContaining('ingest-currents-nws.yml/dispatches')]);
   });
   it('restricts enabled models to canary cycles until full cadence is explicit', async () => {
-    const { deps, calls } = github();
+    // 13:15 also dispatches the Mediterranean currents
+    const { deps, calls } = github(dispatched());
     await runScheduled(Date.parse('2026-10-02T13:15:00Z'), { ...live, REGIONAL_MODELS: 'weather-arome' }, deps);
-    expect(calls).toHaveLength(0);
-    const full = github(dispatched());
+    expect(calls.filter((call) => call.url.includes('ingest-openmeteo.yml'))).toHaveLength(0);
+    const full = github(dispatched(), dispatched());
     await runScheduled(Date.parse('2026-10-02T13:15:00Z'), {
       ...live, REGIONAL_MODELS: 'weather-arome', REGIONAL_FULL_CADENCE: 'true',
     }, full.deps);
-    expect(full.calls).toHaveLength(1);
-    expect(full.calls[0]!.body).toMatchObject({inputs: {cycle: '20261002T09', canary: 'false'}});
+    const regional = full.calls.filter((call) => call.url.includes('ingest-openmeteo.yml'));
+    expect(regional).toHaveLength(1);
+    expect(regional[0]!.body).toMatchObject({inputs: {cycle: '20261002T09', canary: 'false'}});
   });
 
   it('defaults to no regional dispatch even at a shared slot', async () => {

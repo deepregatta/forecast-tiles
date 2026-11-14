@@ -131,8 +131,8 @@ uv run ingest weather-ecmwf-short             # ECMWF's 06Z/18Z runs, to 144 h
 uv sync --extra currents                    # required for either CMEMS current layer
 uv run ingest currents                      # six-hourly global current field
 uv run ingest currents-ibi                   # hourly regional current field
-uv run ingest currents-nws --dry-run /tmp/nws # staged: NW Shelf, dry run only
-uv run ingest currents-med --dry-run /tmp/med # staged: Mediterranean, dry run only
+uv run ingest currents-nws --dry-run /tmp/nws # NW Shelf current field
+uv run ingest currents-med --dry-run /tmp/med # Mediterranean current field
 uv run ingest weather --force                # retry identical immutable content; guards still apply
 uv run ingest weather --cycle 20260930T06 --wait-minutes 90   # wait for the provider, then publish
 uv run ingest land --domain nweu             # rebuild the routing index (one-shot)
@@ -230,7 +230,7 @@ The Phase 0 size-measurement prototype is still runnable:
    `PutObject`, which the `latest.json` commit relies on.
 
 The storage guard refuses to publish when retained runs + the new run would
-exceed `MAX_BUCKET_BYTES` (default 20 GB since 2026-11-07). It counts tile bytes after retention
+exceed `MAX_BUCKET_BYTES` (default 21 GB since 2026-11-14, 20 GB from 2026-11-07). It counts tile bytes after retention
 across both forecast pointers, and refuses before uploading if a retained
 manifest is missing, unreadable, or has invalid/inconsistent size metadata.
 Reconcile those references using verified information before retrying. This
@@ -257,8 +257,8 @@ change the PFT1 encoding, checksums, or JSON schemas.
 | `waves` | NOAA GFS-Wave (Hs, period, direction, wind-wave, swell) | 0.25° | every cycle |
 | `currents` | Copernicus Marine GLO12 (surface u/v, 6-hourly to 240 h; sole provider) | 1/12° | 1×/day, soon after Copernicus |
 | `currents-ibi` | Copernicus Marine IBI analysis-forecast (surface u/v, hourly through 120 h; 72 h before 2026-09-29; IBI domain only) | ≈1/36° (0.02777863°) | 1×/day, soon after Copernicus |
-| `currents-nws` | **Staged, not published** (2026-11-14): Copernicus Marine NW Shelf analysis-forecast (surface u/v, hourly instants through 120 h; 46–62.74° N, 16° W–13° E; 5° tiles) | 0.0135° × 0.0303° | none until the owner approves ([docs/shelf-currents.md](docs/shelf-currents.md)) |
-| `currents-med` | **Staged, not published** (2026-11-14): Copernicus Marine Mediterranean analysis-forecast (surface u/v, hourly means through 120 h) | 1/24° | none until the owner approves ([docs/shelf-currents.md](docs/shelf-currents.md)) |
+| `currents-nws` | Copernicus Marine NW Shelf analysis-forecast (surface u/v, hourly instants through 120 h; 46–62.74° N, 16° W–13° E; 5° tiles), published from 2026-11-14 ([docs/shelf-currents.md](docs/shelf-currents.md)) | 0.0135° × 0.0303° | 1×/day, soon after Copernicus |
+| `currents-med` | Copernicus Marine Mediterranean analysis-forecast (surface u/v, hourly means through 120 h), published from 2026-11-14 ([docs/shelf-currents.md](docs/shelf-currents.md)) | 1/24° | 1×/day, soon after Copernicus |
 
 Every layer was ingested once a day until the [dispatcher](#dispatcher)
 switched on (Passage `docs/grib-export-plan.md`, Phase 5B). Each layer's
@@ -370,6 +370,7 @@ in about a minute.
 | `15 0,6,12,18 * * *` | `ensemble` | fire time − 6 h 15 (00:15 → previous day 18Z) | + 6 h 28–6 h 36; 18Z of 2 Oct + 7 h 03 (8 cycles) | 90 |
 | the same, 00:15 and 12:15 only | `weather-ecmwf-short` | fire time − 6 h 15 (00:15 → previous day 18Z) | + 6 h 27 (the four 06Z/18Z cycles of 29–30 Sep and four of 1–2 Oct; ECMWF releases a cycle's files at one minute) | 120 |
 | `20 7,19 * * *` | `weather-ecmwf` | fire time − 7 h 20 | + 7 h 34 (5 cycles, 1–3 Oct) | 120 |
+| `15 10,13 * * *` (the 00:15 expression's hours) | 10:15 `currents-nws`, 13:15 `currents-med` (from 2026-11-14) | that day's 00Z | NW Shelf 10:07, Mediterranean 13:06 (13 Nov, catalogue) | 180 |
 | `45 5,9 * * *` | 05:45 `currents`, 09:45 `currents-ibi` | that day's 00Z | GLO12 06:10–09:05 (29 Sep–3 Oct: 06:26, 06:10, 09:05, 06:49, 06:12); IBI 09:54–11:36 (24 Sep–3 Oct; 1–3 Oct 10:14, 10:04, 09:56) | 240 (`currents`, whose workflow allows 300 min), 180 (`currents-ibi`) |
 
 The existing layers keep 18 dispatches from 16 provider slots per day. Two

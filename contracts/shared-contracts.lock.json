@@ -295,13 +295,13 @@
       "path": "contracts/data-sources.json",
       "canonical_repository": "forecast-tiles",
       "canonical_path": "contracts/data-sources.json",
-      "canonical_revision": "git-blob:d72cab718ec78e943d1eb9163da35a646e55329f",
+      "canonical_revision": "git-blob:b2d40df001cb0c270c0d3541a2ca51d83ce1cf64",
       "contract": "data-sources/schema-1",
       "producer": "forecast-tiles",
       "consumers": [
         "passage"
       ],
-      "sha256": "f24a31aba653ccd6374cb11089f5f9d22f69e4c2444a55799e901d1e4ad8888a",
+      "sha256": "d1c76fa0d755a7ecaccd9476daabed7a8c74d3dbf84933e9a481eecf504e0896",
       "representation": "exact",
       "intentional_divergence": null
     }

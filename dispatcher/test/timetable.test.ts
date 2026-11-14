@@ -27,6 +27,9 @@ describe('dueAt', () => {
     // one expression, two layers: each at its own hour, both for that day's 00Z
     ['2026-09-30T05:45:00Z', 'currents', '20260930T00', 240],
     ['2026-09-30T09:45:00Z', 'currents-ibi', '20260930T00', 180],
+    // the NW Shelf and Mediterranean currents on the 00:15 expression's hours
+    ['2026-11-14T10:15:00Z', 'currents-nws', '20261114T00', 180],
+    ['2026-11-14T13:15:00Z', 'currents-med', '20261114T00', 180],
   ] as const)('%s dispatches %s for %s, waiting %i min', (scheduled, layer, cycle, wait) => {
     expect(dueAt(at(scheduled))).toContainEqual(
       { layer, workflow: `ingest-${layer}.yml`, cycle, waitMinutes: wait },
@@ -84,10 +87,11 @@ describe('dueAt', () => {
     }
   });
 
-  it('fires 27 times for 30 dispatches, always on a registered cycle', () => {
+  it('fires 27 times for 32 dispatches, always on a registered cycle', () => {
     const cycleHours: Record<string, number[]> = {
       weather: [0, 6, 12, 18], waves: [0, 6, 12, 18], ensemble: [0, 6, 12, 18],
       'weather-ecmwf': [0, 12], 'weather-ecmwf-short': [6, 18], currents: [0], 'currents-ibi': [0],
+      'currents-nws': [0], 'currents-med': [0],
       'weather-arome': [3, 9, 15, 21], 'weather-icon-eu': [0, 6, 12, 18],
       'weather-ukv': [0, 6, 12, 18],
     };

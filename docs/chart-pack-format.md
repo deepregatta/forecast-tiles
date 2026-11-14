@@ -342,8 +342,9 @@ forecasts' reserved peak under the same limit (`check_regional_room`, the
 calculation of `ingest.capacity.check_regional_capacity`); and with
 `CAPACITY_ENFORCE=1` the whole upload is reserved under the storage-admission
 owner `charts` ([storage admission](storage-admission.md)). `MAX_BUCKET_BYTES`
-is 20 GB since 2026-11-07 (Davi), leaving about 5.9 GB for charts beside the
-forecasts' reservation; the `charts` ceiling is 5.5 GB.
+is 21 GB since 2026-11-14 (Davi; 20 GB from 2026-11-07), raised by the 1 GB the
+NW Shelf and Mediterranean currents need, so the room for charts beside the
+forecasts' reservation stays about 5.9 GB; the `charts` ceiling is 5.5 GB.
 
 ### Published builds
 
@@ -383,8 +384,9 @@ for `6-30-21` in about 75 s); later builds read them back.
 Storage, from these figures: a full rebuild beside two kept builds holds three
 builds and their products at once, 3 × 1.68 GB = **5.05 GB**, inside the
 `charts` ceiling of 5.5 GB; with the regional forecasts' reservation and the
-other objects (14.13 GB, below) that is 19.18 GB, inside `MAX_BUCKET_BYTES` of
-20 GB. Both stay as they are ([storage admission](storage-admission.md)).
+other objects (14.13 GB, below; 14.77 GB with the NW Shelf and Mediterranean
+currents from 2026-11-14) that is 19.18 GB (19.82 GB), inside `MAX_BUCKET_BYTES`
+of 20 GB (21 GB from 2026-11-14). Both stay as they are ([storage admission](storage-admission.md)).
 
 | Cell | Chart MB | Depth MB | EMODnet product MB | SHOM marks |
 |---|---|---|---|---|

@@ -16,6 +16,8 @@ export type Layer =
   | 'weather-ecmwf-short'
   | 'currents'
   | 'currents-ibi'
+  | 'currents-nws'
+  | 'currents-med'
   | 'weather-arome'
   | 'weather-icon-eu'
   | 'weather-ukv';
@@ -52,6 +54,11 @@ export const TIMETABLE: readonly TimetableEntry[] = [
   { layer: 'currents', hours: [5], minute: 45, lagMinutes: h(5, 45), waitMinutes: 240 },
   // Copernicus IBI finished at 09:54 to 11:36 (24-29 Sep): that day's 00Z
   { layer: 'currents-ibi', hours: [9], minute: 45, lagMinutes: h(9, 45), waitMinutes: 180 },
+  // Copernicus NW Shelf finished its 13 Nov bulletin at 10:07; the
+  // Mediterranean its own at 13:06 (catalogue, 2026-11-14): that day's 00Z.
+  // Both on the 00:15 cron's existing hours.
+  { layer: 'currents-nws', hours: [10], minute: 15, lagMinutes: h(10, 15), waitMinutes: 180 },
+  { layer: 'currents-med', hours: [13], minute: 15, lagMinutes: h(13, 15), waitMinutes: 180 },
   // Open-Meteo bulk completion samples, 24 Sep–2 Oct. Disabled unless
   // REGIONAL_MODELS names the model; each AROME cycle has its own delay.
   { layer: 'weather-arome', hours: [5], minute: 45, lagMinutes: h(2, 45), waitMinutes: 90 },
