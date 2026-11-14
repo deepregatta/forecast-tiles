@@ -142,5 +142,5 @@ def test_profile_counts_every_bucket_object_and_calculates_all_layer_overlap(tmp
 
 
 def test_profile_refuses_unmeasured_root_layers(tmp_path):
-    with pytest.raises(StorageGuardError, match="all seven"):
+    with pytest.raises(StorageGuardError, match="all 9 root layers"):
         capacity_profile(DirStore(tmp_path))

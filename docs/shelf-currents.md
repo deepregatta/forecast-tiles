@@ -109,5 +109,28 @@ GB-month for R2 Standard storage (developers.cloudflare.com/r2/pricing, read
    fallback cron starts each layer up to about six hours after Copernicus.
 5. Passage reads neither layer; its schemas accept the names.
 
-Unexercised: publication, the scheduled ingest, the GitHub runner's memory for
-the NW Shelf build (3.9 GB here), and any read of these layers from the bucket.
+## First publication, 2026-11-14
+
+Dispatched by hand from `main` (`gh workflow run`), dry run first:
+
+| Run | Layer | Outcome |
+|---|---|---|
+| [43586368570](https://github.com/deepregatta/forecast-tiles/actions/runs/43586368570) | NW Shelf, dry run | **failed validation**: the grid is 0.3901 missing, over the 0.36 allowance set from a tile sum; corrected to 0.42 in `2e35633` |
+| [43586370824](https://github.com/deepregatta/forecast-tiles/actions/runs/43586370824) | Mediterranean, dry run | 13 Nov 00Z, 11 tiles, 52.5 MB, 38.7 s |
+| [43586937444](https://github.com/deepregatta/forecast-tiles/actions/runs/43586937444) | NW Shelf, dry run | 14 Nov 00Z, 24 tiles, 139.3 MB, 80.4 s |
+| [43587075272](https://github.com/deepregatta/forecast-tiles/actions/runs/43587075272) | NW Shelf, **published** | `currents-nws-20261114T00Z`: 24 tiles, 139.3 MB, 131.0 s; pointer committed 10:50:59 UTC; job 2 min 23 s |
+| [43587077053](https://github.com/deepregatta/forecast-tiles/actions/runs/43587077053) | Mediterranean, **published** | `currents-med-20261113T00Z`: 11 tiles, 52.5 MB, 58.7 s; pointer committed 10:50:11 UTC; job 1 min 11 s (its 14 Nov bulletin was not out yet: ready about 13:06) |
+
+The NW Shelf build completed on the hosted runner (16 GB) in 131 s; its peak
+memory there was not recorded (3.9 GB on this machine). Checked from outside
+the same morning: `https://forecast.deepregatta.com/latest.json` lists both
+layers beside the seven it had, whose `run_id` and `previous_run_id` are those
+the 10:31 audit read; a tile of each (`N50W005`, `N40E000`) fetches, matches
+its manifest's bytes and FNV-1a and decodes as PFT1 (121 × 370 × 165 and
+121 × 144 × 240); near Alderney (49.75° N 2.05° W) the NW Shelf current runs
+0.39 to 4.75 kt over its first twelve hours. `ROOT_LAYERS` gained both layers
+in the next commit.
+
+Unexercised: the scheduled ingest (the fallback cron and, after a redeploy,
+the dispatcher), the runner's peak memory for the NW Shelf build, and a
+retained previous run of either layer (the first runs have none).

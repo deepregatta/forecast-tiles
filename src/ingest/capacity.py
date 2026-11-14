@@ -53,6 +53,10 @@ ROOT_LAYERS = (
     "waves",
     "currents",
     "currents-ibi",
+    # published from 2026-11-14 (docs/shelf-currents.md), added once their
+    # first runs were in the bucket: the profile measures every root layer
+    "currents-nws",
+    "currents-med",
 )
 
 # An ingest job is capped at four hours (ingest.audit). An unreferenced run of
@@ -99,7 +103,9 @@ def capacity_profile(store, layers=registry.LAYERS, *, headroom_bytes=500_000_00
             if pointer == "latest.json" and layer in root:
                 root[layer].append(run)
     if any(not runs for runs in root.values()):
-        raise StorageGuardError("capacity profile: all seven root layers must be measured")
+        raise StorageGuardError(
+            f"capacity profile: all {len(ROOT_LAYERS)} root layers must be measured"
+        )
     physical = sum(obj["bytes"] for obj in store.list_objects(""))
     referenced = sum(run.bytes for run in report.runs.values() if run.referenced_as)
     other = max(0, physical - referenced)
