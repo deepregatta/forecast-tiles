@@ -81,10 +81,10 @@ read 10.46 GB physical, 7.37 GB referenced and a reserved peak of 15.84 GB;
 with the new layers' 0.64 GB that is 16.48 GB. Cloudflare bills R2 Standard
 storage at $0.015 per GB-month (developers.cloudflare.com/r2/pricing, read
 2026-11-14), so the extra gigabyte, if filled, costs 1.5 cents a month. The
-repository variables `MAX_BUCKET_BYTES` (20,000,000,000) and
-`REGIONAL_EXISTING_PEAK_BYTES` (11,015,000,000) override the workflow
-defaults; raising them to 21,000,000,000 and 11,652,000,000 is a repository
-settings change for the owner. Once `charts/` holds objects, a ledger without this
+repository variables that override the workflow defaults were raised the same
+day, at the owner's request: `MAX_BUCKET_BYTES` from 20,000,000,000 to
+21,000,000,000 and `REGIONAL_EXISTING_PEAK_BYTES` from 11,015,000,000 to
+11,652,000,000 (set 2026-11-14 11:07 UTC). Once `charts/` holds objects, a ledger without this
 owner would close admission for every writer ("unclassified object growth"),
 so the owner goes in before `CAPACITY_ENFORCE=1`. Chart bytes also count as
 "other" objects in the regional peak calculation below; the chart publisher

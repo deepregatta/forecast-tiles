@@ -94,10 +94,9 @@ GB-month for R2 Standard storage (developers.cloudflare.com/r2/pricing, read
 1. Owner's approval to publish both layers and to raise the limit to 21 GB
    (2026-11-14). Done.
 2. The limit: code defaults and every workflow's fallback are 21 GB. The
-   repository variable `MAX_BUCKET_BYTES`, which overrides them, still reads
-   20 GB, and `REGIONAL_EXISTING_PEAK_BYTES` still 11.015 GB: raising them to
-   21,000,000,000 and 11,652,000,000 is a settings change for the owner.
-   Publication does not wait on it: the bucket's referenced runs were 7.37 GB.
+   repository variables that override them were raised at the owner's
+   request on 2026-11-14 11:07 UTC: `MAX_BUCKET_BYTES` 21,000,000,000 and
+   `REGIONAL_EXISTING_PEAK_BYTES` 11,652,000,000. Done.
 3. `ROOT_LAYERS` in `src/ingest/capacity.py` gains both layers in the commit
    after their first runs are in the bucket (the capacity profile measures
    every root layer and fails on one with no run). The spending ledger needs
