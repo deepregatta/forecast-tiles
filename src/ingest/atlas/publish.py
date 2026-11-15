@@ -7,9 +7,9 @@ complete, read the upload back, and only then move `tidal-atlas/latest.json`
 by compare-and-swap, never backwards. Retention keeps the new and the
 previous builds; older builds are deleted once the pointer has moved.
 
-**Staged.** `PUBLICATION_ENABLED` is False: `publish_build` refuses any store
-but a scratch directory (`--dry-run`), and the workflow carries no bucket
-credentials. Display only: routing never reads the atlas, and no polar data
+**Published from 2026-11-15** on the owner's approval. Staged first
+(`PUBLICATION_ENABLED` False: `publish_build` refused any store but a
+scratch directory); set it False to stage again. Display only: routing never reads the atlas, and no polar data
 is ever written under `tidal-atlas/`.
 """
 
@@ -48,8 +48,9 @@ from ingest.publish import (
     put_immutable,
 )
 
-# Staged until the owner approves publication. Set True only on that word.
-PUBLICATION_ENABLED = False
+# The owner approved publication on 2026-11-15. Set False to stage again:
+# publish_build then refuses every store but a scratch directory.
+PUBLICATION_ENABLED = True
 
 PREFIX = "tidal-atlas"
 LATEST_KEY = f"{PREFIX}/latest.json"
@@ -167,10 +168,7 @@ def publish_build(
     log=print,
 ) -> AtlasPublishResult:
     if not PUBLICATION_ENABLED and not isinstance(store, DirStore):
-        raise PublishError(
-            "tidal-atlas is staged: publication is switched off until the owner approves it; "
-            "use --dry-run"
-        )
+        raise PublishError("tidal-atlas is staged: publication is switched off; use --dry-run")
     if not BUILD_ID_RE.match(build_id):
         raise PublishError(f"build id {build_id!r} is not UTC YYYYMMDDTHHMMZ")
     rng = rng or random.Random()

@@ -134,20 +134,22 @@ NO_PROVIDER_PAGE_READ = {"meteofrance-arome"}
 # cmems-glo12 and cmems-ibi, read again that day for each product.
 STAGED_2026_11_14 = {"cmems-nws", "cmems-med"}
 
-# Staged on 15 November 2026 (Tactician P13): SHOM's tidal-current atlases,
-# Licence Ouverte 2.0 read in each pack's metadata that day. Redistribution
-# stays unconfirmed until the owner decides on publication.
+# Staged on 15 November 2026 (Tactician P13) and published the same day on
+# the owner's approval: SHOM's tidal-current atlases, Licence Ouverte 2.0 read
+# in each pack's metadata that day.
 STAGED_2026_11_15 = {"shom-atlas-courants-2d"}
 
 
 def test_exactly_the_sources_the_owner_confirmed_say_yes():
     said_yes = {s["id"] for s in REGISTER["sources"] if s["redistribute"] == "yes"}
-    assert said_yes == OWNER_CONFIRMED_2026_11_12 | STAGED_2026_11_14
+    assert said_yes == OWNER_CONFIRMED_2026_11_12 | STAGED_2026_11_14 | STAGED_2026_11_15
     assert {
         s["id"] for s in REGISTER["sources"]
     } == OWNER_CONFIRMED_2026_11_12 | STAGED_2026_11_14 | STAGED_2026_11_15
     for source_id in STAGED_2026_11_15:
-        assert entry(source_id)["redistribute"] == "unconfirmed", source_id
+        assert entry(source_id)["notes"].endswith(
+            "the owner approved publishing it to the bucket the same day."
+        ), source_id
     for source_id in OWNER_CONFIRMED_2026_11_12:
         source = entry(source_id)
         assert source["licence"], source_id

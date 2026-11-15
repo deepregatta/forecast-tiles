@@ -300,11 +300,13 @@ def built(tmp_path, ids=("manche", "gascogne")):
     return out
 
 
-def test_publication_is_switched_off():
-    assert atlas.PUBLICATION_ENABLED is False
+def test_publication_is_on_since_the_owners_approval_of_2026_11_15():
+    assert atlas.PUBLICATION_ENABLED is True
 
 
-def test_a_staged_atlas_refuses_the_bucket(tmp_path):
+def test_a_staged_atlas_refuses_the_bucket(tmp_path, monkeypatch):
+    # the gate stays: set PUBLICATION_ENABLED False and the bucket is refused again
+    monkeypatch.setattr(atlas, "PUBLICATION_ENABLED", False)
     with pytest.raises(PublishError, match="staged"):
         atlas.publish_build(FakeStore(), built(tmp_path), "20261115T0900Z", max_bucket_bytes=BIG)
 
@@ -395,13 +397,18 @@ def test_a_grid_that_does_not_decode_refuses_the_build(tmp_path):
 # ---- the workflow and the register -----------------------------------------
 
 
-def test_the_workflow_is_manual_only_and_holds_no_bucket_credentials():
+def test_the_workflow_is_manual_only_and_only_its_publish_step_sees_the_bucket():
     text = (ROOT / ".github/workflows/tidal-atlas.yml").read_text()
     trigger = text.split("\non:\n", 1)[1].split("\nconcurrency:", 1)[0]
     assert "workflow_dispatch:" in trigger
     assert "schedule" not in trigger and "push" not in trigger
-    assert "secrets." not in text
-    assert "--dry-run" in text
+    assert "default: true" in trigger.split("dry_run:", 1)[1], (
+        "a dispatch is a dry run unless asked"
+    )
+    before, publish = text.split("- name: Publish to R2", 1)
+    assert "secrets." not in before
+    assert "if: ${{ !inputs.dry_run }}" in publish
+    assert publish.count("secrets.") == 4
     dispatcher = (ROOT / "dispatcher").rglob("*.ts")
     assert not any(
         "tidal-atlas" in p.read_text() for p in dispatcher if "node_modules" not in p.parts
@@ -414,5 +421,5 @@ def test_the_register_credits_shom_for_the_atlas():
     assert row["used_by"] == ["tidal-atlas"]
     assert sources.ATTRIBUTION in row["attribution"]
     assert row["licence"] == "Licence Ouverte 2.0"
-    # the licence allows it; the owner decides on publication
-    assert row["redistribute"] == "unconfirmed"
+    # the licence allows it; the owner approved publication on 2026-11-15
+    assert row["redistribute"] == "yes"

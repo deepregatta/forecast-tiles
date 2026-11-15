@@ -115,7 +115,7 @@ databases they stay openly available under the ODbL. Each archive's own
 [docs/chart-pack-format.md](docs/chart-pack-format.md#8-sources-and-licences)
 has the table. They are a picture for a crew, not a navigation chart.
 
-## SHOM tidal-current atlases (TCA1, staged 15 November 2026)
+## SHOM tidal-current atlases (TCA1, published 15 November 2026)
 
 The grids under `tidal-atlas/` (not yet published) and the golden fixture in
 `tests/fixtures/tidal-atlas-alderney/` are derived from SHOM's 2D tidal-current
@@ -130,7 +130,7 @@ commercial included, with the source and its last update credited and without
 implying SHOM's endorsement. The grids are modified (subsampled to 30 minutes,
 quantized to 1 mm/s); every grid header and manifest carries the credit and the
 condition ([docs/tidal-atlas-format.md](docs/tidal-atlas-format.md)).
-Redistribution from the bucket awaits the owner's decision.
+The owner approved publishing them to the bucket on 15 November 2026.
 
 ## Terms read on 12 November 2026
 

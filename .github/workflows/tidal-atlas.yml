@@ -1,18 +1,22 @@
 name: tidal-atlas
 
 # TCA1 tidal-atlas packs from SHOM's 2D tidal-current atlases
-# (docs/tidal-atlas-format.md). STAGED: manual dispatch only, no schedule, no
-# dispatcher entry, and no bucket credentials anywhere in this file. It builds
-# and publishes to a scratch layout, then keeps the result as a run artifact;
-# `ingest.atlas.publish.PUBLICATION_ENABLED` is False, so the publisher refuses
-# the bucket even if credentials were added. SHOM's atlases change with a new
-# edition, not with the weather: a rebuild ships as a new immutable build.
+# (docs/tidal-atlas-format.md). Published from 2026-11-15 on the owner's
+# approval. Manual dispatch only: no schedule and no dispatcher entry, since
+# SHOM's atlases change with a new edition, not with the weather, and a
+# rebuild ships as a new immutable build. A dispatch is a dry run unless
+# asked; only the publish step holds the bucket credentials.
 on:
   workflow_dispatch:
     inputs:
       build_id:
         description: "Build id, UTC YYYYMMDDTHHMMZ"
         required: true
+      dry_run:
+        description: "Build and publish to a scratch layout, not R2"
+        type: boolean
+        required: false
+        default: true
 
 concurrency:
   group: tidal-atlas
@@ -44,15 +48,29 @@ jobs:
       - name: Build the grids
         run: uv run ingest-atlas build --source "$RUNNER_TEMP/shom" --out "$RUNNER_TEMP/atlas"
       - name: Publish to a scratch layout (dry run)
+        if: inputs.dry_run
         run: >-
           uv run ingest-atlas publish --build-dir "$RUNNER_TEMP/atlas"
           --build-id "$BUILD_ID" --dry-run "$RUNNER_TEMP/atlas-r2"
         env:
           BUILD_ID: ${{ inputs.build_id }}
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: inputs.dry_run
         with:
           name: tidal-atlas-${{ inputs.build_id }}
           path: ${{ runner.temp }}/atlas-r2/
           retention-days: 7
           compression-level: 0
           if-no-files-found: error
+      - name: Publish to R2
+        if: ${{ !inputs.dry_run }}
+        run: uv run ingest-atlas publish --build-dir "$RUNNER_TEMP/atlas" --build-id "$BUILD_ID"
+        env:
+          BUILD_ID: ${{ inputs.build_id }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          REGIONAL_EXISTING_PEAK_BYTES: ${{ vars.REGIONAL_EXISTING_PEAK_BYTES }}
+          REGIONAL_HEADROOM_BYTES: ${{ vars.REGIONAL_HEADROOM_BYTES }}
+          REGIONAL_ENABLED_LAYERS: ${{ vars.OPENMETEO_ENABLED_LAYERS }}
