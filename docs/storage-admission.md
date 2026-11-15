@@ -137,7 +137,7 @@ history or reset counters.
 
 ## Tidal atlas
 
-The **`tidal-atlas`** owner (managed, prefix `tidal-atlas/`, staged
+The **`tidal-atlas`** owner (managed, prefix `tidal-atlas/`, added
 2026-11-15 for Tactician's display of SHOM's tidal-current atlases,
 [tidal-atlas-format.md](tidal-atlas-format.md)) is reserved by its
 `publish_build` as charts are: the whole upload and manifest plus the 1 MiB
@@ -151,8 +151,9 @@ chart rebuild in flight), the atlas's worst moment makes **19.93 GB**, 1.07 GB
 to spare; the bucket limit does not change. Atlas bytes count as "other"
 objects in the regional calculation, and the publisher runs the same regional
 room check as charts before uploading. A build is made only when SHOM issues
-a new edition, not on a schedule. **Publication is switched off**
-(`PUBLICATION_ENABLED` False); nothing is in the bucket under `tidal-atlas/`.
+a new edition, not on a schedule. **Published 2026-11-15** on the owner's
+approval (build `20261115T0944Z`, 36.5 MB); the publisher's regional room
+check read 10.89 GB physical and a reserved peak of 16.84 GB with it.
 The owner goes into the ledger before `CAPACITY_ENFORCE=1`, as charts did; the
 scratch example carries a synthetic 0.15 MB.
 

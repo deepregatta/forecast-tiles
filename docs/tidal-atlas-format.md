@@ -1,9 +1,10 @@
 # TCA1 — tidal-atlas packs, schema 1
 
 **Status:** versioned contract, canonical here since 2026-11-15 (Tactician
-Isomar P13). **Staged:** built and checked, not published
-(`ingest.atlas.publish.PUBLICATION_ENABLED` is False and the workflow holds
-no bucket credentials). Producer: this repo (`ingest-atlas`,
+Isomar P13). **Published 2026-11-15** on the owner's approval: build
+`20261115T0944Z`, run 43700692470 of the manual `tidal-atlas` workflow,
+36,533,243 bytes in seven grids, byte for byte the local dry run of the same
+day (§9). Producer: this repo (`ingest-atlas`,
 `src/ingest/atlas/`). Consumer: Tactician's `core/atlas` and both of its
 shells. Schemas: `contracts/tidal-atlas-{latest,manifest}.schema.json`.
 Golden fixture: `tests/fixtures/tidal-atlas-alderney/`, committed here and in
@@ -129,3 +130,18 @@ complément des cartes et ouvrages nautiques officiels."* Register row
 See [storage admission](storage-admission.md#tidal-atlas): 36.5 MB a build,
 73.1 MB with the previous build kept, 109.6 MB at the worst moment (two kept
 and one uploading).
+
+## 9. Publication
+
+First build `20261115T0944Z`, published 2026-11-15 by the `tidal-atlas`
+workflow (manual dispatch, `dry_run` false, run 43700692470): seven grids,
+36,533,243 bytes, no previous build. The publisher's regional room check
+read 10.89 GB physical in the bucket, 3.12 GB of it outside referenced
+forecast runs, and a reserved peak of 16.84 GB with this upload, under the
+21 GB limit. Checked from outside the same day: `tidal-atlas/latest.json`
+names the build, and every grid served by
+`https://forecast.deepregatta.com/` has its pointer's size and SHA-256, the
+same bytes as the local dry-run build (the builder is deterministic). A real
+dock fetch through Tactician's own path moved exactly what it planned on the
+PC (Alderney 15,363,146 B, Raz de Sein 12,128,624 B) and on the Tab S6 Lite.
+There is no schedule: a new SHOM edition is a new build, dispatched by hand.
