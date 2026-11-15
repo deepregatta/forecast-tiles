@@ -18,6 +18,7 @@ CONSUMERS = {
     "PFT1": ["passage", "tactician"],
     "TLI1": ["tactician"],
     "TCP1": ["tactician"],
+    "TCA1": ["tactician"],
     "data-sources": ["passage"],
 }
 # Deliberate inventory changes require review alongside the pins, not deletion
@@ -135,6 +136,30 @@ EXPECTED = {
         "forecast-tiles",
         "tests/fixtures/chart-pack-cherbourg/cherbourg.pmtiles",
         "TCP1/schema-1",
+        "exact",
+    ),
+    "contracts/tidal-atlas-latest.schema.json": (
+        "forecast-tiles",
+        "contracts/tidal-atlas-latest.schema.json",
+        "TCA1/schema-1",
+        "exact",
+    ),
+    "contracts/tidal-atlas-manifest.schema.json": (
+        "forecast-tiles",
+        "contracts/tidal-atlas-manifest.schema.json",
+        "TCA1/schema-1",
+        "exact",
+    ),
+    "tests/fixtures/tidal-atlas-alderney/alderney.expected.json": (
+        "forecast-tiles",
+        "tests/fixtures/tidal-atlas-alderney/alderney.expected.json",
+        "TCA1/schema-1",
+        "exact",
+    ),
+    "tests/fixtures/tidal-atlas-alderney/alderney.tca1.gz": (
+        "forecast-tiles",
+        "tests/fixtures/tidal-atlas-alderney/alderney.tca1.gz",
+        "TCA1/schema-1",
         "exact",
     ),
     "contracts/data-sources.schema.json": (

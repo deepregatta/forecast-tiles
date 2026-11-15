@@ -18,8 +18,9 @@ from ingest.cli import LAYERS
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = json.loads((ROOT / "contracts/data-sources.schema.json").read_text())
 REGISTER = json.loads((ROOT / "contracts/data-sources.json").read_text())
-# Published outputs that are not scheduled layers: the TCP1 chart pack.
-NON_LAYER_USERS = {"charts"}
+# Published outputs that are not scheduled layers: the TCP1 chart pack and
+# the TCA1 tidal atlas (staged).
+NON_LAYER_USERS = {"charts", "tidal-atlas"}
 
 
 def validator():
@@ -133,11 +134,20 @@ NO_PROVIDER_PAGE_READ = {"meteofrance-arome"}
 # cmems-glo12 and cmems-ibi, read again that day for each product.
 STAGED_2026_11_14 = {"cmems-nws", "cmems-med"}
 
+# Staged on 15 November 2026 (Tactician P13): SHOM's tidal-current atlases,
+# Licence Ouverte 2.0 read in each pack's metadata that day. Redistribution
+# stays unconfirmed until the owner decides on publication.
+STAGED_2026_11_15 = {"shom-atlas-courants-2d"}
+
 
 def test_exactly_the_sources_the_owner_confirmed_say_yes():
     said_yes = {s["id"] for s in REGISTER["sources"] if s["redistribute"] == "yes"}
     assert said_yes == OWNER_CONFIRMED_2026_11_12 | STAGED_2026_11_14
-    assert {s["id"] for s in REGISTER["sources"]} == OWNER_CONFIRMED_2026_11_12 | STAGED_2026_11_14
+    assert {
+        s["id"] for s in REGISTER["sources"]
+    } == OWNER_CONFIRMED_2026_11_12 | STAGED_2026_11_14 | STAGED_2026_11_15
+    for source_id in STAGED_2026_11_15:
+        assert entry(source_id)["redistribute"] == "unconfirmed", source_id
     for source_id in OWNER_CONFIRMED_2026_11_12:
         source = entry(source_id)
         assert source["licence"], source_id

@@ -10,16 +10,17 @@ needs a sibling checkout.
 | PFT1 weather/ensemble codec golden objects and expectations | `forecast-tiles/tests/fixtures/golden-*` | forecast-tiles | Passage; Tactician retains the weather golden |
 | Three `land-index-*.schema.json` schemas and the Raz de Sein golden bundle | `forecast-tiles/contracts/` and `tests/fixtures/land-index-raz/` | forecast-tiles | Tactician `core/land` |
 | Two `charts-*.schema.json` schemas and the Cherbourg TCP1 golden (`cherbourg.pmtiles`, `cherbourg-depth.pmtiles`, `cherbourg.expected.json`) | `forecast-tiles/contracts/` and `tests/fixtures/chart-pack-cherbourg/` | forecast-tiles | Tactician `core/charts` (the three fixture files) |
+| TCA1 tidal-atlas format (`docs/tidal-atlas-format.md`), two `tidal-atlas-*.schema.json` schemas and the Alderney Race golden (`alderney.tca1.gz`, `alderney.expected.json`), staged 2026-11-15 | `forecast-tiles/docs/tidal-atlas-format.md`, `contracts/` and `tests/fixtures/tidal-atlas-alderney/` | forecast-tiles | Tactician `core/atlas` (the two schemas and two golden files) |
 | `data-sources.schema.json` and the register `data-sources.json` (`data-sources/schema-1`, 2026-11-11): one record per upstream source with licence, attribution, redistribution status and verified date; values only where a file in this repository already states them | `forecast-tiles/contracts/` | forecast-tiles | Passage (About page, vendored under `contracts/`) |
 
 The lock records each canonical repository/path, `PFT1/schema-1`,
-`TLI1/schema-1`, `TCP1/schema-1` or `data-sources/schema-1` version, canonical Git blob revision (`git-blob:`), and SHA-256.
+`TLI1/schema-1`, `TCP1/schema-1`, `TCA1/schema-1` or `data-sources/schema-1` version, canonical Git blob revision (`git-blob:`), and SHA-256.
 Blob revisions identify the already shared artifact bytes, without embedding
 private implementation commits or review evidence. Both revision and digest
 must agree for exact copies. Scoped Git attributes retain LF for pinned JSON
 and binary bytes for tiles, including `autocrlf=true` checkouts. The scripts also reject missing/duplicate inventory
 entries and any contract family whose consumer list the checker does not name:
-`PFT1` is consumed by Passage and Tactician, `TLI1` and `TCP1` by Tactician only,
+`PFT1` is consumed by Passage and Tactician, `TLI1`, `TCP1` and `TCA1` by Tactician only,
 `data-sources` by Passage only. The format version is for the pin record, not a new wire schema.
 
 These are pins to a declared canonical revision, not a claim to track the latest
@@ -51,6 +52,10 @@ staged current layer names, `currents-nws` and `currents-med`, an additive
 change made in Passage (`171e529`) and copied here; the register gained the
 `cmems-nws` and `cmems-med` rows. Passage's vendored register stays at its own
 earlier pin until it refreshes it.
+Added on 2026-11-15 (Tactician Isomar P13, staged): the `TCA1/schema-1`
+family, two canonical schemas and the two-file Alderney Race golden, consumed
+by Tactician alone; the register gained the `shom-atlas-courants-2d` row and
+was re-pinned. Passage's vendored register again stays at its earlier pin.
 
 Run `.venv/bin/python scripts/check_shared_contracts.py` and
 `.venv/bin/python -m unittest discover -s scripts -p test_shared_contracts.py`.

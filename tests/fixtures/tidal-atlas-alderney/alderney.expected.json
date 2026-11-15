@@ -1,0 +1,99 @@
+{
+ "file": "alderney.tca1.gz",
+ "sha256": "29992571d90d0aeda51b2853f7caa1826283c4a6c30aa3821ec7a49ef7f90137",
+ "header": {
+  "spec": "TCA1",
+  "schema_version": 1,
+  "grid": "alderney-fixture",
+  "zone": "Golfe normand-breton",
+  "title": "Alderney Race, cut from the Golfe normand-breton atlas (test fixture)",
+  "resolution_m": 500,
+  "reference_port": {
+   "name": "SAINT-MALO",
+   "shom_code": "0410",
+   "event": "high_water"
+  },
+  "lat0": 49.682871661,
+  "dlat": 0.004495726,
+  "rows": 12,
+  "lon0": -2.187432412,
+  "dlon": 0.006891892,
+  "columns": 16,
+  "coefficients": [
+   45,
+   95
+  ],
+  "offsets_min": [
+   -360,
+   -300,
+   -240,
+   -180,
+   -120,
+   -60,
+   0,
+   60,
+   120,
+   180,
+   240,
+   300,
+   360
+  ],
+  "scale_m_s": 0.001,
+  "missing": -32768,
+  "source": {
+   "file": "ATLASDYN-SURF_TELEMAC2D_R1123000_GOLFE-NORM-BRET-562-500M-1h.nc",
+   "sha256": "6fac0872f52d9705c2959e4d1ef88787a63acba1b5e921106d8cb98d615fd44f",
+   "archive_sha256": "82596b8637c51e540176b27a240b0beb696d7bf334de4ec1667660f6b3a64ead",
+   "release_date": "2026/01/20",
+   "lineage": "GolfeNBret_2D-1997"
+  },
+  "attribution": "Shom, 2026. Atlas de courants de marée 2D au format netcdf, https://dx.doi.org/10.17183/ATLASCOURANTS2D_NETCDF",
+  "limitation": "A n'utiliser qu'en complément des cartes et ouvrages nautiques officiels.",
+  "not_for_navigation": true
+ },
+ "missing_nodes": 624,
+ "probes": [
+  {
+   "coefficient": 45,
+   "offset_min": -360,
+   "row": 0,
+   "column": 0,
+   "u": -863,
+   "v": -569
+  },
+  {
+   "coefficient": 95,
+   "offset_min": 0,
+   "row": 6,
+   "column": 8,
+   "u": 1604,
+   "v": 2111
+  },
+  {
+   "coefficient": 95,
+   "offset_min": -240,
+   "row": 11,
+   "column": 15,
+   "u": -1082,
+   "v": -2191
+  },
+  {
+   "coefficient": 45,
+   "offset_min": 360,
+   "row": 3,
+   "column": 4,
+   "u": -872,
+   "v": -829
+  },
+  {
+   "coefficient": 95,
+   "offset_min": 180,
+   "row": 5,
+   "column": 10,
+   "u": 671,
+   "v": 1020
+  }
+ ],
+ "sum_u": 394490,
+ "sum_v": -554952
+}

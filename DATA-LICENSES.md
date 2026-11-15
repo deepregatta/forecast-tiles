@@ -115,6 +115,23 @@ databases they stay openly available under the ODbL. Each archive's own
 [docs/chart-pack-format.md](docs/chart-pack-format.md#8-sources-and-licences)
 has the table. They are a picture for a crew, not a navigation chart.
 
+## SHOM tidal-current atlases (TCA1, staged 15 November 2026)
+
+The grids under `tidal-atlas/` (not yet published) and the golden fixture in
+`tests/fixtures/tidal-atlas-alderney/` are derived from SHOM's 2D tidal-current
+atlases in NetCDF (`shom-atlas-courants-2d`), downloaded on 15 November 2026
+from SHOM's download service. Each pack's metadata states Licence Ouverte 2.0
+(Etalab, April 2017), free use with the credit "Shom, 2026. Atlas de courants
+de marée 2D au format netcdf, https://dx.doi.org/10.17183/ATLASCOURANTS2D_NETCDF",
+and the condition "A n'utiliser qu'en complément des cartes et ouvrages
+nautiques officiels" (only in addition to official nautical charts and
+publications). Licence Ouverte permits reuse, modification and redistribution,
+commercial included, with the source and its last update credited and without
+implying SHOM's endorsement. The grids are modified (subsampled to 30 minutes,
+quantized to 1 mm/s); every grid header and manifest carries the credit and the
+condition ([docs/tidal-atlas-format.md](docs/tidal-atlas-format.md)).
+Redistribution from the bucket awaits the owner's decision.
+
 ## Terms read on 12 November 2026
 
 The owner confirmed the fifteen sources below as redistributable on 12 November

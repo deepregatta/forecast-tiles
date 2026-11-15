@@ -36,6 +36,13 @@
       ],
       "ceiling_bytes": 5500000
     },
+    "tidal-atlas": {
+      "mode": "managed",
+      "prefixes": [
+        "tidal-atlas/"
+      ],
+      "ceiling_bytes": 150000
+    },
     "prepared": {
       "mode": "unmanaged",
       "prefixes": [
@@ -66,6 +73,7 @@
     "forecast-regional": 0,
     "land": 0,
     "charts": 0,
+    "tidal-atlas": 0,
     "prepared": 0,
     "technical": 0,
     "multipart": 0

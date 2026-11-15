@@ -278,6 +278,62 @@
       "intentional_divergence": null
     },
     {
+      "path": "contracts/tidal-atlas-latest.schema.json",
+      "canonical_repository": "forecast-tiles",
+      "canonical_path": "contracts/tidal-atlas-latest.schema.json",
+      "canonical_revision": "git-blob:40530452c9952ef3bac13d6a72e3fabe854e868b",
+      "contract": "TCA1/schema-1",
+      "producer": "forecast-tiles",
+      "consumers": [
+        "tactician"
+      ],
+      "sha256": "c70ba3750fc46595e386d203d62ce51768ed0420f76cd2e89f1db02e58c4e3c5",
+      "representation": "exact",
+      "intentional_divergence": null
+    },
+    {
+      "path": "contracts/tidal-atlas-manifest.schema.json",
+      "canonical_repository": "forecast-tiles",
+      "canonical_path": "contracts/tidal-atlas-manifest.schema.json",
+      "canonical_revision": "git-blob:add6d705fbcb518e386416746e0f219296b35304",
+      "contract": "TCA1/schema-1",
+      "producer": "forecast-tiles",
+      "consumers": [
+        "tactician"
+      ],
+      "sha256": "d4611857470a7bec9e6a4012ae09ef46d54d3bc3b60e82226e264852444536ad",
+      "representation": "exact",
+      "intentional_divergence": null
+    },
+    {
+      "path": "tests/fixtures/tidal-atlas-alderney/alderney.expected.json",
+      "canonical_repository": "forecast-tiles",
+      "canonical_path": "tests/fixtures/tidal-atlas-alderney/alderney.expected.json",
+      "canonical_revision": "git-blob:7147270095f93cab6b81ec967234fff2841880ff",
+      "contract": "TCA1/schema-1",
+      "producer": "forecast-tiles",
+      "consumers": [
+        "tactician"
+      ],
+      "sha256": "dde4ed27eaeef5e511251fc52a190febc8112f21ed06101f829dc0b4fd479b3c",
+      "representation": "exact",
+      "intentional_divergence": null
+    },
+    {
+      "path": "tests/fixtures/tidal-atlas-alderney/alderney.tca1.gz",
+      "canonical_repository": "forecast-tiles",
+      "canonical_path": "tests/fixtures/tidal-atlas-alderney/alderney.tca1.gz",
+      "canonical_revision": "git-blob:734332f959da66e50c1efa7eb1ad3b1ed0168881",
+      "contract": "TCA1/schema-1",
+      "producer": "forecast-tiles",
+      "consumers": [
+        "tactician"
+      ],
+      "sha256": "29992571d90d0aeda51b2853f7caa1826283c4a6c30aa3821ec7a49ef7f90137",
+      "representation": "exact",
+      "intentional_divergence": null
+    },
+    {
       "path": "contracts/data-sources.schema.json",
       "canonical_repository": "forecast-tiles",
       "canonical_path": "contracts/data-sources.schema.json",
@@ -295,13 +351,13 @@
       "path": "contracts/data-sources.json",
       "canonical_repository": "forecast-tiles",
       "canonical_path": "contracts/data-sources.json",
-      "canonical_revision": "git-blob:b2d40df001cb0c270c0d3541a2ca51d83ce1cf64",
+      "canonical_revision": "git-blob:fa03234d1ae9992f2d7cf3ecb2ec21bced163c65",
       "contract": "data-sources/schema-1",
       "producer": "forecast-tiles",
       "consumers": [
         "passage"
       ],
-      "sha256": "d1c76fa0d755a7ecaccd9476daabed7a8c74d3dbf84933e9a481eecf504e0896",
+      "sha256": "1c3442df2dbe05f28ce66edd2900149b52c6679dba4430644ff6d3059254a93b",
       "representation": "exact",
       "intentional_divergence": null
     }

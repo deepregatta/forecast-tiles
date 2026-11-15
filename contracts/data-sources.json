@@ -341,6 +341,27 @@
         "docs/chart-pack-format.md"
       ],
       "notes": "Credit Shom and the date of last update; the portal page says the dataset has no DOI. It is harvested from a Shom portal whose own terms were not read. Confirmed by the owner on 2026-11-12."
+    },
+    {
+      "id": "shom-atlas-courants-2d",
+      "name": "SHOM 2D tidal-current atlases (NetCDF)",
+      "provider": "Shom",
+      "licence": "Licence Ouverte 2.0",
+      "licence_url": "https://www.etalab.gouv.fr/licence-ouverte-open-licence",
+      "attribution": "Shom, 2026. Atlas de courants de marée 2D au format netcdf, https://dx.doi.org/10.17183/ATLASCOURANTS2D_NETCDF; modified: grids subsampled to 30 minutes and quantized to 1 mm/s",
+      "share_alike": false,
+      "redistribute": "unconfirmed",
+      "verified_on": "2026-11-15",
+      "verified_from": "https://www.data.gouv.fr/datasets/atlas-de-courants-de-maree-2d-au-format-netcdf",
+      "used_by": [
+        "tidal-atlas"
+      ],
+      "recorded_in": [
+        "src/ingest/atlas/sources.py",
+        "DATA-LICENSES.md",
+        "docs/tidal-atlas-format.md"
+      ],
+      "notes": "Seven whole-zone grids (Golfe normand-breton, Bretagne Nord, Finistère, Baie de Seine, Pas de Calais, Manche, Gascogne), downloaded on 2026-11-15 from SHOM's download service services.data.shom.fr, which SHOM's data.gouv.fr listings name. Each pack's metadata states: free use citing the source as above, Licence Ouverte 2.0 (April 2017), and 'A n'utiliser qu'en complément des cartes et ouvrages nautiques officiels' (to be used only in addition to official nautical charts and publications). Licence Ouverte permits reuse, modification and redistribution with the source and its last update credited, without implying endorsement. Display only. Staged on 2026-11-15: not published to the bucket; redistribution awaits the owner's decision."
     }
   ]
 }

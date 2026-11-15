@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://forecast.deepregatta.com/contracts/tidal-atlas-manifest.schema.json",
+  "title": "TCA1 tidal-atlas build manifest, schema 1",
+  "description": "tidal-atlas/{build_id}/manifest.json: one build of SHOM's 2D tidal-current atlases as TCA1 grids (docs/tidal-atlas-format.md). Display only; never a routing input.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "spec",
+    "schema_version",
+    "build_id",
+    "previous_build_id",
+    "published_at",
+    "attribution",
+    "limitation",
+    "licence",
+    "licence_url",
+    "not_for_navigation",
+    "grids",
+    "totals",
+    "validation"
+  ],
+  "properties": {
+    "spec": {
+      "const": "TCA1"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "build_id": {
+      "type": "string",
+      "pattern": "^[0-9]{8}T[0-9]{4}Z$"
+    },
+    "previous_build_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{8}T[0-9]{4}Z$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "attribution": {
+      "type": "string",
+      "minLength": 1
+    },
+    "limitation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "grids": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "zone",
+          "title",
+          "rank",
+          "key",
+          "bytes",
+          "sha256",
+          "bounds",
+          "resolution_m",
+          "reference_port",
+          "offsets_min",
+          "source"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "zone": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "key": {
+            "type": "string",
+            "pattern": "^tidal-atlas/[0-9]{8}T[0-9]{4}Z/[a-z0-9-]+\\.tca1\\.gz$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "bounds": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 4,
+            "maxItems": 4,
+            "description": "West, south, east, north of the outer nodes, degrees"
+          },
+          "resolution_m": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "reference_port": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "shom_code",
+              "event"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "shom_code": {
+                "type": "string",
+                "pattern": "^[0-9]{4}$"
+              },
+              "event": {
+                "const": "high_water"
+              }
+            }
+          },
+          "offsets_min": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": -360,
+              "maximum": 360
+            },
+            "minItems": 2
+          },
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "file",
+              "sha256",
+              "archive_sha256",
+              "release_date",
+              "lineage"
+            ],
+            "properties": {
+              "file": {
+                "type": "string",
+                "pattern": "\\.nc$"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "archive_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "release_date": {
+                "type": "string"
+              },
+              "lineage": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "totals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grids",
+        "bytes"
+      ],
+      "properties": {
+        "grids": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "licence": {
+      "type": "string",
+      "minLength": 1
+    },
+    "licence_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "not_for_navigation": {
+      "const": true
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checks_passed"
+      ],
+      "properties": {
+        "checks_passed": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

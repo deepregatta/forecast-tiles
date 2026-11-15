@@ -135,6 +135,27 @@ write*, never as byte charges. Finished reservations also retain their complete
 charge. A full control document closes admission; it does not silently truncate
 history or reset counters.
 
+## Tidal atlas
+
+The **`tidal-atlas`** owner (managed, prefix `tidal-atlas/`, staged
+2026-11-15 for Tactician's display of SHOM's tidal-current atlases,
+[tidal-atlas-format.md](tidal-atlas-format.md)) is reserved by its
+`publish_build` as charts are: the whole upload and manifest plus the 1 MiB
+pointer/status allowance, under the build id. Measured on the dry-run build
+of 2026-11-15: seven grids, **36,533,243 B** (36.5 MB), manifest 8.4 kB,
+pointer 8.2 kB. Retention keeps the new and the previous builds, so the prefix
+holds 73.1 MB at rest and **109.6 MB at its worst moment** (two kept builds
+and a third uploading). Its ceiling is **0.15 GB**. Against the accounting of
+2026-11-14 above (19.82 GB at the worst moment under the 21 GB limit, with a
+chart rebuild in flight), the atlas's worst moment makes **19.93 GB**, 1.07 GB
+to spare; the bucket limit does not change. Atlas bytes count as "other"
+objects in the regional calculation, and the publisher runs the same regional
+room check as charts before uploading. A build is made only when SHOM issues
+a new edition, not on a schedule. **Publication is switched off**
+(`PUBLICATION_ENABLED` False); nothing is in the bucket under `tidal-atlas/`.
+The owner goes into the ledger before `CAPACITY_ENFORCE=1`, as charts did; the
+scratch example carries a synthetic 0.15 MB.
+
 ## Publication and uncertainty
 
 Root and regional callers both use `publish_run`; land uses `publish_index`.

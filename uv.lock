@@ -392,6 +392,9 @@ dependencies = [
 ]
 
 [package.optional-dependencies]
+atlas = [
+    { name = "h5py" },
+]
 charts = [
     { name = "contourpy" },
     { name = "pmtiles" },
@@ -423,6 +426,7 @@ requires-dist = [
     { name = "eccodeslib", specifier = ">=2.47.3.22" },
     { name = "ecmwf-opendata", specifier = ">=0.3.19" },
     { name = "fnv-c", specifier = "==0.3.1" },
+    { name = "h5py", marker = "extra == 'atlas'", specifier = "==3.16.0" },
     { name = "numpy", specifier = ">=2.0" },
     { name = "omfiles", marker = "extra == 'openmeteo'", specifier = "==1.2.0" },
     { name = "orjson", specifier = ">=3.10" },
@@ -433,7 +437,7 @@ requires-dist = [
     { name = "scipy", marker = "extra == 'charts'", specifier = "==1.16.3" },
     { name = "shapely", marker = "extra == 'charts'", specifier = "==2.1.2" },
 ]
-provides-extras = ["currents", "openmeteo", "charts"]
+provides-extras = ["currents", "openmeteo", "charts", "atlas"]
 
 [package.metadata.requires-dev]
 dev = [

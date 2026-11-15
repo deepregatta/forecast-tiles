@@ -56,6 +56,11 @@ chart archives, one per sea-touching z6 cell plus a world overview, which
 Tactician fetches at the dock and draws with its own style. It is a picture for
 the crew; routing never reads it.
 
+The fourth is [the tidal atlas](docs/tidal-atlas-format.md) (TCA1), **staged**:
+SHOM's 2D tidal-current atlases read from their NetCDF4 files into small
+grids, so Tactician can draw the mean neap and spring tidal streams without
+HDF5. Built once per SHOM edition; nothing is published yet. Display only.
+
 ## Operational status and verification
 
 Configuration and delivery evidence answer different questions:
@@ -67,6 +72,7 @@ Configuration and delivery evidence answer different questions:
 | Current layers | `currents`: CMEMS GLO12, six-hourly samples to 240 h; `currents-ibi`: CMEMS IBI, hourly means to 120 h | Dated provider timings in the dispatcher table; no alternate provider is supported |
 | Routing index | One-shot `ingest land`, manual workflow only | [Versioned index and reproducibility evidence](docs/land-index-format.md) |
 | Display chart (TCP1) | `ingest-charts`; the `charts` workflow, dispatched monthly by the dispatcher (07:20 UTC, each month's first Wednesday, Europe's 73 cells, newest Seamap archive and Protomaps build; unchanged cells are not built) or by hand (dry run by default). Open Waters was told about the monthly reads on 2026-11-07 | [Format, publication and measured builds](docs/chart-pack-format.md) |
+| Tidal atlas (TCA1), staged | `ingest-atlas`; the `tidal-atlas` workflow, manual dispatch only, dry run only, no bucket credentials; `PUBLICATION_ENABLED` False | Dry-run build of 2026-11-15: seven grids, 36.5 MB ([format and zones](docs/tidal-atlas-format.md)); not published |
 
 For regionals, **enabled** means the registry gate is open; production also
 needs matching GitHub `OPENMETEO_ENABLED_LAYERS`, runtime

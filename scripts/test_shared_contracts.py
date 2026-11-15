@@ -118,6 +118,9 @@ class ContractDriftTests(unittest.TestCase):
             ("contracts/land-index-latest.schema.json", ["passage"]),
             ("contracts/land-index-latest.schema.json", ["passage", "tactician"]),
             ("contracts/charts-latest.schema.json", ["passage"]),
+            # the tidal atlas is read by Tactician alone
+            ("contracts/tidal-atlas-latest.schema.json", ["passage"]),
+            ("tests/fixtures/tidal-atlas-alderney/alderney.tca1.gz", ["passage", "tactician"]),
             ("contracts/forecast-latest.schema.json", ["passage"]),
             ("contracts/forecast-latest.schema.json", ["tactician"]),
         ]

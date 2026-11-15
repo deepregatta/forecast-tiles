@@ -1,0 +1,58 @@
+name: tidal-atlas
+
+# TCA1 tidal-atlas packs from SHOM's 2D tidal-current atlases
+# (docs/tidal-atlas-format.md). STAGED: manual dispatch only, no schedule, no
+# dispatcher entry, and no bucket credentials anywhere in this file. It builds
+# and publishes to a scratch layout, then keeps the result as a run artifact;
+# `ingest.atlas.publish.PUBLICATION_ENABLED` is False, so the publisher refuses
+# the bucket even if credentials were added. SHOM's atlases change with a new
+# edition, not with the weather: a rebuild ships as a new immutable build.
+on:
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: "Build id, UTC YYYYMMDDTHHMMZ"
+        required: true
+
+concurrency:
+  group: tidal-atlas
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  CAPACITY_ENFORCE: ${{ vars.CAPACITY_ENFORCE || '0' }}
+  PAID_WORK_ENFORCE: ${{ vars.PAID_WORK_ENFORCE || '0' }}
+  MAX_BUCKET_BYTES: ${{ vars.MAX_BUCKET_BYTES || '21000000000' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # About 1.1 GB of archives from SHOM's download service, Finistère's 776 MB
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          python-version: '3.13'
+      - run: uv sync --extra atlas
+      - name: Fetch SHOM's archives, checked against their pins
+        run: uv run ingest-atlas fetch --out "$RUNNER_TEMP/shom"
+      - name: Build the grids
+        run: uv run ingest-atlas build --source "$RUNNER_TEMP/shom" --out "$RUNNER_TEMP/atlas"
+      - name: Publish to a scratch layout (dry run)
+        run: >-
+          uv run ingest-atlas publish --build-dir "$RUNNER_TEMP/atlas"
+          --build-id "$BUILD_ID" --dry-run "$RUNNER_TEMP/atlas-r2"
+        env:
+          BUILD_ID: ${{ inputs.build_id }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: tidal-atlas-${{ inputs.build_id }}
+          path: ${{ runner.temp }}/atlas-r2/
+          retention-days: 7
+          compression-level: 0
+          if-no-files-found: error
